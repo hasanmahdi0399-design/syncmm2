@@ -264,7 +264,7 @@ async function handle(a,b,sid,H){
   db.cf.recent.push({id:g.id,c:g.c,j:{id:u.id,name:u.name,avatar:u.avatar},cSide:g.side,jSide:side,result:res,flips,winner:w,cItems:g.items,jItems:items,cValue:g.value,jValue:jv,taxed:tx,won:total-tx,t:Date.now()});
   db.cf.recent=db.cf.recent.slice(-20);
   log(`🪙 Coinflip #${g.id}: **${w.name}** won ${total-tx} value (${g.c.name} vs ${u.name}, ${flips.join('/')})`);return{ok:1,id:g.id}}
- if(a==='minesstart'){if(u.mines)E('Game in progress');const bet=needInt(b.bet),m=needInt(b.m);if(m>10)E('Max 10 mines');if(u.tokens<bet)E('Not enough tokens');
+ if(a==='minesstart'){if(u.mines)E('Game in progress');const bet=needInt(b.bet),m=needInt(b.m);if(m<1||m>24)E('Pick 1-24 mines');if(bet<5)E('Minimum bet is 5');if(u.tokens<bet)E('Not enough tokens');
   u.tokens-=bet;const mines=[];while(mines.length<m){const x=crypto.randomInt(25);if(!mines.includes(x))mines.push(x)}
   u.mines={bet,m,mines,open:[]};return{ok:1}}
  if(a==='minespick'){const g=u.mines;if(!g)E('No game');const i=needInt(b.i,0);if(i>24||g.open.includes(i))E('Invalid tile');
