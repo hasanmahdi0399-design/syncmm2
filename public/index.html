@@ -36,12 +36,22 @@ main{padding:14px;max-width:960px;margin:auto}
 .stat{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--ln)}.stat:last-child{border-bottom:0}.g{color:var(--g)}
 .big{width:100%;padding:14px;font-size:16px;margin-top:14px;border-radius:14px}
 .mw{display:grid;grid-template-columns:1fr;gap:14px}@media(min-width:760px){.mw{grid-template-columns:300px 1fr}}
-.mg{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:380px;margin:auto}.mg button{aspect-ratio:1;font-size:24px;padding:0;background:var(--p2);color:var(--t);border:1px solid var(--ln);box-shadow:none}
-.mg button:not(:disabled):hover{border-color:var(--a);transform:none;box-shadow:none;background:var(--p3)}
-.mg .ok{background:linear-gradient(145deg,#1a4a2e,#123420);border-color:var(--g);animation:flip .45s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 16px -4px #4ade8055}
-.mg .bm{background:linear-gradient(145deg,#4a1a20,#341218);border-color:var(--r);animation:flip .45s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 16px -4px #f8717155}
-.mg .hit{animation:shake .5s}
-.mg.pls button{animation:pulse .6s infinite alternate ease-in-out}
+/* mines */
+.mstage{background:radial-gradient(500px 300px at 50% 0%,#241d4a55,transparent 70%),linear-gradient(180deg,#171a22,#101218);border:1px solid #2c3140;border-radius:18px;padding:16px;box-shadow:var(--sh)}
+.mchips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.mchip{background:#0d0f14;border:1px solid #2a2f3d;border-radius:12px;padding:8px 6px;text-align:center}
+.mchip small{display:block;color:var(--m);font-size:10px;text-transform:uppercase;letter-spacing:.7px}.mchip b{font-size:15px}.mchip.hl b{color:var(--g)}
+.mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;width:min(460px,100%);margin:0 auto}
+.mt{aspect-ratio:1;border-radius:14px;border:1px solid #444d63;background:linear-gradient(160deg,#363f55,#252b3b);box-shadow:inset 0 1px 0 #ffffff26,inset 0 -3px 0 #0003,0 6px 14px -6px #000c;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .12s,border-color .15s,box-shadow .15s}
+.mt:not(:disabled):hover{transform:translateY(-3px);border-color:#9b8cff;box-shadow:inset 0 1px 0 #ffffff33,0 10px 22px -8px #7c6cf0cc;background:linear-gradient(160deg,#414b66,#2b3347)}
+.mt:disabled{cursor:default;opacity:1}.mt svg{width:56%;height:56%}
+.mt.gem{background:linear-gradient(160deg,#25a05c,#125a34);border-color:#6df0a2;box-shadow:0 0 20px -4px #4ade80aa,inset 0 1px 0 #ffffff44;animation:flip .45s cubic-bezier(.2,.8,.2,1)}
+.mt.bomb{background:linear-gradient(160deg,#9b2a38,#4d121b);border-color:#ff8a8a;box-shadow:0 0 20px -4px #f87171aa;animation:flip .45s cubic-bezier(.2,.8,.2,1)}
+.mt.bomb.dim{opacity:.55;box-shadow:none;animation:none}.mt.hit{animation:shake .5s,flip .45s}
+.mgrid.pls .mt{animation:pulse .6s infinite alternate ease-in-out}
+.mres{text-align:center;font:700 16px/1.3 'Syncopate',system-ui,sans-serif;letter-spacing:.1em;margin:14px 0 0;padding:12px;border-radius:12px}.mres.win{background:#4ade8018;color:var(--g);border:1px solid #4ade8055}.mres.lose{background:#f8717118;color:var(--r);border:1px solid #f8717155}
+.mres small{display:block;font:500 13px system-ui,sans-serif;letter-spacing:0;color:var(--m);margin-top:4px}
+.mctl .row button.on{outline:2px solid var(--ac2)}.mctl input[type=number]{text-align:center}
+.cashbtn{background:linear-gradient(135deg,#22c55e,#15803d)!important;box-shadow:0 8px 22px -6px #22c55e99!important}
 .ld{display:flex;flex-direction:column;align-items:center;gap:14px;padding:90px 0}
 .sp{width:40px;height:40px;border:3px solid var(--p2);border-top-color:var(--ac1);border-right-color:var(--ac2);border-radius:50%;animation:rot .7s cubic-bezier(.5,.2,.5,.8) infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
@@ -108,6 +118,29 @@ table{width:100%;border-collapse:collapse}td,th{padding:8px 7px;text-align:left;
 #rainov .rbox{width:min(340px,100%);background:linear-gradient(135deg,#0f3a4d,#1d1646);border:1px solid #4fd1ff44;border-radius:18px;padding:22px;text-align:center;box-shadow:0 0 40px #4fd1ff22;animation:spinIn .25s both;display:flex;flex-direction:column;gap:12px}
 #rainov .rtt{font:700 16px 'Syncopate',system-ui,sans-serif;letter-spacing:.18em}#rainov .rmuted{color:var(--m);font-size:13px}
 #rainov .rbig{font:700 36px/1.1 'Syncopate',system-ui,sans-serif}#rainov input{text-align:center;font-size:18px}
+/* coinflip v2 */
+.cfx{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}@media(min-width:900px){.cfx{grid-template-columns:420px 1fr}}
+.sdr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sdc{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:2px solid #2c3140;background:#12141a;color:var(--t);box-shadow:none;text-align:left;font-weight:700}
+.sdc:hover:not(:disabled){transform:none;box-shadow:none;background:#181b23}.sdc small{display:block;color:var(--m);font-weight:500}
+.sdc.h.on{border-color:#4aa8ff;background:#0f2038;box-shadow:0 0 22px -6px #2f8cffaa}.sdc.t.on{border-color:#ff6b6b;background:#2b1216;box-shadow:0 0 22px -6px #ff4a4aaa}
+.mc{width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:700 18px/1 'Syncopate',system-ui,sans-serif;color:#fff;flex:none}
+.mc.h{background:radial-gradient(circle at 30% 28%,#6cc3ff,#1d6fe0 60%,#0d3a85);border:2px solid #bfe3ff}.mc.t{background:radial-gradient(circle at 30% 28%,#ff8a8a,#e0262d 60%,#85101a);border:2px solid #ffd0d0}
+.offer{background:#0d0f14;border:1px dashed #3a4156;border-radius:14px;padding:10px 12px;margin-bottom:12px}.offer .oh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:30px;align-items:center}.chp{display:inline-flex;align-items:center;gap:6px;background:#1c2030;border:1px solid #343b50;border-radius:99px;padding:3px 10px 3px 4px;cursor:pointer;font-size:12px}
+.chp .ic{height:26px;width:26px;font-size:16px}.chp .ic img,.chp .ic svg{width:26px;height:26px;max-height:26px}.chp:hover{border-color:var(--r)}
+.pkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px;max-height:340px;overflow-y:auto;padding:2px}
+.pk{position:relative;background:linear-gradient(180deg,#232838,#191c27);border:1px solid #333a4e;border-radius:12px;padding:8px 4px 6px;text-align:center;cursor:pointer;transition:transform .12s,border-color .15s}
+.pk:hover{transform:translateY(-2px);border-color:#7c6cf0}.pk.on{border-color:var(--g);box-shadow:0 0 0 1px var(--g),0 0 14px -4px #4ade8077;background:linear-gradient(180deg,#1d3328,#162219)}
+.pk .ic{height:52px;font-size:34px}.pk .ic img,.pk .ic svg{max-height:52px;height:52px;width:auto;max-width:100%}.pk b{display:block;font-size:11px;margin:2px 0;line-height:1.2;min-height:26px;display:flex;align-items:center;justify-content:center}.pk small{color:var(--g);font-size:11px}
+.pk .pkq{position:absolute;top:4px;right:6px;font-size:10px;color:var(--m);background:#0008;border-radius:8px;padding:1px 5px}.pk.on .pkq{color:#fff;background:#16a34a}
+.gm{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:linear-gradient(180deg,#1e2230,#161922);border:1px solid #2f3547;border-radius:16px;padding:12px;margin-bottom:10px;animation:up .35s both}
+.gm.mine{border-color:#7c6cf066}.gm .who{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-weight:700}.gm .who img{width:24px;height:24px}
+.gm .its{display:flex;gap:6px;flex-wrap:wrap}.gm .it{position:relative;background:#0d0f14;border:1px solid #2c3345;border-radius:10px;padding:2px}.gm .it .ic{height:46px;width:46px;font-size:28px}.gm .it .ic img,.gm .it .ic svg{width:46px;height:46px;max-height:46px}
+.gm .it span{position:absolute;right:2px;bottom:0;font-size:10px;font-weight:700;background:#000a;border-radius:6px;padding:0 4px}
+.gm .rt{text-align:right}.gm .rt b{font-size:17px}.gm .rt small{display:block;color:var(--m);margin:2px 0 6px}
+.gm .mc{width:48px;height:48px;font-size:22px}
+@media(max-width:520px){.gm{grid-template-columns:auto 1fr}.gm .rt{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;text-align:left}.gm .rt small{margin:0}}
 </style></head><body><div id="splash"><img src="/logo.png" alt=""><b>Sync</b><i></i></div><div id="app"><p style="padding:20px;color:#8b9098">Loading… (if this never goes away, the script did not run)</p></div><div id="toast"></div>
 <script>window.onerror=function(m,u,l){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">JS error: '+m+' (line '+l+')</pre>')};window.onunhandledrejection=function(e){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">Error: '+(e.reason&&e.reason.message||e.reason)+'</pre>')}</script>
 <script>
@@ -189,18 +222,26 @@ function spin(l){const w=$('#wheel');if(!w)return;spinning=true;let a=0,c=0;cons
  w.style.transition=cfg.anim?'transform 5s cubic-bezier(.12,.7,.1,1)':'none';w.style.transform=`rotate(${360*6-c}deg)`;
  setTimeout(()=>{const r=$('#jr');if(r)r.innerHTML=`🏆 ${l.name} won ${fmt(l.total-l.taxed)} value! <span class="muted">(tax ${fmt(l.taxed)})</span>`;spinning=false;wheelSig='';load()},cfg.anim?5200:0)}
 const rr=()=>{if(tab==='mines')rMines($('#view'))};
-function rMines(v){const g=S.mines,r=mres,n=g?g.open.length:0,m=g?g.m:mmn,cur=g?g.mult:1;
- const setup=g?`<div class="stat"><span>Bet</span><b>${fmt(g.bet)} 🪙</b></div><div class="stat"><span>Mines</span><b>${g.m}</b></div><div class="stat"><span>Multiplier</span><b class="g">${cur.toFixed(2)}x</b></div><div class="stat"><span>Payout</span><b class="g">${fmt(g.bet*cur)} 🪙</b></div><div class="stat"><span>Next tile</span><b>${mlt(m,n+1).toFixed(2)}x</b></div><button class="big" onclick="mca()" ${n?'':'disabled'}>Cash out ${fmt(g.bet*cur)} 🪙</button>`
- :`<label class="lb">Bet amount (tokens)</label><div class="row"><input id="mb" type="number" min="1" value="${mbet}" oninput="mbet=+this.value" style="flex:1;min-width:90px"><button class="s" onclick="mset(.5)">½</button><button class="s" onclick="mset(2)">2×</button><button class="s" onclick="mset(0)">Max</button></div>
- <div class="row">${[10,50,100,500,1000].map(x=>`<button class="s" onclick="mbet=${x};rr()">${x}</button>`).join('')}</div>
- <label class="lb">Mines: <b id="mc" style="color:var(--t)">${mmn}</b></label><input type="range" min="1" max="10" value="${mmn}" oninput="mmn=+this.value;$('#mc').textContent=mmn;$('#pv').textContent=mlt(mmn,1).toFixed(2)+'x'" style="width:100%">
- <div class="row">${[1,3,5,10].map(x=>`<button class="s" onclick="mmn=${x};rr()">${x}</button>`).join('')}</div>
- <div class="stat"><span>First tile pays</span><b class="g" id="pv">${mlt(mmn,1).toFixed(2)}x</b></div><div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)}</b></div><button class="big" onclick="mst()" ${mbusy?'disabled':''}>${mbusy?'Placing mines…':'Start game'}</button>`;
- const tiles=Array.from({length:25},(_,i)=>{const o=(g?g.open:r?r.open:[]).includes(i),b=!g&&r&&r.mines&&r.mines.includes(i);return`<button class="${o?'ok':b?'bm'+(i===mlast&&r.boom?' hit':''):''}" ${g&&!o&&!mbusy?`onclick="mp(${i})"`:'disabled'}>${o?'💎':b?'💣':''}</button>`}).join('');
- const msg=!g&&r?(r.boom?'<p style="text-align:center;color:var(--r);font-weight:700">💥 Boom! You lost your bet.</p>':`<p style="text-align:center;color:var(--g);font-weight:700">✅ Cashed out ${fmt(r.cashed)} 🪙</p>`):'';
- v.innerHTML=`<div class="mw"><div class="box"><h3>💣 Mines <span class="muted">— tokens only</span></h3>${setup}</div><div class="box"><div class="mg ${mbusy?'pls':''}">${tiles}</div>${msg}</div></div>`}
-function mset(x){mbet=x?Math.max(1,Math.floor(mbet*x)):Math.max(1,Math.floor(S.me.tokens));rr()}
-async function mst(){if(mbusy)return;mres=null;mbusy=true;rr();await new Promise(r=>setTimeout(r,cfg.anim?700:0));await api('minesstart',{bet:mbet,m:mmn});mbusy=false;await load();rr()}
+const GEM='<svg viewBox="0 0 64 64"><path d="M32 6 54 24 32 58 10 24z" fill="#b8ffd9" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><path d="M10 24h44M22 24 32 6l10 18M22 24l10 34 10-34" fill="none" stroke="#2fb36e" stroke-width="2"/></svg>';
+const BOMB='<svg viewBox="0 0 64 64"><circle cx="30" cy="38" r="20" fill="#1b1b22" stroke="#fff" stroke-width="2.5"/><path d="M43 22l7-7M52 8l2 6 6 2" fill="none" stroke="#ffd166" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="23" cy="31" r="5" fill="#fff" opacity=".5"/></svg>';
+const chip=(l,v,c='')=>`<div class="mchip ${c}"><small>${l}</small><b>${v}</b></div>`;
+function rMines(v){const g=S.mines,r=mres,n=g?g.open.length:0,m=g?g.m:mmn,cur=g?g.mult:1,left=25-m-n;
+ const chips=g?chip('Multiplier',cur.toFixed(2)+'x','hl')+chip('Payout',fmt(g.bet*cur),'hl')+chip('Next tile',mlt(m,n+1).toFixed(2)+'x')+chip('Gems left',left+' / '+(25-m))
+  :chip('Mines',mmn)+chip('Gems',25-mmn)+chip('First tile',mlt(mmn,1).toFixed(2)+'x','hl')+chip('Max win',mlt(mmn,25-mmn).toFixed(2)+'x');
+ const setup=g?`<div class="stat"><span>Bet</span><b>${fmt(g.bet)} 🪙</b></div><div class="stat"><span>Mines</span><b>${g.m} 💣</b></div><div class="stat"><span>Safe chance next</span><b>${(left/(25-n)*100).toFixed(1)}%</b></div><button class="big cashbtn" onclick="mca()" ${n?'':'disabled'}>${n?'Cash out '+fmt(g.bet*cur)+' 🪙':'Pick a tile first'}</button>`
+ :`<label class="lb">Bet amount <span class="muted" style="text-transform:none">(min 5)</span></label><div class="row"><input id="mb" type="number" min="5" value="${mbet}" oninput="mbet=+this.value" style="flex:1;min-width:90px"><button class="s" onclick="mset(.5)">½</button><button class="s" onclick="mset(2)">2×</button><button class="s" onclick="mset(0)">Max</button></div>
+ <div class="row">${[5,10,50,100,500,1000].map(x=>`<button class="s ${mbet===x?'on':''}" onclick="mbet=${x};rr()">${x}</button>`).join('')}</div>
+ <label class="lb">Mines <span class="muted" style="text-transform:none">(1–24)</span>: <b id="mc" style="color:var(--t);font-size:15px">${mmn}</b></label>
+ <input type="range" min="1" max="24" value="${mmn}" oninput="mmn=+this.value;$('#mc').textContent=mmn;$('#pv').textContent=mlt(mmn,1).toFixed(2)+'x'" onchange="rr()" style="width:100%">
+ <div class="row">${[1,3,5,10,15,20,24].map(x=>`<button class="s ${mmn===x?'on':''}" onclick="mmn=${x};rr()">${x}</button>`).join('')}</div>
+ <div class="stat"><span>First tile pays</span><b class="g" id="pv">${mlt(mmn,1).toFixed(2)}x</b></div><div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} 🪙</b></div><button class="big" onclick="mst()" ${mbusy?'disabled':''}>${mbusy?'Placing mines…':'Start game'}</button>`;
+ const op=g?g.open:r?r.open:[];
+ const tiles=Array.from({length:25},(_,i)=>{const o=op.includes(i),b=!g&&r&&r.mines&&r.mines.includes(i),hit=b&&r.boom&&i===mlast;
+  return`<button class="mt ${o?'gem':b?'bomb'+(hit?' hit':r.boom?'':' dim'):''}" ${g&&!o&&!mbusy?`onclick="mp(${i})"`:'disabled'} aria-label="tile ${i+1}">${o?GEM:b?BOMB:''}</button>`}).join('');
+ const msg=!g&&r?(r.boom?`<div class="mres lose">💥 Boom!<small>You lost your bet</small></div>`:`<div class="mres win">Cashed out +${fmt(r.cashed)} 🪙<small>${(r.open||[]).length} gems collected</small></div>`):'';
+ v.innerHTML=`<div class="mw"><div class="box mctl"><h3>💣 Mines <span class="muted">— 5×5 · tokens only</span></h3>${setup}</div><div class="mstage"><div class="mchips">${chips}</div><div class="mgrid ${mbusy?'pls':''}">${tiles}</div>${msg}</div></div>`}
+function mset(x){mbet=x?Math.max(5,Math.floor(mbet*x)):Math.max(5,Math.floor(S.me.tokens));rr()}
+async function mst(){if(mbusy)return;if(!(mbet>=5)){toast('Minimum bet is 5');return}mres=null;mbusy=true;rr();await new Promise(r=>setTimeout(r,cfg.anim?700:0));await api('minesstart',{bet:mbet,m:mmn});mbusy=false;await load();rr()}
 async function mp(i){mlast=i;const r=await api('minespick',{i});if(r.boom)mres=r;else if(r.cashed!=null)mres=r;await load();rr()}
 async function mca(){const r=await api('minescash');if(r.cashed!=null)mres=r;await load();rr()}
 function rWd(v){const wl=owned().filter(i=>['gun','knife'].includes(i.type));v.innerHTML=`<div class="box"><h3>Withdraw <span class="muted">— guns &amp; knives only</span></h3><div class="grid">${wl.map(i=>card(i,`<small class="muted"> x${i.q}</small><button style="width:100%;margin-top:6px" onclick="wd('${i.id}')">Request 1</button>`)).join('')||'<p class="muted">No withdrawable items.</p>'}</div></div>
@@ -256,19 +297,24 @@ setInterval(()=>{const o=rainPhase().open;if(rainWasOpen!==null&&o!==rainWasOpen
 // ---- Coinflip ----
 let cfSeen=null,cfSide='heads';
 const cfRange=v=>[Math.ceil(v*.9),Math.floor(v*1.1)];
-const cfItems=its=>Object.entries(its).map(([k,q])=>{const i=byId(k);return i?`<div title="${i.name} x${q}" style="text-align:center"><div class="ic">${ic(i)}</div><small class="muted">x${q}</small></div>`:''}).join('');
-function cfGameRow(g){const mine=g.c.id===S.me.id,[lo,hi]=cfRange(g.value);
- return `<div class="cfg"><div class="pl"><img class="av" style="width:34px;height:34px" src="${g.c.avatar}" alt=""><div><b>${g.c.name}</b><br><span class="side ${g.side}">${g.side}</span></div></div><div class="its">${cfItems(g.items)}</div><div style="text-align:right"><b class="g">${fmt(g.value)}</b><br><small class="muted">${fmt(lo)}–${fmt(hi)}</small></div>${mine?`<button class="s" onclick="cfCancel(${g.id})">Cancel</button>`:`<button onclick="cfJoin(${g.id})">Join</button>`}</div>`}
-function cfRecentRow(g){return `<div class="stat"><span>#${g.id} <b>${g.c.name}</b> vs <b>${g.j.name}</b></span><span>🏆 ${g.winner.name} <span class="g">+${fmt(g.won)}</span></span></div>`}
-function rCf(v){const cf=S.cf||{open:[],recent:[]};
- v.innerHTML=`<div class="box"><h3>Create coinflip <span class="muted">— item vs item · 3 coins, best of 3 · 10% tax</span></h3><p>Selected value: <b>${fmt(selVal())}</b></p><div class="grid">${owned().map(selCard).join('')||'<p class="muted">No items.</p>'}</div>
- <div class="row sd"><button class="s hd ${cfSide==='heads'?'on':''}" onclick="cfSide='heads';render()">🔵 Heads (H)</button><button class="s tl ${cfSide==='tails'?'on':''}" onclick="cfSide='tails';render()">🔴 Tails (T)</button></div>
- <div class="row"><button onclick="cfCreate()">Create game</button></div><p class="muted" style="font-size:12px">To join a game, select items worth within ±10% of its value, then press Join on it.</p></div>
- <div class="box"><h3>Open games</h3><div id="cfl"></div></div><div class="box"><h3>Recent flips</h3><div id="cfr"></div></div>`;cfList()}
+const cfItems=its=>Object.entries(its).map(([k,q])=>{const i=byId(k);return i?`<div class="it" title="${i.name} · ${fmt(i.value)}"><div class="ic">${ic(i)}</div><span>x${q}</span></div>`:''}).join('');
+const coinM=s=>`<span class="mc ${s==='heads'?'h':'t'}">${s==='heads'?'H':'T'}</span>`;
+function cfGameRow(g){const mine=g.c.id===S.me.id,[lo,hi]=cfRange(g.value),sv=selVal(),ok=sv>=lo&&sv<=hi,oppo=g.side==='heads'?'tails':'heads';
+ const btn=mine?`<button class="s" onclick="cfCancel(${g.id})">Cancel</button>`:`<button ${ok?'':'disabled'} onclick="cfJoin(${g.id})">${ok?`Join as ${oppo==='heads'?'H':'T'}`:sv?'Out of range':'Select items'}</button>`;
+ return `<div class="gm ${mine?'mine':''}">${coinM(g.side)}<div><div class="who"><img class="av" src="${g.c.avatar}" alt="">${g.c.name}${mine?' <span class="muted">(you)</span>':''}</div><div class="its">${cfItems(g.items)}</div></div><div class="rt"><div><b class="g">${fmt(g.value)}</b><small>join with ${fmt(lo)}–${fmt(hi)}</small></div>${btn}</div></div>`}
+function cfRecentRow(g){const pn=n=>`<b>${n}</b>`;return `<div class="stat"><span>#${g.id} ${pn(g.c.name)} vs ${pn(g.j.name)}</span><span>${coinM(g.result)} 🏆 ${g.winner.name} <span class="g">+${fmt(g.won)}</span></span></div>`}
+const pkCard=i=>`<div class="pk ${sel[i.id]?'on':''}" onclick="pick('${i.id}')"><div class="ic">${ic(i)}</div><b>${i.name}</b><small>${fmt(i.value)}</small><span class="pkq">${sel[i.id]?sel[i.id]+'/'+i.q:'x'+i.q}</span></div>`;
+function unpick(id){delete sel[id];render()}
+function rCf(v){const own=owned().sort((a,b)=>b.value-a.value),sv=selVal(),chips=Object.entries(sel).map(([k,n])=>{const i=byId(k);return `<span class="chp" onclick="unpick('${k}')" title="Remove"><span class="ic">${ic(i)}</span>${i.name} x${n} ✕</span>`}).join('');
+ v.innerHTML=`<div class="cfx"><div class="box"><h3>🪙 Post a coinflip <span class="muted">— 3 coins, best of 3 · 10% tax</span></h3>
+ <div class="sdr"><button class="sdc h ${cfSide==='heads'?'on':''}" onclick="cfSide='heads';render()"><span class="mc h">H</span><span>Heads<small>Blue</small></span></button><button class="sdc t ${cfSide==='tails'?'on':''}" onclick="cfSide='tails';render()"><span class="mc t">T</span><span>Tails<small>Red</small></span></button></div>
+ <div class="offer"><div class="oh"><span>Your offer</span><b class="g">${fmt(sv)} 🪙</b></div><div class="chips">${chips||'<span class="muted" style="font-size:12px">Tap items below to add them</span>'}</div></div>
+ <label class="lb">Your items</label><div class="pkg">${own.map(pkCard).join('')||'<p class="muted">You have no items.</p>'}</div>
+ <button class="big" ${sv?'':'disabled'} onclick="cfCreate()">${sv?`Post game · ${cfSide==='heads'?'Heads (H)':'Tails (T)'}`:'Select items to post'}</button></div>
+ <div><div class="box"><h3>Open games <span class="muted">— join within ±10%</span></h3><div id="cfl"></div></div><div class="box"><h3>Recent flips</h3><div id="cfr"></div></div></div></div>`;cfList()}
 function cfList(){const cf=S.cf||{open:[],recent:[]},l=$('#cfl');if(!l)return;
- l.innerHTML=cf.open.slice().reverse().map(cfGameRow).join('')||'<p class="muted">No open games — create one!</p>';
- $('#cfr').innerHTML=cf.recent.slice().reverse().map(cfRecentRow).join('')||'<p class="muted">Nothing yet.</p>'}
-async function cfCreate(){const r=await api('cfcreate',{items:sel,side:cfSide});if(r.ok){sel={};toast('Game created')}await load();if(tab==='coinflip')render()}
+ l.innerHTML=cf.open.slice().reverse().map(cfGameRow).join('')||'<p class="muted">No open games — post one!</p>';
+ $('#cfr').innerHTML=cf.recent.slice().reverse().map(cfRecentRow).join('')||'<p class="muted">Nothing yet.</p>'}async function cfCreate(){const r=await api('cfcreate',{items:sel,side:cfSide});if(r.ok){sel={};toast('Game created')}await load();if(tab==='coinflip')render()}
 async function cfCancel(id){await api('cfcancel',{id});await load();if(tab==='coinflip')render()}
 async function cfJoin(id){const r=await api('cfjoin',{id,items:sel});if(r.ok)sel={};await load();if(tab==='coinflip')render()}
 // Called on every state load: refresh the list and play the flip once for games I'm in
