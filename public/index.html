@@ -35,8 +35,8 @@ main{padding:14px;max-width:960px;margin:auto}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--r);color:#000;font-weight:600;padding:10px 16px;border-radius:10px;display:none;z-index:99}
 table{width:100%;border-collapse:collapse}td,th{padding:7px;text-align:left;border-bottom:1px solid var(--ln)}.av{width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:6px}
 .noanim *{animation:none!important;transition:none!important}
-</style></head><body><div id="app"></div><div id="toast"></div>
-<script>window.onerror=function(m,u,l){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">JS error: '+m+' (line '+l+')</pre>')}</script>
+</style></head><body><div id="app"><p style="padding:20px;color:#8b9098">Loading… (if this never goes away, the script did not run)</p></div><div id="toast"></div>
+<script>window.onerror=function(m,u,l){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">JS error: '+m+' (line '+l+')</pre>')};window.onunhandledrejection=function(e){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">Error: '+(e.reason&&e.reason.message||e.reason)+'</pre>')}</script>
 <script>
 const $=s=>document.querySelector(s),fmt=n=>Math.floor(n).toLocaleString();
 let S=null,tab='values',q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"anim":true,"hide":false}');
@@ -112,4 +112,15 @@ function rSet(v){v.innerHTML=`<div class="box"><h3>Settings</h3><p><label><input
 function sc(k,x){cfg[k]=x;localStorage.cfg=JSON.stringify(cfg);document.body.className=cfg.anim?'':'noanim';head()}
 function rAdm(v){const A=S.admin||{wd:[],logs:[]},opts=S.items.map(i=>'<option value="'+i.id+'">'+i.name+'</option>').join('');
  const wl=A.wd.map(w=>'<tr><td>'+w.name+'</td><td>'+w.qty+'x '+byId(w.item).name+'</td><td><button data-a="admwd" data-id="'+w.id+'" data-ok="1">Approve</button> <button class="s" data-a="admwd" data-id="'+w.id+'" data-ok="0">Reject</button></td></tr>').join('')||'<tr><td class="muted">None pending</td></tr>';
- v.innerHTML='<div class="box"><h3>Items and tokens</h3><div class="row"><input id="au" placeholder="Username or ID"><select id="ai">'+opts+'</select><input id="aq" type="numbe
+ v.innerHTML='<div class="box"><h3>Items and tokens</h3><div class="row"><input id="au" placeholder="Username or ID"><select id="ai">'+opts+'</select><input id="aq" type="number" placeholder="Qty / amount / value" style="width:160px"></div>'
+ +'<div class="row"><button data-a="admgive">Give item</button><button data-a="admset">Set qty</button><button data-a="admtokens">Add tokens</button><button data-a="admvalue">Set item value</button></div></div>'
+ +'<div class="box"><h3>Games</h3><div class="row"><button data-a="admcanceljp">Cancel jackpot</button><button data-a="admcancelmines">Cancel users mines</button></div></div>'
+ +'<div class="box"><h3>Withdrawals</h3><table>'+wl+'</table></div>'
+ +'<div class="box"><h3>Discord webhook '+(A.webhook?'(set)':'(not set)')+'</h3><div class="row"><input id="aw" placeholder="Webhook URL" style="flex:1"><button data-a="admwebhook">Save</button></div></div>';
+ v.onclick=e=>{const b=e.target.closest('button[data-a]');if(!b)return;const a=b.dataset.a;
+  if(a==='admcanceljp')api(a).then(load);else if(a==='admwd')aw(b.dataset.id,+b.dataset.ok);
+  else if(a==='admwebhook')api(a,{url:$('#aw').value}).then(()=>toast('Saved'));else ad(a)}}
+async function ad(a){const b={user:$('#au').value,item:$('#ai').value,qty:$('#aq').value,amount:$('#aq').value,value:$('#aq').value};if((await api(a,b)).ok)toast('Done');await load()}
+async function aw(id,ok){await api('admwd',{id,ok});await load();if(tab==='admin')render()}
+load();
+</script></body></html>
