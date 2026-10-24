@@ -122,7 +122,7 @@ const ITEMS=[
 ].map(([id,name,type,rarity,value,icon])=>({id,name,type,rarity,value,icon}));
 const I=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 let db,jp,hooks=[];
-const load=async()=>{const s=await R('GET','db');db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],...(s?JSON.parse(s):{})};
+const load=async()=>{const s=await R('GET','db');db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
  jp=db.jp||(db.jp={players:{},end:0,id:0,last:null})};
 // Device fingerprint: a salted, one-way hash of the request IP, stored per user so admins can see
 // which accounts share a device (likely alts/ban evasion). Never the raw IP, never sent anywhere else.
@@ -137,7 +137,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0;
  for(let i=0;i<60&&!ok;i++){if(await R('SET','lock',t,'NX','PX',9000)==='OK')ok=1;else await sleep(100)}
  if(!ok)throw Error('Server busy, try again');
- try{await load();if(jp.end&&Date.now()>=jp.end)jpResolve();const out=await fn();await persist();return out}
+ try{await load();if(jp.end&&Date.now()>=jp.end)jpResolve();rainTick();const out=await fn();await persist();return out}
  finally{if(await R('GET','lock')===t)await R('DEL','lock')}}
 const val=id=>db.values[id]??I[id].value;
 const invVal=u=>Object.entries(u.inv).reduce((s,[k,q])=>s+val(k)*q,0);
@@ -150,6 +150,27 @@ const WORDS='apple tiger moon river frost ember cloud maple storm pearl cobra de
 const needInt=(n,min=1)=>{n=Math.floor(+n);if(!(n>=min))E('Invalid amount');return n};
 const findUser=s=>db.users[s]||Object.values(db.users).find(u=>u.name.toLowerCase()===String(s).toLowerCase())||E('User not found');
 
+// ---- Sync Rain: every hour (GMT+6 hours align with UTC hours) the window opens at :55 and pays out at :00 ----
+const RH=3600000,ROPEN=55*60000,RPOOL=100;
+const chatSys=m=>{db.chat=db.chat||[];db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:'sys',name:'🌧️ Sync Rain',avatar:'',msg:m,t:Date.now(),sys:1});db.chat=db.chat.slice(-50)};
+const rainNeeds=()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);return(rd.ann&&n>=(rd.r+1)*RH)||(n%RH>=ROPEN&&rd.r!==cur)};
+function rainPay(){const rd=db.rain,ids=Object.keys(rd.joined).filter(id=>db.users[id]),n=ids.length;rd.ann=false;rd.joined={};
+ if(!n){chatSys('🌧️ Sync Rain ended — nobody joined.');return}
+ let per=Math.floor(RPOOL/n),w=ids;
+ if(per<1){per=1;for(let i=w.length-1;i>0;i--){const j=crypto.randomInt(i+1);[w[i],w[j]]=[w[j],w[i]]}w=w.slice(0,RPOOL)}
+ w.forEach(id=>{db.users[id].tokens+=per});
+ chatSys(`🌧️ Sync Rain distributed between ${n} each get ${per}`+(w.length<n?` (${w.length} lucky winners)`:''));log(`🌧️ Sync Rain: ${n} joined, ${per} each`)}
+function rainTick(){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);
+ if(rd.ann&&n>=(rd.r+1)*RH)rainPay();
+ if(n%RH>=ROPEN&&rd.r!==cur){rd.r=cur;rd.ann=true;rd.joined={};chatSys('Sync Rain started! 5 minutes to join— send a message in the site chat in this hour to be able to join.')}}
+const rainQ=()=>{const t=crypto.randomInt(3);let a,b,ans,q;
+ if(t===0){a=1+crypto.randomInt(20);b=1+crypto.randomInt(20);ans=a+b;q=`${a} + ${b}`}
+ else if(t===1){a=5+crypto.randomInt(16);b=1+crypto.randomInt(a-1);ans=a-b;q=`${a} − ${b}`}
+ else{a=2+crypto.randomInt(8);b=2+crypto.randomInt(8);ans=a*b;q=`${a} × ${b}`}return{q,ans}};
+// ---- Coinflip (item vs item, resolved instantly when someone joins) ----
+const cfClean=items=>{const o={};for(const[k,q]of Object.entries(items||{})){if(!I[k])E('Bad item');o[k]=needInt(q)}if(!Object.keys(o).length)E('Select items');return o};
+const cfVal=items=>Object.entries(items).reduce((s,[k,q])=>s+val(k)*q,0);
+const cfRange=v=>[Math.ceil(v*.9),Math.floor(v*1.1)];
 // ---- Jackpot (resolved lazily by the next request after the timer ends) ----
 const jpPub=()=>{const t=Object.values(jp.players).reduce((s,p)=>s+p.value,0);
  return{now:Date.now(),end:jp.end,total:t,last:jp.last,players:Object.entries(jp.players).map(([id,p])=>({id,name:p.name,avatar:p.avatar,value:p.value,pct:t?p.value/t*100:0,items:p.items}))}};
@@ -193,7 +214,8 @@ async function handle(a,b,sid,H){
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin},
-   items:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),
+   items:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
+   rain:(()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH),on=!!rd.ann&&rd.r===cur&&n%RH>=ROPEN;return{now:n,pool:RPOOL,open:on,joined:on?Object.keys(rd.joined).length:0,me:{in:on&&!!rd.joined[u.id],chat:(u.lastChat||0)>=cur*RH}}})(),
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),
    online,activeMines,chat:(db.chat||[]).slice(-50),
@@ -203,8 +225,9 @@ async function handle(a,b,sid,H){
  if(a==='chatsend'){const msg=String(b.msg||'').trim().slice(0,300);if(!msg)E('Empty message');
   db.chat=db.chat||[];const last=db.chat[db.chat.length-1];
   if(last&&last.uid===u.id&&Date.now()-last.t<1500)E('Slow down');
-  db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,avatar:u.avatar,msg,t:Date.now()});
+  db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,avatar:u.avatar,msg,t:Date.now()});u.lastChat=Date.now();
   db.chat=db.chat.slice(-50);return{ok:1}}
+ if(!db.cf)db.cf={open:[],recent:[],id:0};
  const take=(items,types)=>{let v=0;for(const[k,q]of Object.entries(items||{})){const n=needInt(q);if(!I[k])E('Bad item');if(types&&!types.includes(I[k].type))E('Item not allowed here');if((u.inv[k]||0)<n)E('You do not own that');v+=val(k)*n}
   for(const[k,q]of Object.entries(items))add(u.inv,k,-q);return v};
  if(a==='sell'){const n=needInt(b.qty),v=take({[b.item]:n}),t=Math.floor(v*.9);u.tokens+=t;add(db.shop,b.item,n);log(`💱 ${u.name} sold ${n}x ${b.item} for ${t} tokens`);return{ok:1}}
@@ -215,6 +238,32 @@ async function handle(a,b,sid,H){
   for(const[k,q]of Object.entries(b.items))add(p.items,k,q);p.value+=v;
   if(Object.keys(jp.players).length>=2&&!jp.end)jp.end=Date.now()+25000;return{ok:1}}
  if(a==='jpleave'){const p=jp.players[u.id];if(!p||Object.keys(jp.players).length>1)E('Cannot leave now');for(const[k,q]of Object.entries(p.items))add(u.inv,k,q);delete jp.players[u.id];return{ok:1}}
+ if(a==='rainq'){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);if(!(rd.ann&&rd.r===cur&&n%RH>=ROPEN))E('The rain is not open');if(rd.joined[u.id])E('Already joined');
+  if((u.lastChat||0)<cur*RH)E('Send a message in the site chat this hour first');const x=rainQ();u.rq={ans:x.ans,exp:n+60000};return{q:x.q}}
+ if(a==='rainjoin'){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);if(!(rd.ann&&rd.r===cur&&n%RH>=ROPEN))E('The rain is not open');if(rd.joined[u.id])E('Already joined');
+  if((u.lastChat||0)<cur*RH)E('Send a message in the site chat this hour first');const q=u.rq;delete u.rq;if(!q||n>q.exp)E('Question expired, get a new one');
+  if(String(b.ans).trim()===''||Math.round(+b.ans)!==q.ans)E('Wrong answer');rd.joined[u.id]=1;return{ok:1}}
+ if(a==='cfcreate'){const items=cfClean(b.items),side=b.side==='tails'?'tails':'heads';
+  if(db.cf.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open coinflips');
+  const v=take(items);db.cf.open.push({id:++db.cf.id,c:{id:u.id,name:u.name,avatar:u.avatar},side,items,value:v,t:Date.now()});
+  log(`🪙 ${u.name} created coinflip #${db.cf.id} (${v} value, ${side})`);return{ok:1,id:db.cf.id}}
+ if(a==='cfcancel'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game not found');if(g.c.id!==u.id)E('Not your game');
+  for(const[k,q]of Object.entries(g.items))add(u.inv,k,q);db.cf.open=db.cf.open.filter(x=>x!==g);return{ok:1}}
+ if(a==='cfjoin'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');
+  const items=cfClean(b.items),jv=cfVal(items),[lo,hi]=cfRange(g.value);if(jv<lo||jv>hi)E(`Your offer must be worth ${lo}-${hi}`);
+  take(items);const side=g.side==='heads'?'tails':'heads',flips=[0,1,2].map(()=>crypto.randomInt(2)?'heads':'tails'),res=flips.filter(x=>x==='heads').length>=2?'heads':'tails';// best of 3 coins
+  
+  const winC=res===g.side,w=winC?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:{id:u.id,name:u.name,avatar:u.avatar},wu=db.users[w.id];
+  const total=g.value+jv,pot={};for(const it of[g.items,items])for(const[k,q]of Object.entries(it))add(pot,k,q);
+  const units=[];Object.entries(pot).forEach(([k,q])=>{for(let i=0;i<q;i++)units.push(k)});units.sort((x,y)=>val(x)-val(y));
+  let tx=0;const cap=total*.1;for(const k of units){if(tx+val(k)<=cap){tx+=val(k);add(pot,k,-1);add(db.shop,k,1)}else break}
+  Object.entries(pot).forEach(([k,q])=>add(wu.inv,k,q));
+  const cu=db.users[g.c.id];cu.wagered+=g.value;u.wagered+=jv;
+  cu.profit+=(winC?total-tx:0)-g.value;u.profit+=(winC?0:total-tx)-jv;
+  db.cf.open=db.cf.open.filter(x=>x!==g);
+  db.cf.recent.push({id:g.id,c:g.c,j:{id:u.id,name:u.name,avatar:u.avatar},cSide:g.side,jSide:side,result:res,flips,winner:w,cItems:g.items,jItems:items,cValue:g.value,jValue:jv,taxed:tx,won:total-tx,t:Date.now()});
+  db.cf.recent=db.cf.recent.slice(-20);
+  log(`🪙 Coinflip #${g.id}: **${w.name}** won ${total-tx} value (${g.c.name} vs ${u.name}, ${flips.join('/')})`);return{ok:1,id:g.id}}
  if(a==='minesstart'){if(u.mines)E('Game in progress');const bet=needInt(b.bet),m=needInt(b.m);if(m>10)E('Max 10 mines');if(u.tokens<bet)E('Not enough tokens');
   u.tokens-=bet;const mines=[];while(mines.length<m){const x=crypto.randomInt(25);if(!mines.includes(x))mines.push(x)}
   u.mines={bet,m,mines,open:[]};return{ok:1}}
@@ -248,7 +297,7 @@ module.exports=async(req,res)=>{
   else if(a==='check')out=await check(b,H,req);
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
-   const needResolve=jp.end&&Date.now()>=jp.end,needTouch=uid&&db.users[uid]&&Date.now()-(db.users[uid].lastSeen||0)>20000;
+   const needResolve=(jp.end&&Date.now()>=jp.end)||rainNeeds(),needTouch=uid&&db.users[uid]&&Date.now()-(db.users[uid].lastSeen||0)>20000;
    out=(needResolve||needTouch)?await mutate(()=>{if(needTouch){const uu=db.users[db.sessions[sid]];if(uu)uu.lastSeen=Date.now()}return handle(a,b,sid,H)}):await handle(a,b,sid,H)}
   else out=await mutate(()=>handle(a,b,sid,H));
  }catch(e){out={error:e.message||'Error'}}
