@@ -10,8 +10,15 @@ const ITEMS=[['luger','Luger','gun',10,'🔫'],['chromaluger','Chroma Luger','gu
 ['pet1','Pet Cat','pet',5,'🐱'],['pet2','Pet Dragon','pet',70,'🐲']].map(([id,name,type,value,icon])=>({id,name,type,value,icon}));
 const I=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 let db,jp,hooks=[];
-const load=async()=>{const s=await R('GET','db');db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,...(s?JSON.parse(s):{})};
+const load=async()=>{const s=await R('GET','db');db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],...(s?JSON.parse(s):{})};
  jp=db.jp||(db.jp={players:{},end:0,id:0,last:null})};
+// Device fingerprint: a salted, one-way hash of the request IP, stored per user so admins can see
+// which accounts share a device (likely alts/ban evasion). Never the raw IP, never sent anywhere else.
+const DEVSALT=process.env.DEVICE_SALT||'syncmm2-default-salt-change-me';
+const getIp=req=>String(req.headers['x-forwarded-for']||req.socket?.remoteAddress||'').split(',')[0].trim();
+const hashDev=ip=>ip?crypto.createHash('sha256').update(DEVSALT+ip).digest('hex').slice(0,20):'';
+function altGroups(){const by={};for(const u of Object.values(db.users)){if(!u.dev)continue;(by[u.dev]=by[u.dev]||[]).push(u.name)}
+ return Object.values(by).filter(g=>g.length>1)}
 const persist=()=>R('SET','db',JSON.stringify(db));
 const save=()=>{};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -56,12 +63,13 @@ async function start(b){
  const w=()=>WORDS[crypto.randomInt(WORDS.length)],tok=crypto.randomBytes(16).toString('hex'),code=`Sync MM2 - ${w()} ${w()} ${w()}`;
  await R('SET','p:'+tok,JSON.stringify({id:String(p.id),name:p.name,code}),'EX',600);
  return{tok,code,name:p.name,exp:Date.now()+600000}}
-async function check(b,H){
+async function check(b,H,req){
  const raw=await R('GET','p:'+b.tok);if(!raw)E('Code expired — start again');const p=JSON.parse(raw);
  const d=await rj(`https://users.roblox.com/v1/users/${p.id}`);if(!(d.description||'').includes(p.code))return{waiting:true};
  let av='';try{av=(await rj(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${p.id}&size=150x150&format=Png`)).data[0].imageUrl}catch{}
+ const dev=hashDev(getIp(req));
  return mutate(async()=>{const u=db.users[p.id]||(db.users[p.id]={id:p.id,name:p.name,avatar:'',tokens:0,inv:{},wagered:0,profit:0,mines:null});
-  u.name=p.name;u.avatar=av;const s=crypto.randomBytes(24).toString('hex');db.sessions[s]=p.id;await R('DEL','p:'+b.tok);
+  u.name=p.name;u.avatar=av;if(dev)u.dev=dev;u.lastSeen=Date.now();const s=crypto.randomBytes(24).toString('hex');db.sessions[s]=p.id;await R('DEL','p:'+b.tok);
   H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);return{ok:true}})}
 
 async function handle(a,b,sid,H){
@@ -69,14 +77,22 @@ async function handle(a,b,sid,H){
   return{wagered:f('wagered'),profit:f('profit')}}
  const u=db.users[db.sessions[sid]];
  if(a==='state'){
-  if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines;
+  if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now();
+  const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
+  const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin},
    items:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),
-   admin:admin?{wd:db.wd.filter(w=>w.status==='pending'),webhook:!!db.webhook,logs:db.logs.slice(-15)}:undefined}}
+   online,activeMines,chat:(db.chat||[]).slice(-50),
+   admin:admin?{wd:db.wd.filter(w=>w.status==='pending'),webhook:!!db.webhook,logs:db.logs.slice(-15),alts:altGroups()}:undefined}}
  if(!u)E('Please log in');
  if(a==='logout'){delete db.sessions[sid];return{ok:1}}
+ if(a==='chatsend'){const msg=String(b.msg||'').trim().slice(0,300);if(!msg)E('Empty message');
+  db.chat=db.chat||[];const last=db.chat[db.chat.length-1];
+  if(last&&last.uid===u.id&&Date.now()-last.t<1500)E('Slow down');
+  db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,avatar:u.avatar,msg,t:Date.now()});
+  db.chat=db.chat.slice(-50);return{ok:1}}
  const take=(items,types)=>{let v=0;for(const[k,q]of Object.entries(items||{})){const n=needInt(q);if(!I[k])E('Bad item');if(types&&!types.includes(I[k].type))E('Item not allowed here');if((u.inv[k]||0)<n)E('You do not own that');v+=val(k)*n}
   for(const[k,q]of Object.entries(items))add(u.inv,k,-q);return v};
  if(a==='sell'){const n=needInt(b.qty),v=take({[b.item]:n}),t=Math.floor(v*.9);u.tokens+=t;add(db.shop,b.item,n);log(`💱 ${u.name} sold ${n}x ${b.item} for ${t} tokens`);return{ok:1}}
@@ -117,8 +133,11 @@ module.exports=async(req,res)=>{
  try{
   if(!URL_||!TOK)E('Database not configured (Upstash env vars missing)');
   if(a==='start')out=await start(b);
-  else if(a==='check')out=await check(b,H);
-  else if(a==='state'||a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
+  else if(a==='check')out=await check(b,H,req);
+  else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
+  else if(a==='state'){await load();const uid=db.sessions[sid];
+   const needResolve=jp.end&&Date.now()>=jp.end,needTouch=uid&&db.users[uid]&&Date.now()-(db.users[uid].lastSeen||0)>20000;
+   out=(needResolve||needTouch)?await mutate(()=>{if(needTouch){const uu=db.users[db.sessions[sid]];if(uu)uu.lastSeen=Date.now()}return handle(a,b,sid,H)}):await handle(a,b,sid,H)}
   else out=await mutate(()=>handle(a,b,sid,H));
  }catch(e){out={error:e.message||'Error'}}
  await Promise.allSettled(hooks.splice(0));

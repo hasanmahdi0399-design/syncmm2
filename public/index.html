@@ -35,36 +35,49 @@ main{padding:14px;max-width:960px;margin:auto}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--r);color:#000;font-weight:600;padding:10px 16px;border-radius:10px;display:none;z-index:99}
 table{width:100%;border-collapse:collapse}td,th{padding:7px;text-align:left;border-bottom:1px solid var(--ln)}.av{width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:6px}
 .noanim *{animation:none!important;transition:none!important}
+#chatbtn{position:fixed;right:18px;bottom:18px;width:52px;height:52px;border-radius:50%;font-size:22px;z-index:50;box-shadow:0 4px 14px #0008;display:flex;align-items:center;justify-content:center;padding:0}
+#chatbtn.alert{background:var(--r)}
+#chatpanel{position:fixed;right:18px;bottom:82px;width:300px;max-height:420px;z-index:50;padding:0;overflow:hidden;background:var(--p);border:1px solid var(--ln);border-radius:14px;display:none;flex-direction:column}
+#chatpanel.open{display:flex}
+#chatmsgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;max-height:300px}
+.cmsg{font-size:12px;line-height:1.4;word-break:break-word}.cmsg b{color:var(--a)}
+#chatin{display:flex;gap:6px;padding:8px;border-top:1px solid var(--ln)}#chatin input{flex:1;min-width:0}
+@media(max-width:480px){#chatpanel{width:calc(100vw - 24px);right:12px}}
 </style></head><body><div id="app"><p style="padding:20px;color:#8b9098">Loading… (if this never goes away, the script did not run)</p></div><div id="toast"></div>
 <script>window.onerror=function(m,u,l){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">JS error: '+m+' (line '+l+')</pre>')};window.onunhandledrejection=function(e){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">Error: '+(e.reason&&e.reason.message||e.reason)+'</pre>')}</script>
 <script>
 const $=s=>document.querySelector(s),fmt=n=>Math.floor(n).toLocaleString();
-let S=null,tab='values',q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"anim":true,"hide":false}');
-const NAV=[['values','📈','Values'],['inventory','🎒','Inventory'],['exchange','🔄','Exchange'],['jackpot','🎰','Jackpot'],['mines','💣','Mines'],['withdraw','📤','Withdraw'],['deposit','💳','Deposit'],['leaderboard','🏆','Leaderboard'],['settings','⚙️','Settings'],['admin','🛠️','Admin']];
+let S=null,tab='home',q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"anim":true,"hide":false}');
+let chatOpen=false,chatSeen=0;
+const NAV=[['home','🏠','Home'],['values','📈','Values'],['inventory','🎒','Inventory'],['exchange','🔄','Exchange'],['jackpot','🎰','Jackpot'],['mines','💣','Mines'],['withdraw','📤','Withdraw'],['deposit','💳','Deposit'],['leaderboard','🏆','Leaderboard'],['settings','⚙️','Settings'],['admin','🛠️','Admin']];
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2500)};
 const api=async(a,b={})=>{try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});const j=await r.json();if(j.error)toast(j.error);return j}catch{toast('Network error');return{}}};
 const ic=i=>/^(https?:)?\//.test(i.icon)?`<img src="${i.icon}" loading="lazy" alt="">`:`<span>${i.icon}</span>`;
 const card=(i,x='',c='',o='')=>`<div class="card ${c}" ${o}><div class="ic">${ic(i)}</div><b>${i.name}</b><small>${fmt(i.value)}</small>${x}</div>`;
 const byId=id=>S.items.find(i=>i.id===id),mlt=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 65% 60%)`};
-async function load(){S=await api('state');document.body.className=cfg.anim?'':'noanim';if(S.error||(!S.guest&&!S.me)){if(!S.me&&!$('#view'))$('#app').innerHTML='<pre style="color:#f87171;padding:14px;white-space:pre-wrap">Server error: '+(S.error||'no response')+'</pre>';return}if(S.guest){if(!$('#lg'))login();return}if(!$('#view'))shell();head();if(tab==='jackpot')jpUpdate()}
+async function load(){S=await api('state');document.body.className=cfg.anim?'':'noanim';if(S.error||(!S.guest&&!S.me)){if(!S.me&&!$('#view'))$('#app').innerHTML='<pre style="color:#f87171;padding:14px;white-space:pre-wrap">Server error: '+(S.error||'no response')+'</pre>';return}if(S.guest){if(!$('#lg'))login();return}if(!$('#view'))shell();head();if(tab==='jackpot')jpUpdate();if(tab==='home'&&$('#view')&&$('#view').firstElementChild)rHome($('#view'));chatTick()}
 let tick=0;setInterval(()=>{if(document.hidden||pend||(S&&S.guest))return;if(tab!=='jackpot'&&++tick%6)return;load()},1500);
-function login(){if($('#un'))return;$('#app').innerHTML=`<main><div class="box" style="max-width:420px;margin:60px auto"><div class="logo" style="font-size:30px">Sync MM2</div><p class="muted">Verify your Roblox account to play.</p><div id="lg"><input id="un" placeholder="Roblox username" style="width:100%;margin-bottom:10px"><button class="big" style="margin:0" onclick="vstart()">Get verification code</button></div></div></main>`}
+function login(){if($('#un'))return;$('#app').innerHTML=`<main><div class="box" style="max-width:420px;margin:60px auto"><div class="logo" style="font-size:30px">Sync MM2</div><p class="muted">Verify your Roblox account to play.</p><div id="lg"><input id="un" placeholder="Roblox username" style="width:100%;margin-bottom:10px"><button class="big" style="margin:0" onclick="vstart()">Get verification code</button></div><p class="muted" style="font-size:11px;margin-top:14px">We log basic device/network info to prevent multi-accounting and abuse.</p></div></main>`}
 async function vstart(){const r=await api('start',{username:$('#un').value});if(!r.code)return;pend=r;
  $('#lg').innerHTML=`<p>Paste this into your <b>Roblox bio (About)</b> within 10 minutes:</p><div class="box" style="background:var(--p2);user-select:all;font-weight:700">${r.code}</div><p class="muted" id="cd"></p><button class="s" onclick="navigator.clipboard.writeText('${r.code}');toast('Copied')">Copy code</button>`;
  const t=setInterval(async()=>{if(!pend)return clearInterval(t);const s=Math.max(0,Math.round((r.exp-Date.now())/1000));$('#cd').textContent=`Waiting for bio… expires in ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   if(s%3===0){const c=await api('check',{tok:r.tok});if(c.ok){pend=null;clearInterval(t);load()}else if(c.error){pend=null;clearInterval(t);$('#app').innerHTML='';login()}}},1000)}
-function shell(){const m=S.me;$('#app').innerHTML=`<aside id="sb"><div class="logo">Sync MM2</div><div class="uc"><img class="av" src="${m.avatar}" alt=""><div><b>${m.name}</b><span class="tok" id="sbt"></span></div></div><div id="nv">${NAV.filter(n=>n[0]!=='admin'||m.admin).map(n=>`<button id="t_${n[0]}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div></aside><div id="ov" onclick="sb(0)"></div><div id="mn"><div class="top"><button class="s mb" onclick="sb(1)">☰</button><b id="tt"></b><span class="tok" id="hd"></span></div><main id="view"></main></div>`;go(tab)}
+function shell(){const m=S.me;$('#app').innerHTML=`<aside id="sb"><div class="logo">Sync MM2</div><div class="uc"><img class="av" src="${m.avatar}" alt=""><div><b>${m.name}</b><span class="tok" id="sbt"></span></div></div><div id="nv">${NAV.filter(n=>n[0]!=='admin'||m.admin).map(n=>`<button id="t_${n[0]}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div></aside><div id="ov" onclick="sb(0)"></div><div id="mn"><div class="top"><button class="s mb" onclick="sb(1)">☰</button><b id="tt"></b><span class="tok" id="hd"></span></div><main id="view"></main></div><button id="chatbtn" onclick="chatToggle()">💬</button><div id="chatpanel"></div>`;go(tab)}
 const sb=o=>{$('#sb').classList.toggle('open',!!o);$('#ov').classList.toggle('show',!!o)};
 function head(){const t=cfg.hide?'••••':fmt(S.me.tokens);if($('#hd'))$('#hd').textContent='🪙 '+t;if($('#sbt'))$('#sbt').textContent='🪙 '+t}
 function go(t){tab=t;sel={};q='';sb(0);const n=NAV.find(x=>x[0]===t);document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.id==='t_'+t));$('#tt').textContent=n[2];const my=++nav;
  $('#view').innerHTML=`<div class="ld"><div class="sp"></div><span class="muted">Loading ${n[2]}…</span></div>`;
  setTimeout(async()=>{if(my!==nav)return;await load();if(my===nav)render()},cfg.anim?550:0)}
-const render=()=>{({values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,mines:rMines,withdraw:rWd,deposit:rDep,leaderboard:rLb,settings:rSet,admin:rAdm})[tab]($('#view'))};
+const render=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,mines:rMines,withdraw:rWd,deposit:rDep,leaderboard:rLb,settings:rSet,admin:rAdm})[tab]($('#view'))};
 function srch(f){return`<input placeholder="Search items…" value="${q}" oninput="q=this.value;${f}()" style="width:100%;margin-bottom:12px">`}
 const filt=l=>l.filter(i=>i.name.toLowerCase().includes(q.toLowerCase()));
 function rValues(v){v.innerHTML=`<div class="box"><h3>Values of Items</h3>${srch('vl')}<div class="grid" id="g"></div></div>`;vl()}
 function vl(){$('#g').innerHTML=filt([...S.items].sort((a,b)=>b.value-a.value)).map(i=>card(i)).join('')}
+function rHome(v){const on=S.online||[],am=S.activeMines||[],j=S.jp;
+ v.innerHTML=`<div class="box"><h3>🟢 Online now <span class="muted">(${on.length})</span></h3><div class="grid">${on.map(u=>`<div class="card"><div class="ic"><img class="av" style="width:40px;height:40px" src="${u.avatar}" alt=""></div><b>${u.name}</b></div>`).join('')||'<p class="muted">Just you.</p>'}</div></div>
+<div class="box"><h3>🎲 Active games</h3><div class="stat"><span>🎰 Jackpot</span><b>${j.players.length?fmt(j.total)+' value · '+j.players.length+' players':'No one playing'}</b></div>
+${am.length?am.map(x=>`<div class="stat"><span><img class="av" src="${x.avatar}" alt="">${x.name} — Mines</span><b>${x.open}/${25-x.m} tiles · bet ${fmt(x.bet)}🪙</b></div>`).join(''):'<div class="stat"><span>💣 Mines</span><b class="muted">No one playing</b></div>'}</div>`}
 const owned=()=>S.items.filter(i=>S.me.inv[i.id]).map(i=>({...i,q:S.me.inv[i.id]}));
 function pick(id){sel[id]=(sel[id]||0)+1;if(sel[id]>(S.me.inv[id]||0))delete sel[id];render()}
 const selCard=i=>card(i,`<small class="muted"> ${sel[i.id]?sel[i.id]+'/':'x'}${i.q}</small>`,sel[i.id]?'sel':'',`onclick="pick('${i.id}')"`);
@@ -110,17 +123,24 @@ function rDep(v){v.innerHTML=`<div class="box"><h3>Deposit</h3><p>Join the Disco
 async function rLb(v){const d=await api('lb');const t=(n,l)=>`<div class="box"><h3>${n}</h3><table>${l.map((u,i)=>`<tr><td>${i+1}</td><td><img class="av" src="${u.avatar}" alt="">${u.name}</td><td style="color:${u.v<0?'var(--r)':'var(--g)'}">${fmt(u.v)}</td></tr>`).join('')||'<tr><td class="muted">No data</td></tr>'}</table></div>`;v.innerHTML=t('Top Wagered',d.wagered||[])+t('Top Profit',d.profit||[])}
 function rSet(v){v.innerHTML=`<div class="box"><h3>Settings</h3><p><label><input type="checkbox" ${cfg.anim?'checked':''} onchange="sc('anim',this.checked)"> Animations</label></p><p><label><input type="checkbox" ${cfg.hide?'checked':''} onchange="sc('hide',this.checked)"> Hide token balance</label></p><p class="muted">Your Roblox ID: <b style="color:var(--t)">${S.me.id}</b><br>Admin access: add this ID to ADMIN_IDS in Vercel.</p><button class="s" onclick="api('logout').then(()=>location.reload())">Log out</button></div>`}
 function sc(k,x){cfg[k]=x;localStorage.cfg=JSON.stringify(cfg);document.body.className=cfg.anim?'':'noanim';head()}
-function rAdm(v){const A=S.admin||{wd:[],logs:[]},opts=S.items.map(i=>'<option value="'+i.id+'">'+i.name+'</option>').join('');
+function rAdm(v){const A=S.admin||{wd:[],logs:[],alts:[]},opts=S.items.map(i=>'<option value="'+i.id+'">'+i.name+'</option>').join('');
  const wl=A.wd.map(w=>'<tr><td>'+w.name+'</td><td>'+w.qty+'x '+byId(w.item).name+'</td><td><button data-a="admwd" data-id="'+w.id+'" data-ok="1">Approve</button> <button class="s" data-a="admwd" data-id="'+w.id+'" data-ok="0">Reject</button></td></tr>').join('')||'<tr><td class="muted">None pending</td></tr>';
  v.innerHTML='<div class="box"><h3>Items and tokens</h3><div class="row"><input id="au" placeholder="Username or ID"><select id="ai">'+opts+'</select><input id="aq" type="number" placeholder="Qty / amount / value" style="width:160px"></div>'
  +'<div class="row"><button data-a="admgive">Give item</button><button data-a="admset">Set qty</button><button data-a="admtokens">Add tokens</button><button data-a="admvalue">Set item value</button></div></div>'
  +'<div class="box"><h3>Games</h3><div class="row"><button data-a="admcanceljp">Cancel jackpot</button><button data-a="admcancelmines">Cancel users mines</button></div></div>'
  +'<div class="box"><h3>Withdrawals</h3><table>'+wl+'</table></div>'
+ +'<div class="box"><h3>Possible alt accounts <span class="muted">— same device</span></h3><table>'+((A.alts&&A.alts.length)?A.alts.map(g=>'<tr><td>'+g.join(', ')+'</td></tr>').join(''):'<tr><td class="muted">None detected</td></tr>')+'</table></div>'
  +'<div class="box"><h3>Discord webhook '+(A.webhook?'(set)':'(not set)')+'</h3><div class="row"><input id="aw" placeholder="Webhook URL" style="flex:1"><button data-a="admwebhook">Save</button></div></div>';
  v.onclick=e=>{const b=e.target.closest('button[data-a]');if(!b)return;const a=b.dataset.a;
   if(a==='admcanceljp')api(a).then(load);else if(a==='admwd')aw(b.dataset.id,+b.dataset.ok);
   else if(a==='admwebhook')api(a,{url:$('#aw').value}).then(()=>toast('Saved'));else ad(a)}}
 async function ad(a){const b={user:$('#au').value,item:$('#ai').value,qty:$('#aq').value,amount:$('#aq').value,value:$('#aq').value};if((await api(a,b)).ok)toast('Done');await load()}
 async function aw(id,ok){await api('admwd',{id,ok});await load();if(tab==='admin')render()}
+function chatToggle(){chatOpen=!chatOpen;const p=$('#chatpanel'),b=$('#chatbtn');if(!p)return;p.classList.toggle('open',chatOpen);if(chatOpen){if(b)b.classList.remove('alert');chatRender()}}
+function chatRender(){const p=$('#chatpanel');if(!p)return;const c=S.chat||[];chatSeen=c.length;
+ p.innerHTML=`<div style="padding:10px 12px;border-bottom:1px solid var(--ln);font-weight:700">Site chat</div><div id="chatmsgs">${c.map(m=>`<div class="cmsg"><b>${m.name}:</b> ${m.msg.replace(/</g,'&lt;')}</div>`).join('')||'<p class="muted">No messages yet.</p>'}</div><div id="chatin"><input id="cmi" placeholder="Message…" onkeydown="if(event.key==='Enter')chatSend()"><button onclick="chatSend()">Send</button></div>`;
+ const box=$('#chatmsgs');if(box)box.scrollTop=box.scrollHeight}
+async function chatSend(){const i=$('#cmi');if(!i||!i.value.trim())return;i.disabled=true;await api('chatsend',{msg:i.value});i.value='';await load();if(chatOpen)chatRender();const ni=$('#cmi');if(ni)ni.focus()}
+function chatTick(){const c=S.chat||[],btn=$('#chatbtn');if(!btn)return;if(chatOpen)chatRender();else if(c.length>chatSeen)btn.classList.add('alert')}
 load();
 </script></body></html>
