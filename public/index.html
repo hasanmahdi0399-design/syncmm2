@@ -78,32 +78,73 @@ table{width:100%;border-collapse:collapse}td,th{padding:8px 7px;text-align:left;
 @keyframes spText{from{opacity:0;letter-spacing:.9em;filter:blur(6px)}to{opacity:1;filter:none}}
 @keyframes spLine{to{width:min(260px,60vw)}}
 @keyframes spOut{to{opacity:0;visibility:hidden}}
+
+.cfg{display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:linear-gradient(180deg,var(--p2),var(--p));border:1px solid var(--ln);border-radius:14px;padding:12px;margin-bottom:10px;animation:up .35s both}
+.cfg .pl{display:flex;align-items:center;gap:8px;min-width:130px}.cfg .its{display:flex;gap:4px;flex:1;flex-wrap:wrap}.cfg .its .ic{height:38px;width:38px;font-size:24px}.cfg .its .ic img,.cfg .its .ic svg{max-height:38px;width:38px;height:38px}
+.side{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#7c6cf033;color:#c9c2ff}.side.tails{background:#4fd1ff22;color:#8fe3ff}
+.sd{display:flex;gap:8px}.sd button{flex:1}.sd button.on{outline:2px solid var(--ac2)}
+#cfov{position:fixed;inset:0;z-index:900;background:#05060acc;backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:fade .25s both}
+.coins{display:flex;gap:26px;perspective:900px;margin:60px 0 6px}.coin{width:96px;height:96px;position:relative;transform-style:preserve-3d}
+.coin div{position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;font:700 46px/1 'Syncopate','Eurostile',system-ui,sans-serif;color:#fff;text-indent:.05em}
+.coin .h{background:radial-gradient(circle at 30% 28%,#6cc3ff,#1d6fe0 60%,#0d3a85);border:4px solid #bfe3ff;box-shadow:0 0 26px #2f8cff99,inset 0 0 14px #0a2a6688;text-shadow:0 2px 6px #0a2a66}
+.coin .t{transform:rotateY(180deg);background:radial-gradient(circle at 30% 28%,#ff8a8a,#e0262d 60%,#85101a);border:4px solid #ffd0d0;box-shadow:0 0 26px #ff4a4a99,inset 0 0 14px #66080e88;text-shadow:0 2px 6px #66080e}
+.cflogo{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 0 18px #7c6cf0cc)}
+.tally{font:700 14px 'Syncopate',system-ui,sans-serif;letter-spacing:.2em;color:var(--m);min-height:18px}.tally b{color:#fff}
+.cfres{opacity:0;transform:scale(.7);transition:opacity .4s,transform .4s cubic-bezier(.2,.8,.2,1);text-align:center}.cfres.show{opacity:1;transform:none}
+.cfres .big{font:700 38px/1.1 'Syncopate',system-ui,sans-serif;letter-spacing:.14em;text-indent:.14em}.cfres.win .big{color:#4ade80;text-shadow:0 0 28px #4ade8099}.cfres.lose .big{color:#f87171;text-shadow:0 0 28px #f8717199}
+.cfres small{display:block;margin-top:8px;color:var(--m);font-size:14px}
+.sd button.hd{border-color:#2f8cff66}.sd button.tl{border-color:#ff4a4a66}
+@keyframes cflip{0%{transform:translateY(0) rotateY(0)}45%{transform:translateY(var(--up)) rotateY(calc(var(--rf)*.55))}100%{transform:translateY(0) rotateY(var(--rf))}}
+#cfov h2{margin:0;font:700 18px 'Syncopate',system-ui,sans-serif;letter-spacing:.2em;text-indent:.2em;text-align:center}
+#rainbox{padding:10px 12px;border-bottom:1px solid var(--ln);background:linear-gradient(135deg,#142238,#17122e);font-size:13px}
+#rainbox .rt{font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:center}#rainbox .rs{color:var(--m);font-size:12px;margin-top:3px}
+#rainbox .rt small{color:#7dd3fc;font-weight:700;white-space:nowrap}#rcd{color:#fff;font-variant-numeric:tabular-nums}
+#rainbox.open{background:linear-gradient(135deg,#0f3a4d,#1d1646);box-shadow:inset 0 0 24px #4fd1ff22}
+#rainbox .rq{display:flex;gap:6px;align-items:center;margin-top:8px}#rainbox .rq b{font-size:16px;white-space:nowrap}#rainbox .rq input{flex:1;min-width:0;padding:7px 9px}#rainbox .rq button,#rainbox>button{padding:7px 12px}
+#rainbox>button{margin-top:8px;width:100%}
+.cmsg.sys{background:#4fd1ff14;border:1px solid #4fd1ff33;border-radius:10px;padding:6px 8px;color:#bfe9ff}
+#chatmsgs{min-height:120px}
+#rainov{position:fixed;inset:0;z-index:950;background:#05060acc;backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px;animation:fade .2s both}
+#rainov .rbox{width:min(340px,100%);background:linear-gradient(135deg,#0f3a4d,#1d1646);border:1px solid #4fd1ff44;border-radius:18px;padding:22px;text-align:center;box-shadow:0 0 40px #4fd1ff22;animation:spinIn .25s both;display:flex;flex-direction:column;gap:12px}
+#rainov .rtt{font:700 16px 'Syncopate',system-ui,sans-serif;letter-spacing:.18em}#rainov .rmuted{color:var(--m);font-size:13px}
+#rainov .rbig{font:700 36px/1.1 'Syncopate',system-ui,sans-serif}#rainov input{text-align:center;font-size:18px}
 </style></head><body><div id="splash"><img src="/logo.png" alt=""><b>Sync</b><i></i></div><div id="app"><p style="padding:20px;color:#8b9098">Loading… (if this never goes away, the script did not run)</p></div><div id="toast"></div>
 <script>window.onerror=function(m,u,l){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">JS error: '+m+' (line '+l+')</pre>')};window.onunhandledrejection=function(e){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">Error: '+(e.reason&&e.reason.message||e.reason)+'</pre>')}</script>
 <script>
 const $=s=>document.querySelector(s),fmt=n=>Math.floor(n).toLocaleString();
 let S=null,tab='home',q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"anim":true,"hide":false}');
 let chatOpen=false,chatSeen=0;
-const NAV=[['home','🏠','Home'],['values','📈','Values'],['inventory','🎒','Inventory'],['exchange','🔄','Exchange'],['jackpot','🎰','Jackpot'],['mines','💣','Mines'],['withdraw','📤','Withdraw'],['deposit','💳','Deposit'],['leaderboard','🏆','Leaderboard'],['settings','⚙️','Settings'],['admin','🛠️','Admin']];
+const NAV=[['home','🏠','Home'],['values','📈','Values'],['inventory','🎒','Inventory'],['exchange','🔄','Exchange'],['jackpot','🎰','Jackpot'],['coinflip','🪙','Coinflip'],['mines','💣','Mines'],['withdraw','📤','Withdraw'],['deposit','💳','Deposit'],['leaderboard','🏆','Leaderboard'],['settings','⚙️','Settings'],['admin','🛠️','Admin']];
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2500)};
 const api=async(a,b={})=>{try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});const j=await r.json();if(j.error)toast(j.error);return j}catch{toast('Network error');return{}}};
 // Splash: logo + title, then fades out. Used on site entry and when opening a game.
-const GAMES=['mines','jackpot'];
+const GAMES=['mines','jackpot','coinflip'];
 function splash(text,ms=1700){const old=$('#splash');if(old)old.remove();if(!cfg.anim)return;
  const d=document.createElement('div');d.id='splash';d.innerHTML=`<img src="/logo.png" alt=""><b>${text}</b><i></i>`;document.body.appendChild(d);setTimeout(()=>d.remove(),ms)}
 {const s=document.querySelector('#splash');if(s){if(!cfg.anim)s.remove();else setTimeout(()=>s.remove(),1800)}}
 const emojiSpan=e=>{const s=document.createElement('span');s.textContent=e;return s};
 // Icon chain: /icons/<id>.png (your own file) -> MM2 wiki image by item name -> emoji
 const wikiImg=n=>'https://murder-mystery-2.fandom.com/wiki/Special:FilePath/'+encodeURIComponent(n.replace(/ /g,'_'))+'.png';
+const hh=s=>{let x=0;for(const c of s)x=(x*31+c.charCodeAt(0))%360;return x};
+// Drawn icon (used when no PNG / wiki image loads): gun or knife silhouette coloured by rarity + item
+function icSvg(d){const t=d.type,r=d.rar,id=d.id,H=hh(id),H2=(H+50)%360;
+ if(t==='pet')return `<span>${d.emoji}</span>`;
+ const g=r==='chroma'?['#ff4d6d','#ffd23f','#3ddc97','#4fb3ff','#b47cff']:r==='ancient'?['#fff1b8','#e9b949','#a66a12']:r==='unique'?['#ffb3b3','#e03a3a','#6b0f1a']:[`hsl(${H} 85% 72%)`,`hsl(${H} 75% 55%)`,`hsl(${H2} 70% 38%)`];
+ const stops=g.map((c,i)=>`<stop offset="${i/(g.length-1)*100}%" stop-color="${c}"/>`).join('');
+ const gl=r==='chroma'?'#ffffff88':r==='ancient'?'#e9b949aa':`hsl(${H} 90% 60% / .55)`;
+ const body=t==='gun'
+ ?`<path d="M6 21h40l6 4v8H31l-3 4h-5l1-4H15l-3 17H5l4-17H6z" fill="url(#g${id})" stroke="#0007" stroke-width="1.5" stroke-linejoin="round"/><rect x="8" y="23" width="30" height="3" rx="1.5" fill="#fff6"/><circle cx="42" cy="29" r="2" fill="#0006"/>`
+ :`<path d="M26 36 61 5c-1 14-9 27-23 35z" fill="url(#g${id})" stroke="#0007" stroke-width="1.5" stroke-linejoin="round"/><path d="M30 35 56 9" stroke="#fff8" stroke-width="1.6" stroke-linecap="round"/><path d="M21 31l15 15" stroke="#2a2d36" stroke-width="5" stroke-linecap="round"/><path d="M26 41 8 59" stroke="url(#g${id})" stroke-width="7" stroke-linecap="round"/><path d="M26 41 8 59" stroke="#0004" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>`;
+ return `<svg viewBox="0 0 64 64" width="64" height="64" style="filter:drop-shadow(0 0 7px ${gl})"><defs><linearGradient id="g${id}" x1="0" y1="0" x2="1" y2="1">${stops}</linearGradient></defs>${body}</svg>`}
 window._icFallback=function(img){const d=img.dataset;
  if(d.stage==='0'&&d.wiki){d.stage='1';img.src=d.wiki;return}
- img.replaceWith(emojiSpan(d.emoji))};
-const ic=i=>/^(https?:)?\//.test(i.icon)?`<img src="${i.icon}" loading="lazy" alt="">`:`<img src="/icons/${i.id}.png" loading="lazy" alt="${i.name}" data-stage="0" data-wiki="${i.type==='pet'?'':wikiImg(i.name)}" data-emoji="${i.icon}" onerror="_icFallback(this)">`;
+ img.outerHTML=icSvg(d)};
+const ic=i=>/^(https?:)?\//.test(i.icon)?`<img src="${i.icon}" loading="lazy" alt="">`:`<img src="/icons/${i.id}.png" loading="lazy" alt="${i.name}" data-stage="0" data-wiki="${i.type==='pet'?'':wikiImg(i.name)}" data-emoji="${i.icon}" data-type="${i.type}" data-rar="${i.rarity||''}" data-id="${i.id}" onerror="_icFallback(this)">`;
 const card=(i,x='',c='',o='')=>`<div class="card ${c}" ${o}><div class="ic">${ic(i)}</div><b>${i.name}</b><small>${fmt(i.value)}</small>${x}</div>`;
 const byId=id=>S.items.find(i=>i.id===id),mlt=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 65% 60%)`};
-async function load(){S=await api('state');document.body.className=cfg.anim?'':'noanim';if(S.error||(!S.guest&&!S.me)){if(!S.me&&!$('#view'))$('#app').innerHTML='<pre style="color:#f87171;padding:14px;white-space:pre-wrap">Server error: '+(S.error||'no response')+'</pre>';return}if(S.guest){if(!$('#lg'))login();return}if(!$('#view'))shell();head();if(tab==='jackpot')jpUpdate();if(tab==='home'&&$('#view')&&$('#view').firstElementChild)rHome($('#view'));chatTick()}
-let tick=0;setInterval(()=>{if(document.hidden||pend||(S&&S.guest))return;if(tab!=='jackpot'&&++tick%6)return;load()},1500);
+async function load(){S=await api('state');if(S.rain)rainSkew=S.rain.now-Date.now();document.body.className=cfg.anim?'':'noanim';if(S.error||(!S.guest&&!S.me)){if(!S.me&&!$('#view'))$('#app').innerHTML='<pre style="color:#f87171;padding:14px;white-space:pre-wrap">Server error: '+(S.error||'no response')+'</pre>';return}if(S.guest){if(!$('#lg'))login();return}if(!$('#view'))shell();head();if(tab==='jackpot')jpUpdate();cfWatch();if(tab==='home'&&$('#view')&&$('#view').firstElementChild)rHome($('#view'));chatTick()}
+let tick=0;setInterval(()=>{if(document.hidden||pend||(S&&S.guest))return;if(tab!=='jackpot'&&tab!=='coinflip'&&++tick%6)return;load()},1500);
 function login(){if($('#un'))return;$('#app').innerHTML=`<main><div class="box" style="max-width:420px;margin:60px auto"><div class="logo" style="font-size:30px;justify-content:center"><img src="/logo.png" alt="" style="width:44px;height:44px"><span>Sync MM2</span></div><p class="muted">Verify your Roblox account to play.</p><div id="lg"><input id="un" placeholder="Roblox username" style="width:100%;margin-bottom:10px"><button class="big" style="margin:0" onclick="vstart()">Get verification code</button></div><p class="muted" style="font-size:11px;margin-top:14px">We log basic device/network info to prevent multi-accounting and abuse.</p></div></main>`}
 async function vstart(){const r=await api('start',{username:$('#un').value});if(!r.code)return;pend=r;
  $('#lg').innerHTML=`<p>Paste this into your <b>Roblox bio (About)</b> within 10 minutes:</p><div class="box" style="background:var(--p2);user-select:all;font-weight:700">${r.code}</div><p class="muted" id="cd"></p><button class="s" onclick="navigator.clipboard.writeText('${r.code}');toast('Copied')">Copy code</button>`;
@@ -115,7 +156,7 @@ function head(){const t=cfg.hide?'••••':fmt(S.me.tokens);if($('#hd'))$('
 function go(t){const was=tab;tab=t;sel={};q='';sb(0);const n=NAV.find(x=>x[0]===t);if(GAMES.includes(t)&&was!==t)splash(n[2]);document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.id==='t_'+t));$('#tt').textContent=n[2];const my=++nav;
  $('#view').innerHTML=`<div class="ld"><div class="sp"></div><span class="muted">Loading ${n[2]}…</span></div>`;
  setTimeout(async()=>{if(my!==nav)return;await load();if(my===nav)render()},cfg.anim?550:0)}
-const render=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,mines:rMines,withdraw:rWd,deposit:rDep,leaderboard:rLb,settings:rSet,admin:rAdm})[tab]($('#view'))};
+const render=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,coinflip:rCf,mines:rMines,withdraw:rWd,deposit:rDep,leaderboard:rLb,settings:rSet,admin:rAdm})[tab]($('#view'))};
 function srch(f){return`<input placeholder="Search items…" value="${q}" oninput="q=this.value;${f}()" style="width:100%;margin-bottom:12px">`}
 const filt=l=>l.filter(i=>i.name.toLowerCase().includes(q.toLowerCase()));
 function rValues(v){v.innerHTML=`<div class="box"><h3>Values of Items</h3>${srch('vl')}<div class="grid" id="g"></div></div>`;vl()}
@@ -183,10 +224,69 @@ function rAdm(v){const A=S.admin||{wd:[],logs:[],alts:[]},opts=S.items.map(i=>'<
 async function ad(a){const b={user:$('#au').value,item:$('#ai').value,qty:$('#aq').value,amount:$('#aq').value,value:$('#aq').value};if((await api(a,b)).ok)toast('Done');await load()}
 async function aw(id,ok){await api('admwd',{id,ok});await load();if(tab==='admin')render()}
 function chatToggle(){chatOpen=!chatOpen;const p=$('#chatpanel'),b=$('#chatbtn');if(!p)return;p.classList.toggle('open',chatOpen);if(chatOpen){if(b)b.classList.remove('alert');chatRender()}}
-function chatRender(){const p=$('#chatpanel');if(!p)return;const c=S.chat||[];chatSeen=c.length;
- p.innerHTML=`<div style="padding:10px 12px;border-bottom:1px solid var(--ln);font-weight:700">Site chat</div><div id="chatmsgs">${c.map(m=>`<div class="cmsg"><b>${m.name}:</b> ${m.msg.replace(/</g,'&lt;')}</div>`).join('')||'<p class="muted">No messages yet.</p>'}</div><div id="chatin"><input id="cmi" placeholder="Message…" onkeydown="if(event.key==='Enter')chatSend()"><button onclick="chatSend()">Send</button></div>`;
- const box=$('#chatmsgs');if(box)box.scrollTop=box.scrollHeight}
-async function chatSend(){const i=$('#cmi');if(!i||!i.value.trim())return;i.disabled=true;await api('chatsend',{msg:i.value});i.value='';await load();if(chatOpen)chatRender();const ni=$('#cmi');if(ni)ni.focus()}
-function chatTick(){const c=S.chat||[],btn=$('#chatbtn');if(!btn)return;if(chatOpen)chatRender();else if(c.length>chatSeen)btn.classList.add('alert')}
+function chatRender(){const p=$('#chatpanel');if(!p)return;const c=S.chat||[];chatSeen=c.length?c[c.length-1].id:0;
+ if(!$('#chatmsgs')){p.innerHTML=`<div style="padding:10px 12px;border-bottom:1px solid var(--ln);font-weight:700">Site chat</div><div id="rainbox"></div><div id="chatmsgs"></div><div id="chatin"><input id="cmi" placeholder="Message…" onkeydown="if(event.key==='Enter')chatSend()"><button onclick="chatSend()">Send</button></div>`;rainKey=''}
+ const box=$('#chatmsgs'),bot=box.scrollHeight-box.scrollTop-box.clientHeight<40||!box.dataset.n;
+ box.innerHTML=c.map(m=>m.sys?`<div class="cmsg sys">${m.msg.replace(/</g,'&lt;')}</div>`:`<div class="cmsg"><b>${m.name}:</b> ${m.msg.replace(/</g,'&lt;')}</div>`).join('')||'<p class="muted">No messages yet.</p>';
+ box.dataset.n=1;if(bot)box.scrollTop=box.scrollHeight;rainRender()}
+async function chatSend(){const i=$('#cmi');if(!i||!i.value.trim())return;i.disabled=true;await api('chatsend',{msg:i.value});i.value='';i.disabled=false;await load();if(chatOpen)chatRender();const ni=$('#cmi');if(ni)ni.focus()}
+function chatTick(){const c=S.chat||[],btn=$('#chatbtn');if(!btn)return;if(chatOpen)chatRender();else if(c.length&&c[c.length-1].id!==chatSeen)btn.classList.add('alert')}
+
+// ---- Sync Rain panel (top of the chat) ----
+const RH=3600000,ROPEN=55*60000;let rainSkew=0,rainQ=null,rainKey='',rainWasOpen=null;
+const rainNow=()=>Date.now()+rainSkew,rainPhase=()=>{const m=rainNow()%RH;return m>=ROPEN?{open:true,left:RH-m}:{open:false,left:ROPEN-m}};
+const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000)),m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0')};
+function rainCd(){const e=$('#rcd');if(e)e.textContent=mmss(rainPhase().left)}
+function rainRender(){const b=$('#rainbox');if(!b||!S.rain)return;const r=S.rain,ph=rainPhase(),me=r.me||{};if(!ph.open){rainQ=null;rainClose()}
+ const key=[ph.open,me.in].join('|');
+ if(key!==rainKey){rainKey=key;b.className=ph.open?'open':'';let body;
+  if(!ph.open)body=`<div class="rs">Starts in <b id="rcd"></b> — chat once this hour to be able to join</div>`;
+  else if(me.in)body=`<div class="rs">✅ You're in the rain! <span id="rjn">${r.joined}</span> joined · pays out in <b id="rcd"></b></div>`;
+  else body=`<div class="rs">Rain is open! Closes in <b id="rcd"></b> · <span id="rjn">${r.joined}</span> joined</div><button onclick="rainAsk()">Join the rain</button>`;
+  b.innerHTML=`<div class="rt"><span>🌧️ Join The Sync Rainpool</span><small>${r.pool||100} tokens rain</small></div>`+body;}
+ const j=$('#rjn');if(j)j.textContent=r.joined;rainCd()}
+function rainClose(){const m=$('#rainov');if(m)m.remove()}
+function rainModal(wrong){rainClose();const m=document.createElement('div');m.id='rainov';
+ m.innerHTML=`<div class="rbox"><div class="rtt">🌧️ Sync Rain</div><div class="rmuted">${wrong?'Wrong answer — try this one':'Solve this to join the rain'}</div><div class="rbig">${rainQ} = ?</div><input id="rai" type="number" inputmode="numeric" placeholder="Your answer" onkeydown="if(event.key==='Enter')rainJoin()"><div class="row" style="justify-content:center"><button onclick="rainJoin()">Enter</button><button class="s" onclick="rainClose()">Cancel</button></div></div>`;
+ m.onclick=e=>{if(e.target===m)rainClose()};document.body.appendChild(m);$('#rai').focus()}
+async function rainAsk(wrong){const r=await api('rainq');if(r.q){rainQ=r.q;rainModal(wrong===true)}await load()}
+async function rainJoin(){const i=$('#rai');if(!i||!i.value.trim())return;const r=await api('rainjoin',{ans:i.value});if(r.ok){rainQ=null;rainClose();toast('You joined the rain! 🌧️')}else if(r.error==='Wrong answer'){rainAsk(true);return}else rainClose();await load();if(chatOpen)chatRender()}
+setInterval(()=>{const o=rainPhase().open;if(rainWasOpen!==null&&o!==rainWasOpen&&S&&!S.guest){const bt=$('#chatbtn');if(o&&bt&&!chatOpen)bt.classList.add('alert');load()}rainWasOpen=o;rainCd();rainRender()},1000);
+
+// ---- Coinflip ----
+let cfSeen=null,cfSide='heads';
+const cfRange=v=>[Math.ceil(v*.9),Math.floor(v*1.1)];
+const cfItems=its=>Object.entries(its).map(([k,q])=>{const i=byId(k);return i?`<div title="${i.name} x${q}" style="text-align:center"><div class="ic">${ic(i)}</div><small class="muted">x${q}</small></div>`:''}).join('');
+function cfGameRow(g){const mine=g.c.id===S.me.id,[lo,hi]=cfRange(g.value);
+ return `<div class="cfg"><div class="pl"><img class="av" style="width:34px;height:34px" src="${g.c.avatar}" alt=""><div><b>${g.c.name}</b><br><span class="side ${g.side}">${g.side}</span></div></div><div class="its">${cfItems(g.items)}</div><div style="text-align:right"><b class="g">${fmt(g.value)}</b><br><small class="muted">${fmt(lo)}–${fmt(hi)}</small></div>${mine?`<button class="s" onclick="cfCancel(${g.id})">Cancel</button>`:`<button onclick="cfJoin(${g.id})">Join</button>`}</div>`}
+function cfRecentRow(g){return `<div class="stat"><span>#${g.id} <b>${g.c.name}</b> vs <b>${g.j.name}</b></span><span>🏆 ${g.winner.name} <span class="g">+${fmt(g.won)}</span></span></div>`}
+function rCf(v){const cf=S.cf||{open:[],recent:[]};
+ v.innerHTML=`<div class="box"><h3>Create coinflip <span class="muted">— item vs item · 3 coins, best of 3 · 10% tax</span></h3><p>Selected value: <b>${fmt(selVal())}</b></p><div class="grid">${owned().map(selCard).join('')||'<p class="muted">No items.</p>'}</div>
+ <div class="row sd"><button class="s hd ${cfSide==='heads'?'on':''}" onclick="cfSide='heads';render()">🔵 Heads (H)</button><button class="s tl ${cfSide==='tails'?'on':''}" onclick="cfSide='tails';render()">🔴 Tails (T)</button></div>
+ <div class="row"><button onclick="cfCreate()">Create game</button></div><p class="muted" style="font-size:12px">To join a game, select items worth within ±10% of its value, then press Join on it.</p></div>
+ <div class="box"><h3>Open games</h3><div id="cfl"></div></div><div class="box"><h3>Recent flips</h3><div id="cfr"></div></div>`;cfList()}
+function cfList(){const cf=S.cf||{open:[],recent:[]},l=$('#cfl');if(!l)return;
+ l.innerHTML=cf.open.slice().reverse().map(cfGameRow).join('')||'<p class="muted">No open games — create one!</p>';
+ $('#cfr').innerHTML=cf.recent.slice().reverse().map(cfRecentRow).join('')||'<p class="muted">Nothing yet.</p>'}
+async function cfCreate(){const r=await api('cfcreate',{items:sel,side:cfSide});if(r.ok){sel={};toast('Game created')}await load();if(tab==='coinflip')render()}
+async function cfCancel(id){await api('cfcancel',{id});await load();if(tab==='coinflip')render()}
+async function cfJoin(id){const r=await api('cfjoin',{id,items:sel});if(r.ok)sel={};await load();if(tab==='coinflip')render()}
+// Called on every state load: refresh the list and play the flip once for games I'm in
+function cfWatch(){const cf=S.cf;if(!cf)return;const rec=cf.recent,mx=rec.length?rec[rec.length-1].id:0;
+ if(cfSeen===null){cfSeen=mx;return}
+ if(tab==='coinflip')cfList();
+ for(const g of rec){if(g.id>cfSeen&&(g.c.id===S.me.id||g.j.id===S.me.id)){cfSeen=Math.max(cfSeen,g.id);cfPlay(g)}}
+ cfSeen=Math.max(cfSeen,mx)}
+function cfPlay(g){const old=$('#cfov');if(old)old.remove();const d=document.createElement('div');d.id='cfov';
+ const fl=g.flips||[g.result,g.result,g.result],nh=fl.filter(x=>x==='heads').length,me=S.me.id,mySide=g.c.id===me?g.cSide:g.jSide,won=g.winner.id===me;
+ const coins=fl.map((s,i)=>{const rf=1440+i*360+(s==="tails"?180:0),dur=2+i*.35,up=-(70+i*22);
+  return `<div class="coin" style="--rf:${rf}deg;--up:${up}px;transform:rotateY(${rf}deg);animation:${cfg.anim?`cflip ${dur}s cubic-bezier(.3,.6,.3,1) forwards`:'none'}"><div class="h">H</div><div class="t">T</div></div>`}).join('');
+ d.innerHTML=`<img class="cflogo" src="/logo.png" alt=""><h2>${g.c.name} <span class="side ${g.cSide}">${g.cSide}</span> vs ${g.j.name} <span class="side ${g.jSide}">${g.jSide}</span></h2><div class="coins">${coins}</div><div class="tally" id="cft"></div><div class="cfres ${won?'win':'lose'}" id="cfres"><div class="big">${won?'YOU WON!':'YOU LOST'}</div><small>${won?`+${fmt(g.won)} value`:`${g.winner.name} took the pot`}</small></div>`;
+ d.onclick=()=>d.remove();document.body.appendChild(d);
+ const t=cfg.anim?2900:0;
+ setTimeout(()=>{const x=$('#cft');if(x)x.innerHTML=`<b style="color:#6cb4ff">${nh} H</b> &nbsp;·&nbsp; <b style="color:#ff7b7b">${3-nh} T</b> &nbsp;→&nbsp; <b>${g.result==='heads'?'HEADS':'TAILS'} wins</b>`},t);
+ setTimeout(()=>{const r=$('#cfres');if(r)r.classList.add('show')},t+500);
+ setTimeout(()=>d.remove(),cfg.anim?9000:4000)}
+
 load();
 </script></body></html>
