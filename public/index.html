@@ -32,7 +32,7 @@ const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return `hsl(
 async function load(){S=await api('state');document.body.className=cfg.anim?'':'noanim';if(S.guest)return login();head();if(!$('#view'))shell();
  if(tab==='jackpot')jpUpdate();else if(tab==='admin'||tab==='mines')0;}
 setInterval(()=>{if(!document.hidden&&!pend)load()},1500);
-function login(){$('#app').innerHTML=`<main><div class="box" style="max-width:420px;margin:60px auto"><div class="logo" style="font-size:28px">Sync MM2</div><p class="muted">Verify your Roblox account to play.</p>
+function login(){if($('#un'))return;$('#app').innerHTML=`<main><div class="box" style="max-width:420px;margin:60px auto"><div class="logo" style="font-size:28px">Sync MM2</div><p class="muted">Verify your Roblox account to play.</p>
 <div id="lg"><input id="un" placeholder="Roblox username" style="width:100%;margin-bottom:8px"><button style="width:100%" onclick="vstart()">Get verification code</button></div></div></main>`}
 async function vstart(){const r=await api('start',{username:$('#un').value});if(!r.code)return;pend=r;
  $('#lg').innerHTML=`<p>Paste this into your <b>Roblox bio (About)</b> within 10 minutes:</p><div class="box" style="background:var(--p2);user-select:all;font-weight:700">${r.code}</div><p class="muted" id="cd"></p><button class="s" onclick="navigator.clipboard.writeText('${r.code}');toast('Copied')">Copy</button>`;
