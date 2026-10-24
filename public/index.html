@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sync MM2</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sync MM2</title><link rel="icon" type="image/png" href="/logo.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0b0d;--bg2:#101217;--p:#15171c;--p2:#1c1f26;--p3:#242831;--a:#c9cedb;--ac1:#7c6cf0;--ac2:#4fd1ff;--t:#eef0f4;--m:#8b90a0;--g:#4ade80;--r:#f87171;--ln:#262a33;--sh:0 8px 24px -8px #000a}
 *{box-sizing:border-box}
@@ -66,7 +66,19 @@ table{width:100%;border-collapse:collapse}td,th{padding:8px 7px;text-align:left;
 .cmsg{font-size:12px;line-height:1.4;word-break:break-word;animation:up .2s both}.cmsg b{color:var(--ac2)}
 #chatin{display:flex;gap:6px;padding:8px;border-top:1px solid var(--ln)}#chatin input{flex:1;min-width:0}
 @media(max-width:480px){#chatpanel{width:calc(100vw - 24px);right:12px}}
-</style></head><body><div id="app"><p style="padding:20px;color:#8b9098">Loading… (if this never goes away, the script did not run)</p></div><div id="toast"></div>
+
+.logo{display:flex;align-items:center;gap:10px;-webkit-background-clip:initial;background:none;color:var(--t)}
+.logo img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 0 8px #7c6cf0aa)}
+.logo span{background:linear-gradient(135deg,var(--ac1),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+#splash{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:22px;background:radial-gradient(600px 360px at 50% 45%,#161233 0%,#07080a 70%);pointer-events:all;animation:spOut .5s ease 1.25s forwards}
+#splash img{width:104px;height:104px;object-fit:contain;filter:drop-shadow(0 0 22px #7c6cf0cc);animation:spLogo 1.1s cubic-bezier(.2,.8,.2,1) both}
+#splash b{font:700 30px/1 'Syncopate','Eurostile','Segoe UI',system-ui,sans-serif;letter-spacing:.42em;text-indent:.42em;text-transform:uppercase;color:#fff;animation:spText .9s cubic-bezier(.2,.8,.2,1) .25s both}
+#splash i{display:block;height:1px;width:0;background:linear-gradient(90deg,transparent,var(--ac2),transparent);animation:spLine 1s ease .3s forwards}
+@keyframes spLogo{from{opacity:0;transform:scale(.6) rotate(-90deg)}to{opacity:1;transform:none}}
+@keyframes spText{from{opacity:0;letter-spacing:.9em;filter:blur(6px)}to{opacity:1;filter:none}}
+@keyframes spLine{to{width:min(260px,60vw)}}
+@keyframes spOut{to{opacity:0;visibility:hidden}}
+</style></head><body><div id="splash"><img src="/logo.png" alt=""><b>Sync</b><i></i></div><div id="app"><p style="padding:20px;color:#8b9098">Loading… (if this never goes away, the script did not run)</p></div><div id="toast"></div>
 <script>window.onerror=function(m,u,l){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">JS error: '+m+' (line '+l+')</pre>')};window.onunhandledrejection=function(e){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">Error: '+(e.reason&&e.reason.message||e.reason)+'</pre>')}</script>
 <script>
 const $=s=>document.querySelector(s),fmt=n=>Math.floor(n).toLocaleString();
@@ -75,23 +87,32 @@ let chatOpen=false,chatSeen=0;
 const NAV=[['home','🏠','Home'],['values','📈','Values'],['inventory','🎒','Inventory'],['exchange','🔄','Exchange'],['jackpot','🎰','Jackpot'],['mines','💣','Mines'],['withdraw','📤','Withdraw'],['deposit','💳','Deposit'],['leaderboard','🏆','Leaderboard'],['settings','⚙️','Settings'],['admin','🛠️','Admin']];
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2500)};
 const api=async(a,b={})=>{try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});const j=await r.json();if(j.error)toast(j.error);return j}catch{toast('Network error');return{}}};
+// Splash: logo + title, then fades out. Used on site entry and when opening a game.
+const GAMES=['mines','jackpot'];
+function splash(text,ms=1700){const old=$('#splash');if(old)old.remove();if(!cfg.anim)return;
+ const d=document.createElement('div');d.id='splash';d.innerHTML=`<img src="/logo.png" alt=""><b>${text}</b><i></i>`;document.body.appendChild(d);setTimeout(()=>d.remove(),ms)}
+{const s=document.querySelector('#splash');if(s){if(!cfg.anim)s.remove();else setTimeout(()=>s.remove(),1800)}}
 const emojiSpan=e=>{const s=document.createElement('span');s.textContent=e;return s};
-window._icFallback=function(img){img.replaceWith(emojiSpan(img.dataset.emoji))};
-const ic=i=>/^(https?:)?\//.test(i.icon)?`<img src="${i.icon}" loading="lazy" alt="">`:`<img src="/icons/${i.id}.png" loading="lazy" alt="${i.name}" data-emoji="${i.icon}" onerror="_icFallback(this)">`;
+// Icon chain: /icons/<id>.png (your own file) -> MM2 wiki image by item name -> emoji
+const wikiImg=n=>'https://murder-mystery-2.fandom.com/wiki/Special:FilePath/'+encodeURIComponent(n.replace(/ /g,'_'))+'.png';
+window._icFallback=function(img){const d=img.dataset;
+ if(d.stage==='0'&&d.wiki){d.stage='1';img.src=d.wiki;return}
+ img.replaceWith(emojiSpan(d.emoji))};
+const ic=i=>/^(https?:)?\//.test(i.icon)?`<img src="${i.icon}" loading="lazy" alt="">`:`<img src="/icons/${i.id}.png" loading="lazy" alt="${i.name}" data-stage="0" data-wiki="${i.type==='pet'?'':wikiImg(i.name)}" data-emoji="${i.icon}" onerror="_icFallback(this)">`;
 const card=(i,x='',c='',o='')=>`<div class="card ${c}" ${o}><div class="ic">${ic(i)}</div><b>${i.name}</b><small>${fmt(i.value)}</small>${x}</div>`;
 const byId=id=>S.items.find(i=>i.id===id),mlt=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 65% 60%)`};
 async function load(){S=await api('state');document.body.className=cfg.anim?'':'noanim';if(S.error||(!S.guest&&!S.me)){if(!S.me&&!$('#view'))$('#app').innerHTML='<pre style="color:#f87171;padding:14px;white-space:pre-wrap">Server error: '+(S.error||'no response')+'</pre>';return}if(S.guest){if(!$('#lg'))login();return}if(!$('#view'))shell();head();if(tab==='jackpot')jpUpdate();if(tab==='home'&&$('#view')&&$('#view').firstElementChild)rHome($('#view'));chatTick()}
 let tick=0;setInterval(()=>{if(document.hidden||pend||(S&&S.guest))return;if(tab!=='jackpot'&&++tick%6)return;load()},1500);
-function login(){if($('#un'))return;$('#app').innerHTML=`<main><div class="box" style="max-width:420px;margin:60px auto"><div class="logo" style="font-size:30px">Sync MM2</div><p class="muted">Verify your Roblox account to play.</p><div id="lg"><input id="un" placeholder="Roblox username" style="width:100%;margin-bottom:10px"><button class="big" style="margin:0" onclick="vstart()">Get verification code</button></div><p class="muted" style="font-size:11px;margin-top:14px">We log basic device/network info to prevent multi-accounting and abuse.</p></div></main>`}
+function login(){if($('#un'))return;$('#app').innerHTML=`<main><div class="box" style="max-width:420px;margin:60px auto"><div class="logo" style="font-size:30px;justify-content:center"><img src="/logo.png" alt="" style="width:44px;height:44px"><span>Sync MM2</span></div><p class="muted">Verify your Roblox account to play.</p><div id="lg"><input id="un" placeholder="Roblox username" style="width:100%;margin-bottom:10px"><button class="big" style="margin:0" onclick="vstart()">Get verification code</button></div><p class="muted" style="font-size:11px;margin-top:14px">We log basic device/network info to prevent multi-accounting and abuse.</p></div></main>`}
 async function vstart(){const r=await api('start',{username:$('#un').value});if(!r.code)return;pend=r;
  $('#lg').innerHTML=`<p>Paste this into your <b>Roblox bio (About)</b> within 10 minutes:</p><div class="box" style="background:var(--p2);user-select:all;font-weight:700">${r.code}</div><p class="muted" id="cd"></p><button class="s" onclick="navigator.clipboard.writeText('${r.code}');toast('Copied')">Copy code</button>`;
  const t=setInterval(async()=>{if(!pend)return clearInterval(t);const s=Math.max(0,Math.round((r.exp-Date.now())/1000));$('#cd').textContent=`Waiting for bio… expires in ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   if(s%3===0){const c=await api('check',{tok:r.tok});if(c.ok){pend=null;clearInterval(t);load()}else if(c.error){pend=null;clearInterval(t);$('#app').innerHTML='';login()}}},1000)}
-function shell(){const m=S.me;$('#app').innerHTML=`<aside id="sb"><div class="logo">Sync MM2</div><div class="uc"><img class="av" src="${m.avatar}" alt=""><div><b>${m.name}</b><span class="tok" id="sbt"></span></div></div><div id="nv">${NAV.filter(n=>n[0]!=='admin'||m.admin).map(n=>`<button id="t_${n[0]}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div></aside><div id="ov" onclick="sb(0)"></div><div id="mn"><div class="top"><button class="s mb" onclick="sb(1)">☰</button><b id="tt"></b><span class="tok" id="hd"></span></div><main id="view"></main></div><button id="chatbtn" onclick="chatToggle()">💬</button><div id="chatpanel"></div>`;go(tab)}
+function shell(){const m=S.me;$('#app').innerHTML=`<aside id="sb"><div class="logo"><img src="/logo.png" alt=""><span>Sync MM2</span></div><div class="uc"><img class="av" src="${m.avatar}" alt=""><div><b>${m.name}</b><span class="tok" id="sbt"></span></div></div><div id="nv">${NAV.filter(n=>n[0]!=='admin'||m.admin).map(n=>`<button id="t_${n[0]}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div></aside><div id="ov" onclick="sb(0)"></div><div id="mn"><div class="top"><button class="s mb" onclick="sb(1)">☰</button><b id="tt"></b><span class="tok" id="hd"></span></div><main id="view"></main></div><button id="chatbtn" onclick="chatToggle()">💬</button><div id="chatpanel"></div>`;go(tab)}
 const sb=o=>{$('#sb').classList.toggle('open',!!o);$('#ov').classList.toggle('show',!!o)};
 function head(){const t=cfg.hide?'••••':fmt(S.me.tokens);if($('#hd'))$('#hd').textContent='🪙 '+t;if($('#sbt'))$('#sbt').textContent='🪙 '+t}
-function go(t){tab=t;sel={};q='';sb(0);const n=NAV.find(x=>x[0]===t);document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.id==='t_'+t));$('#tt').textContent=n[2];const my=++nav;
+function go(t){const was=tab;tab=t;sel={};q='';sb(0);const n=NAV.find(x=>x[0]===t);if(GAMES.includes(t)&&was!==t)splash(n[2]);document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.id==='t_'+t));$('#tt').textContent=n[2];const my=++nav;
  $('#view').innerHTML=`<div class="ld"><div class="sp"></div><span class="muted">Loading ${n[2]}…</span></div>`;
  setTimeout(async()=>{if(my!==nav)return;await load();if(my===nav)render()},cfg.anim?550:0)}
 const render=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,mines:rMines,withdraw:rWd,deposit:rDep,leaderboard:rLb,settings:rSet,admin:rAdm})[tab]($('#view'))};
