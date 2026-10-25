@@ -3,7 +3,7 @@ const crypto=require('crypto');
 const ADMINS=(process.env.ADMIN_IDS||'').split(',').map(s=>s.trim()).filter(Boolean);
 const URL_=process.env.UPSTASH_REDIS_REST_URL||process.env.KV_REST_API_URL,TOK=process.env.UPSTASH_REDIS_REST_TOKEN||process.env.KV_REST_API_TOKEN;
 const R=async(...c)=>{const r=await fetch(URL_,{method:'POST',headers:{Authorization:'Bearer '+TOK},body:JSON.stringify(c)});const j=await r.json();if(j.error)throw Error('DB: '+j.error);return j.result};
-const ITEMS=[
+const MM2_ITEMS=[
 ['nikscythe','Nik\'s Scythe','knife','ancient',150000,'☠️'],
 ['elderwood','Elderwood Scythe','knife','ancient',130,'🌿'],
 ['logchopper','Log Chopper','knife','ancient',135,'🪓'],
@@ -120,9 +120,36 @@ const ITEMS=[
 ['pet1','Pet Cat','pet','pet',5,'🐱'],
 ['pet2','Pet Dragon','pet','pet',70,'🐲']
 ].map(([id,name,type,rarity,value,icon])=>({id,name,type,rarity,value,icon}));
-const I=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+let ITEMS=MM2_ITEMS,I=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+// ---- Game modes: MM2 (tokens) and PS99 (gems). Each mode is its own world in Redis; Roblox logins/sessions are shared. ----
+let MODE='mm2',KEY='db',MINB=5,MAIN=null,PSTS=0;
+const setMode=m=>{MODE=m==='ps99'?'ps99':'mm2';KEY=MODE==='ps99'?'dbps':'db';MINB=MODE==='ps99'?1000000:5;if(MODE==='mm2'){ITEMS=MM2_ITEMS;I=Object.fromEntries(ITEMS.map(i=>[i.id,i]))}};
+const fm=n=>Math.floor(n).toLocaleString('en-US');
+// PS99 items = every Titanic + Huge pet from BIG Games' official API, valued at RAP (gems), with their official thumbnails. Cached 1h.
+const PSTTL=3600000;
+async function psFetch(prev){
+ const g=u=>fetch(u,{headers:{accept:'application/json'}}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()});
+ const[col,rap]=await Promise.all([g('https://ps99.biggamesapi.io/api/collection/Pets'),g('https://ps99.biggamesapi.io/api/rap')]);
+ const th={};for(const p of col.data||[]){const n=p.configName,t=p.configData&&p.configData.thumbnail;if(/^(Titanic|Huge) /.test(n)&&t)th[n]=String(t).replace(/\D/g,'')}
+ const items=[],seen={};
+ for(const r of rap.data||[]){const cd=r.configData||{},n=cd.id;
+  if(!n||cd.pt||cd.sh||!th[n]||!(r.value>0)||(r.category&&r.category!=='Pet'))continue;
+  let id=n.toLowerCase().replace(/[^a-z0-9]+/g,'')||'pet';if(seen[id])id+=(++seen[id]);else seen[id]=1;
+  items.push([id,n,n.startsWith('Titanic')?'titanic':'huge',Math.round(r.value),th[n]])}
+ if(items.length<20)throw Error('no pets returned');
+ for(const o of(prev&&prev.items)||[])if(!items.some(x=>x[0]===o[0]))items.push(o); // keep pets that dropped out of RAP so nobody's inventory breaks
+ return{t:Date.now(),items}}
+function psSet(c){PSTS=c.t;ITEMS=c.items.map(([id,name,rarity,value,t])=>({id,name,type:'pet',rarity,value,icon:'https://ps99.biggamesapi.io/image/'+t}));I=Object.fromEntries(ITEMS.map(i=>[i.id,i]))}
+async function psLoad(){
+ const raw=await R('GET','psitems');let c=raw?JSON.parse(raw):null;
+ if(!c||Date.now()-c.t>PSTTL){
+  if(!c||await R('SET','psitems:lock','1','NX','PX',60000)==='OK'){
+   try{c=await psFetch(c)}catch(e){if(!c)throw Error('PS99 values are loading, try again in a moment ('+e.message+')');c.t=Date.now()-PSTTL+300000}
+   await R('SET','psitems',JSON.stringify(c))}}
+ psSet(c)}
 let db,jp,hooks=[];
-const load=async()=>{const s=await R('GET','db');db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
+const load=async()=>{const s=await R('GET',KEY);db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
+ if(MODE==='ps99'){const mm=await R('GET','db');MAIN=mm?JSON.parse(mm):{users:{},sessions:{}};db.sessions=MAIN.sessions||{};await psLoad()}
  jp=db.jp||(db.jp={players:{},end:0,id:0,last:null})};
 // Device fingerprint: a salted, one-way hash of the request IP, stored per user so admins can see
 // which accounts share a device (likely alts/ban evasion). Never the raw IP, never sent anywhere else.
@@ -131,7 +158,7 @@ const getIp=req=>String(req.headers['x-forwarded-for']||req.socket?.remoteAddres
 const hashDev=ip=>ip?crypto.createHash('sha256').update(DEVSALT+ip).digest('hex').slice(0,20):'';
 function altGroups(){const by={};for(const u of Object.values(db.users)){if(!u.dev)continue;(by[u.dev]=by[u.dev]||[]).push(u.name)}
  return Object.values(by).filter(g=>g.length>1)}
-const persist=()=>R('SET','db',JSON.stringify(db));
+const persist=()=>R('SET',KEY,JSON.stringify(MODE==='ps99'?{...db,sessions:undefined}:db));
 const save=()=>{};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0;
@@ -139,7 +166,8 @@ async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0
  if(!ok)throw Error('Server busy, try again');
  try{await load();if(jp.end&&Date.now()>=jp.end)jpResolve();rainTick();const out=await fn();await persist();return out}
  finally{if(await R('GET','lock')===t)await R('DEL','lock')}}
-const val=id=>db.values[id]??I[id].value;
+const val=id=>db.values[id]??(I[id]?I[id].value:0);
+const IV=()=>crypto.createHash('md5').update(MODE+PSTS+JSON.stringify(db.values)).digest('hex').slice(0,10);
 const invVal=u=>Object.entries(u.inv).reduce((s,[k,q])=>s+val(k)*q,0);
 const add=(o,k,q)=>{o[k]=(o[k]||0)+q;if(o[k]<=0)delete o[k]};
 const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100);const w=db.webhook||process.env.WEBHOOK_URL;
@@ -153,14 +181,14 @@ const findUser=s=>db.users[s]||Object.values(db.users).find(u=>u.name.toLowerCas
 // ---- Sync Rain: every hour (GMT+6 hours align with UTC hours) the window opens at :55 and pays out at :00 ----
 const RH=3600000,ROPEN=55*60000,RPOOL=100;
 const chatSys=m=>{db.chat=db.chat||[];db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:'sys',name:'🌧️ Sync Rain',avatar:'',msg:m,t:Date.now(),sys:1});db.chat=db.chat.slice(-50)};
-const rainNeeds=()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);return(rd.ann&&n>=(rd.r+1)*RH)||(n%RH>=ROPEN&&rd.r!==cur)};
+const rainNeeds=()=>{if(MODE!=='mm2')return false;const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);return(rd.ann&&n>=(rd.r+1)*RH)||(n%RH>=ROPEN&&rd.r!==cur)};
 function rainPay(){const rd=db.rain,ids=Object.keys(rd.joined).filter(id=>db.users[id]),n=ids.length;rd.ann=false;rd.joined={};
  if(!n){chatSys('🌧️ Sync Rain ended — nobody joined.');return}
  let per=Math.floor(RPOOL/n),w=ids;
  if(per<1){per=1;for(let i=w.length-1;i>0;i--){const j=crypto.randomInt(i+1);[w[i],w[j]]=[w[j],w[i]]}w=w.slice(0,RPOOL)}
  w.forEach(id=>{db.users[id].tokens+=per});
  chatSys(`🌧️ Sync Rain distributed between ${n} each get ${per}`+(w.length<n?` (${w.length} lucky winners)`:''));log(`🌧️ Sync Rain: ${n} joined, ${per} each`)}
-function rainTick(){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);
+function rainTick(){if(MODE!=='mm2')return;const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);
  if(rd.ann&&n>=(rd.r+1)*RH)rainPay();
  if(n%RH>=ROPEN&&rd.r!==cur){rd.r=cur;rd.ann=true;rd.joined={};chatSys('Sync Rain started! 5 minutes to join— send a message in the site chat in this hour to be able to join.')}}
 const rainQ=()=>{const t=crypto.randomInt(3);let a,b,ans,q;
@@ -217,7 +245,7 @@ const mult=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 async function start(b){
  const d=await rj('https://users.roblox.com/v1/usernames/users',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({usernames:[String(b.username||'').trim()],excludeBannedUsers:true})});
  const p=d.data[0];if(!p)E('Roblox user not found');
- const w=()=>WORDS[crypto.randomInt(WORDS.length)],tok=crypto.randomBytes(16).toString('hex'),code=`Sync MM2 - ${w()} ${w()} ${w()}`;
+ const w=()=>WORDS[crypto.randomInt(WORDS.length)],tok=crypto.randomBytes(16).toString('hex'),code=`Sync ${b.gm==='ps99'?'PS99':'MM2'} - ${w()} ${w()} ${w()}`;
  await R('SET','p:'+tok,JSON.stringify({id:String(p.id),name:p.name,code}),'EX',600);
  return{tok,code,name:p.name,exp:Date.now()+600000}}
 async function check(b,H,req){
@@ -232,15 +260,18 @@ async function check(b,H,req){
 async function handle(a,b,sid,H){
  if(a==='lb'){const us=Object.values(db.users),f=k=>us.slice().sort((x,y)=>y[k]-x[k]).slice(0,20).map(u=>({name:u.name,avatar:u.avatar,v:Math.floor(u[k])}));
   return{wagered:f('wagered'),profit:f('profit')}}
- const u=db.users[db.sessions[sid]];
+ const uid0=db.sessions[sid];let u=db.users[uid0];
+ if(MODE==='ps99'&&uid0&&MAIN.users[uid0]){const mu=MAIN.users[uid0];
+  u=db.users[uid0]||(db.users[uid0]={id:uid0,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,mines:null,lastSeen:Date.now()});
+  u.name=mu.name;u.avatar=mu.avatar;if(mu.dev)u.dev=mu.dev}
  if(a==='state'){
   if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now();
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin},
-   items:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
+   mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
    bj:u.bj?bjView(u.bj):null,
-   rain:(()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH),on=!!rd.ann&&rd.r===cur&&n%RH>=ROPEN;return{now:n,pool:RPOOL,open:on,joined:on?Object.keys(rd.joined).length:0,me:{in:on&&!!rd.joined[u.id],chat:(u.lastChat||0)>=cur*RH}}})(),
+   rain:MODE!=='mm2'?{off:true}:(()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH),on=!!rd.ann&&rd.r===cur&&n%RH>=ROPEN;return{now:n,pool:RPOOL,open:on,joined:on?Object.keys(rd.joined).length:0,me:{in:on&&!!rd.joined[u.id],chat:(u.lastChat||0)>=cur*RH}}})(),
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),
    online,activeMines,chat:(db.chat||[]).slice(-50),
@@ -259,16 +290,17 @@ async function handle(a,b,sid,H){
  if(a==='buy'){const n=needInt(b.qty);if(!I[b.item]||(db.shop[b.item]||0)<n)E('Out of stock');const p=Math.ceil(val(b.item)*1.1)*n;
   if(u.tokens<p)E('Not enough tokens');u.tokens-=p;add(db.shop,b.item,-n);add(u.inv,b.item,n);log(`🛒 ${u.name} bought ${n}x ${b.item} for ${p}`);return{ok:1}}
  if(a==='jpjoin'){if(!b.items||!Object.keys(b.items).length)E('Select items');
-  const v=take(b.items);const p=jp.players[u.id]||(jp.players[u.id]={name:u.name,avatar:u.avatar,items:{},value:0});
+  const v=take(b.items);if(MODE==='ps99'&&v<MINB)E('Minimum jackpot entry is '+fm(MINB));const p=jp.players[u.id]||(jp.players[u.id]={name:u.name,avatar:u.avatar,items:{},value:0});
   for(const[k,q]of Object.entries(b.items))add(p.items,k,q);p.value+=v;
   if(Object.keys(jp.players).length>=2&&!jp.end)jp.end=Date.now()+25000;return{ok:1}}
  if(a==='jpleave'){const p=jp.players[u.id];if(!p||Object.keys(jp.players).length>1)E('Cannot leave now');for(const[k,q]of Object.entries(p.items))add(u.inv,k,q);delete jp.players[u.id];return{ok:1}}
+ if((a==='rainq'||a==='rainjoin')&&MODE!=='mm2')E('Sync Rain is MM2 only');
  if(a==='rainq'){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);if(!(rd.ann&&rd.r===cur&&n%RH>=ROPEN))E('The rain is not open');if(rd.joined[u.id])E('Already joined');
   if((u.lastChat||0)<cur*RH)E('Send a message in the site chat this hour first');const x=rainQ();u.rq={ans:x.ans,exp:n+60000};return{q:x.q}}
  if(a==='rainjoin'){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);if(!(rd.ann&&rd.r===cur&&n%RH>=ROPEN))E('The rain is not open');if(rd.joined[u.id])E('Already joined');
   if((u.lastChat||0)<cur*RH)E('Send a message in the site chat this hour first');const q=u.rq;delete u.rq;if(!q||n>q.exp)E('Question expired, get a new one');
   if(String(b.ans).trim()===''||Math.round(+b.ans)!==q.ans)E('Wrong answer');rd.joined[u.id]=1;return{ok:1}}
- if(a==='bjstart'){if(u.bj&&!u.bj.done)E('Finish your current hand first');const bet=needInt(b.bet);if(bet<5)E('Minimum bet is 5');if(u.tokens<bet)E('Not enough tokens');
+ if(a==='bjstart'){if(u.bj&&!u.bj.done)E('Finish your current hand first');const bet=needInt(b.bet);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+(MODE==='ps99'?'gems':'tokens'));
   u.tokens-=bet;const k=bjDeck(),p1=k.pop(),d1=k.pop(),p2=k.pop(),d2=k.pop(),g=u.bj={id:Date.now(),bet,k,p:[p1,p2],d:[d1,d2],done:false};
   const pb=bjTot(g.p)===21,db_=bjTot(g.d)===21;if(pb||db_)bjEnd(u,g,pb&&db_?'push':pb?'bj':'lose');return{ok:1}}
  if(a==='bjhit'||a==='bjstand'||a==='bjdouble'){const g=u.bj;if(!g||g.done)E('No active hand');
@@ -278,7 +310,7 @@ async function handle(a,b,sid,H){
   return{ok:1}}
  if(a==='cfcreate'){const items=cfClean(b.items),tk=cfTok(b.tokens),side=b.side==='tails'?'tails':'heads';
   if(db.cf.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open coinflips');if(u.tokens<tk)E('Not enough tokens');
-  const iv=cfVal(items);if(iv+tk<5)E('Minimum offer is 5');take(items);u.tokens-=tk;
+  const iv=cfVal(items);if(iv+tk<MINB)E('Minimum offer is '+fm(MINB));take(items);u.tokens-=tk;
   db.cf.open.push({id:++db.cf.id,c:{id:u.id,name:u.name,avatar:u.avatar},side,items,tokens:tk,value:iv+tk,t:Date.now()});
   log(`🪙 ${u.name} created coinflip #${db.cf.id} (${iv+tk} value, ${side})`);return{ok:1,id:db.cf.id}}
  if(a==='cfcancel'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game not found');if(g.c.id!==u.id)E('Not your game');
@@ -288,14 +320,14 @@ async function handle(a,b,sid,H){
   if(u.tokens<tk)E('Not enough tokens');take(items);u.tokens-=tk;cfResolve(g,{user:u,items,tokens:tk,value:jv});return{ok:1,id:g.id}}
  if(a==='cfbot'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');
   cfResolve(g,{user:null,items:{},tokens:g.value,value:g.value});return{ok:1,id:g.id}}
- if(a==='minesstart'){if(u.mines)E('Game in progress');const bet=needInt(b.bet),m=needInt(b.m);if(m<1||m>24)E('Pick 1-24 mines');if(bet<5)E('Minimum bet is 5');if(u.tokens<bet)E('Not enough tokens');
+ if(a==='minesstart'){if(u.mines)E('Game in progress');const bet=needInt(b.bet),m=needInt(b.m);if(m<1||m>24)E('Pick 1-24 mines');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+(MODE==='ps99'?'gems':'tokens'));
   u.tokens-=bet;const mines=[];while(mines.length<m){const x=crypto.randomInt(25);if(!mines.includes(x))mines.push(x)}
   u.mines={bet,m,mines,open:[]};return{ok:1}}
  if(a==='minespick'){const g=u.mines;if(!g)E('No game');const i=needInt(b.i,0);if(i>24||g.open.includes(i))E('Invalid tile');
   if(g.mines.includes(i)){u.wagered+=g.bet;u.profit-=g.bet;u.mines=null;return{boom:true,mines:g.mines,open:g.open}}
   g.open.push(i);if(g.open.length===25-g.m)return minesCash(u);return{safe:true}}
  if(a==='minescash'){if(!u.mines||!u.mines.open.length)E('Pick a tile first');return minesCash(u)}
- if(a==='withdraw'){const n=needInt(b.qty);take({[b.item]:n},['gun','knife']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
+ if(a==='withdraw'){const n=needInt(b.qty);take({[b.item]:n},MODE==='ps99'?['pet']:['gun','knife']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
   log(`📤 Withdraw request: ${u.name} ${n}x ${b.item}`);return{ok:1}}
  if(a.startsWith('adm')){if(!ADMINS.includes(u.id))E('Not admin');
   if(a==='admgive'){const t=findUser(b.user);if(!I[b.item])E('Bad item');add(t.inv,b.item,needInt(b.qty));log(`🛠️ ${u.name} gave ${b.qty}x ${b.item} to ${t.name}`)}
@@ -314,6 +346,7 @@ function minesCash(u){const g=u.mines,pay=Math.floor(g.bet*mult(g.m,g.open.lengt
 
 module.exports=async(req,res)=>{
  const a=req.query.a,b=(req.body&&typeof req.body==='object')?req.body:{},H={};
+ setMode(['start','check','logout'].includes(a)?'mm2':b.gm);
  const ck=Object.fromEntries((req.headers.cookie||'').split('; ').map(c=>c.split('='))),sid=ck.sid;let out;
  try{
   if(!URL_||!TOK)E('Database not configured (Upstash env vars missing)');
@@ -321,7 +354,7 @@ module.exports=async(req,res)=>{
   else if(a==='check')out=await check(b,H,req);
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
-   const needResolve=(jp.end&&Date.now()>=jp.end)||rainNeeds(),needTouch=uid&&db.users[uid]&&Date.now()-(db.users[uid].lastSeen||0)>20000;
+   const needResolve=(jp.end&&Date.now()>=jp.end)||rainNeeds(),known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
    out=(needResolve||needTouch)?await mutate(()=>{if(needTouch){const uu=db.users[db.sessions[sid]];if(uu)uu.lastSeen=Date.now()}return handle(a,b,sid,H)}):await handle(a,b,sid,H)}
   else out=await mutate(()=>handle(a,b,sid,H));
  }catch(e){out={error:e.message||'Error'}}
