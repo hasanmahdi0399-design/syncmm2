@@ -147,9 +147,10 @@ async function psLoad(){
    try{c=await psFetch(c)}catch(e){if(!c)throw Error('PS99 values are loading, try again in a moment ('+e.message+')');c.t=Date.now()-PSTTL+300000}
    await R('SET','psitems',JSON.stringify(c))}}
  psSet(c)}
-let db,jp,hooks=[];
-const load=async()=>{const s=await R('GET',KEY);db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},cb:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
+let db,jp;
+const load=async()=>{const s=await R('GET',KEY);db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
  if(MODE==='ps99'){const mm=await R('GET','db');MAIN=mm?JSON.parse(mm):{users:{},sessions:{}};db.sessions=MAIN.sessions||{};await psLoad()}
+ if(db.cb){for(const g of db.cb.open||[])for(const p of g.players)if(!p.bot&&db.users[p.id])db.users[p.id].tokens+=g.cost;delete db.cb} // case battles were removed: refund anything still open
  jp=db.jp||(db.jp={players:{},end:0,id:0,last:null})};
 // Device fingerprint: a salted, one-way hash of the request IP, stored per user so admins can see
 // which accounts share a device (likely alts/ban evasion). Never the raw IP, never sent anywhere else.
@@ -178,11 +179,31 @@ const val=id=>db.values[id]??(I[id]?I[id].value:0);
 const IV=()=>crypto.createHash('md5').update(MODE+PSTS+JSON.stringify(db.values)).digest('hex').slice(0,10);
 const invVal=u=>Object.entries(u.inv).reduce((s,[k,q])=>s+val(k)*q,0);
 const add=(o,k,q)=>{o[k]=(o[k]||0)+q;if(o[k]<=0)delete o[k]};
-const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100);const w=db.webhook||process.env.WEBHOOK_URL;
- if(w)hooks.push(fetch(w,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({content:String(m).slice(0,1900)})}).catch(()=>{}))};
+const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100)};
+// ---- Discord webhooks: one channel per category, each with its own embed. URLs live in Redis ('whcfg', set in Admin > Webhooks) or env WEBHOOK_<CHANNEL>. A channel with no URL is skipped, never rerouted. ----
+const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals',0xf59e0b],rain:['🌧️ Rain',0x60a5fa],admin:['🛠️ Admin',0x94a3b8]};
+const WHRE=/^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
+let SITE='',HQ=[];
+const md=s=>String(s??'').replace(/([\\*_`~|>\[\]])/g,'\\$1'),cut=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
+const cur=()=>MODE==='ps99'?'gems':'tokens',nm=k=>(I[k]||{name:k}).name;
+const ulink=u=>`[${md(u.name)}](https://www.roblox.com/users/${u.id}/profile)`;
+const itl=(items,tk)=>[tk?`${fm(tk)} ${cur()}`:'',...Object.entries(items||{}).map(([k,q])=>`${q}× ${nm(k)}`)].filter(Boolean).join('\n')||'—';
+function hk(ch,e){if(!CH[ch])return;HQ.push([ch,{title:cut(e.title,256),description:cut(e.desc||'',3800),color:e.color??CH[ch][1],
+ fields:(e.fields||[]).filter(f=>f&&f[1]!==''&&f[1]!=null).slice(0,25).map(([n,v,i])=>({name:cut(n,256),value:cut(v,1024),inline:!!i})),
+ thumbnail:e.user&&e.user.avatar?{url:e.user.avatar}:undefined,footer:{text:`Sync ${MODE==='ps99'?'PS99':'MM2'} · ${CH[ch][0].replace(/^\S+\s/,'')}`},timestamp:new Date().toISOString()}])}
+// Win/loss embed shared by the casino games
+const HR=(ch,u,t,bet,pay,x=[])=>hk(ch,{title:`${t} · ${pay>bet?'Win':pay===bet?'Push':'Loss'}`,color:pay>bet?0x22c55e:pay===bet?0x94a3b8:0xef4444,user:u,desc:ulink(u),
+ fields:[['Bet',fm(bet)+' '+cur(),1],['Payout',fm(pay)+' '+cur(),1],['Profit',(pay>=bet?'+':'−')+fm(Math.abs(pay-bet))+' '+cur(),1],...x]});
+const whCfg=async()=>{try{const r=await R('GET','whcfg');return r?JSON.parse(r):{}}catch{return{}}};
+const whUrl=(c,k)=>c[k]||process.env['WEBHOOK_'+k.toUpperCase()]||'';
+const whView=c=>Object.fromEntries(Object.entries(CH).map(([k,[n]])=>[k,{n,set:!!whUrl(c,k),src:c[k]?'site':whUrl(c,k)?'env':''}]));
+const whPost=async(url,body,t=1)=>{try{const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(3500)});
+ if(r.status===429&&t){const j=await r.json().catch(()=>({}));await sleep(Math.min(2000,(j.retry_after||1)*1000));return whPost(url,body,0)}return r.ok}catch{return false}};
+const whBody=(c,embeds)=>({username:'Sync · '+CH[c][0].replace(/^\S+\s/,''),avatar_url:SITE?SITE+'/logo.png':undefined,allowed_mentions:{parse:[]},embeds});
+async function flushHooks(){const q=HQ.splice(0);if(!q.length)return;const cfg=await whCfg(),by={};for(const[c,e]of q)(by[c]=by[c]||[]).push(e);
+ await Promise.allSettled(Object.entries(by).map(async([c,es])=>{const url=whUrl(cfg,c);if(!url||!WHRE.test(url))return;for(let i=0;i<es.length;i+=10)await whPost(url,whBody(c,es.slice(i,i+10)))}))}
+const flag=c=>/^[A-Z]{2}$/.test(c||'')?String.fromCodePoint(...[...c].map(x=>127397+x.charCodeAt(0)))+' ':'';
 const E=m=>{throw Error(m)};
-// Webhook-only message (never saved in db.logs / the admin panel), used for login location + raw IP.
-const logRaw=m=>{const w=db.webhook||process.env.WEBHOOK_URL;if(w)hooks.push(fetch(w,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({content:String(m).slice(0,1900)})}).catch(()=>{}))};
 const dd=x=>{try{return decodeURIComponent(x||'')}catch{return x||''}};
 const geoOf=req=>{const h=req.headers,c=dd(h['x-vercel-ip-country']),r=dd(h['x-vercel-ip-country-region']),t=dd(h['x-vercel-ip-city']);return[t,r,c].filter(Boolean).join(', ')||'unknown location'};
 
@@ -200,7 +221,7 @@ function rainPay(){const rd=db.rain,ids=Object.keys(rd.joined).filter(id=>db.use
  let per=Math.floor(RPOOL/n),w=ids;
  if(per<1){per=1;for(let i=w.length-1;i>0;i--){const j=crypto.randomInt(i+1);[w[i],w[j]]=[w[j],w[i]]}w=w.slice(0,RPOOL)}
  w.forEach(id=>{db.users[id].tokens+=per});
- chatSys(`🌧️ Sync Rain distributed between ${n} each get ${per}`+(w.length<n?` (${w.length} lucky winners)`:''));log(`🌧️ Sync Rain: ${n} joined, ${per} each`)}
+ chatSys(`🌧️ Sync Rain distributed between ${n} each get ${per}`+(w.length<n?` (${w.length} lucky winners)`:''));log(`🌧️ Sync Rain: ${n} joined, ${per} each`);hk('rain',{title:'Sync Rain paid out',desc:`**${n}** player${n===1?'':'s'} joined`,fields:[['Each got',per+' tokens',1],['Winners',w.length+(w.length<n?' (lucky draw)':''),1],['Pool',RPOOL+' tokens',1]]})}
 function rainTick(){if(MODE!=='mm2')return;const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);
  if(rd.ann&&n>=(rd.r+1)*RH)rainPay();
  if(n%RH>=ROPEN&&rd.r!==cur){rd.r=cur;rd.ann=true;rd.joined={};chatSys('Sync Rain started! 5 minutes to join— send a message in the site chat in this hour to be able to join.')}}
@@ -214,7 +235,7 @@ const bjDeck=()=>{const d=[];for(const s of BJS)for(const r of BJR)d.push(r+s);f
 const bjTot=h=>{let t=0,a=0;for(const c of h){const r=c.slice(0,-1);if(r==='A'){a++;t+=11}else t+=('JQK'.includes(r)||r==='10')?10:+r}while(t>21&&a){t-=10;a--}return t};
 const bjView=g=>({id:g.id,bet:g.bet,player:g.p,dealer:g.done?g.d:[g.d[0],null],pv:bjTot(g.p),dv:g.done?bjTot(g.d):bjTot([g.d[0]]),done:g.done,result:g.result||null,payout:g.payout||0,doubled:!!g.dbl,canDouble:!g.done&&g.p.length===2&&!g.dbl});
 function bjEnd(u,g,res){g.done=true;g.result=res;g.payout=res==='bj'?Math.floor(g.bet*2.5):res==='win'?g.bet*2:res==='push'?g.bet:0;
- u.tokens+=g.payout;u.wagered+=g.bet;u.profit+=g.payout-g.bet;rec(u,g.bet,g.payout);log(`🃏 ${u.name} blackjack ${res} (bet ${g.bet}, paid ${g.payout})`)}
+ u.tokens+=g.payout;u.wagered+=g.bet;u.profit+=g.payout-g.bet;rec(u,g.bet,g.payout);log(`🃏 ${u.name} blackjack ${res} (bet ${g.bet}, paid ${g.payout})`);HR('blackjack',u,'Blackjack',g.bet,g.payout,[['Result',res,1],['Hands',`You ${bjTot(g.p)} · Dealer ${bjTot(g.d)}`,1]])}
 function bjDealer(u,g){while(bjTot(g.d)<17)g.d.push(g.k.pop());const p=bjTot(g.p),d=bjTot(g.d);bjEnd(u,g,d>21||p>d?'win':p===d?'push':'lose')}
 // ---- Coinflip (item vs item, resolved instantly when someone joins) ----
 const cfClean=items=>{const o={};for(const[k,q]of Object.entries(items||{})){if(!I[k])E('Bad item');o[k]=needInt(q)}return o};
@@ -231,9 +252,10 @@ function cfResolve(g,J){const cu=db.users[g.c.id],bot=!J.user,jSide=g.side==='he
  cu.wagered+=g.value;cu.profit+=(winC?total-tx:0)-g.value;rec(cu,g.value,winC?total-tx:0);if(J.user){J.user.wagered+=J.value;J.user.profit+=(winC?0:total-tx)-J.value;rec(J.user,J.value,winC?0:total-tx)}
  const jn=bot?{id:'bot',name:'SyncBot',avatar:'/logo.png',bot:1}:{id:J.user.id,name:J.user.name,avatar:J.user.avatar},w=winC?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:jn;
  db.cf.open=db.cf.open.filter(x=>x!==g);
- db.cf.recent.push({id:g.id,c:g.c,j:jn,cSide:g.side,jSide,result:res,flips,winner:w,cItems:g.items,jItems:J.items,cTokens:g.tokens||0,jTokens:J.tokens,cValue:g.value,jValue:J.value,taxed:tx,won:total-tx,t:Date.now()});
+ db.cf.recent.push({rid:db.cf.rid=(db.cf.rid||0)+1,id:g.id,c:g.c,j:jn,cSide:g.side,jSide,result:res,flips,winner:w,cItems:g.items,jItems:J.items,cTokens:g.tokens||0,jTokens:J.tokens,cValue:g.value,jValue:J.value,taxed:tx,won:total-tx,t:Date.now()});
  db.cf.recent=db.cf.recent.slice(-20);
- log(`🪙 Coinflip #${g.id}: **${w.name}** won ${total-tx} value (${g.c.name} vs ${jn.name}, ${flips.join('/')})`)}
+ log(`🪙 Coinflip #${g.id}: ${w.name} won ${total-tx} value (${g.c.name} vs ${jn.name}, ${flips.join('/')})`);
+ hk('coinflip',{title:`Coinflip #${g.id} · ${w.name} won`,color:0x22c55e,user:w,desc:`${md(g.c.name)} (${g.side}) vs ${md(jn.name)}${bot?' 🤖':''} (${jSide})\nFlips: ${flips.join(' · ')} → **${res}**`,fields:[['Pot',fm(total)+' '+cur(),1],['Tax',fm(tx)+' '+cur(),1],['Winner gets',fm(total-tx)+' '+cur(),1],[md(g.c.name)+' put in',itl(g.items,g.tokens),1],[md(jn.name)+' put in',J.user?itl(J.items,J.tokens):'Matched by SyncBot',1]]})}
 const cfVal=items=>Object.entries(items).reduce((s,[k,q])=>s+val(k)*q,0);
 const cfRange=v=>[Math.ceil(v*.9),Math.floor(v*1.1)];
 // ---- Jackpot (resolved lazily by the next request after the timer ends) ----
@@ -252,46 +274,15 @@ function jpResolve(){
  const got=total-s;
  P.forEach(([id,p])=>{const u=db.users[id];u.wagered+=p.value;u.profit+=(id===w[0]?got:0)-p.value;rec(u,p.value,id===w[0]?got:0)});
  jp.last={rid:++jp.id,t:Date.now(),winner:w[0],name:w[1].name,total,taxed:s,snap:P.map(([id,p])=>({id,name:p.name,value:p.value}))};
- jp.players={};jp.end=0;log(`🎰 Jackpot #${jp.id}: **${w[1].name}** won ${got} value (pot ${total}, tax ${s})`)}
+ jp.players={};jp.end=0;log(`🎰 Jackpot #${jp.id}: ${w[1].name} won ${got} value (pot ${total}, tax ${s})`);
+ hk('jackpot',{title:`Jackpot #${jp.id} · ${w[1].name} won`,color:0x22c55e,user:{avatar:w[1].avatar},desc:`${ulink({id:w[0],name:w[1].name})} took the pot`,fields:[['Pot',fm(total)+' '+cur(),1],['Tax',fm(s)+' '+cur(),1],['Winner gets',fm(got)+' '+cur(),1],['Players',P.map(([,p])=>`${md(p.name)} — ${fm(p.value)} (${(p.value/total*100).toFixed(1)}%)`).join('\n')]]})}
 const mult=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 
 // ---- Towers (PS99 only): climb 8 floors, one safe tile per floor. Bomb layout is hidden server-side until the game ends. ----
 const TWD={easy:[4,1],medium:[3,1],hard:[2,1],expert:[3,2]},TWR=8; // [tiles per floor, bombs per floor]
 const twMult=(d,n)=>.97*Math.pow(TWD[d][0]/(TWD[d][0]-TWD[d][1]),n);
-function twCash(u){const g=u.tw,pay=Math.floor(g.bet*twMult(g.d,g.picks.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay);u.tw=null;
+function twCash(u){const g=u.tw,pay=Math.floor(g.bet*twMult(g.d,g.picks.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay);u.tw=null;HR('towers',u,'Towers',g.bet,pay,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Multiplier',twMult(g.d,g.picks.length).toFixed(2)+'x',1]]);
  log(`🗼 ${u.name} cashed out towers for ${pay} (bet ${g.bet}, ${g.picks.length} floors, ${g.d})`);return{cashed:pay,bombs:g.bombs,picks:g.picks,d:g.d}}
-// ---- Case Battles (PS99 only): everyone opens the same cases, highest total pull takes every pull (10% tax -> shop). Entry is gems only. ----
-const CB_CASES=[['c1','Rookie Case',25e6],['c2','Bronze Case',100e6],['c3','Silver Case',500e6],['c4','Gold Case',2.5e9],['c5','Diamond Case',10e9]],CB_TAX=.1,CB_MAX=5;
-// Prize table for a case: the pets whose value sits closest to the case price, odds tuned so an average pull is worth about the price. 'gems' is a small filler drop.
-function cbPool(price){
- const near=ITEMS.filter(i=>val(i.id)>=price*.15&&val(i.id)<=price*30).sort((a,b)=>Math.abs(Math.log(val(a.id)/price))-Math.abs(Math.log(val(b.id)/price))).slice(0,12);
- if(near.length<3)return null;
- const list=near.map(i=>({id:i.id,v:val(i.id)})).concat([{id:'gems',v:Math.floor(price*.2)}]);
- const ev=p=>{let s=0,w=0;for(const x of list){const k=Math.pow(x.v,-p);s+=x.v*k;w+=k}return s/w};
- let p=0;if(ev(0)>price){let lo=0,hi=8;for(let n=0;n<40;n++){p=(lo+hi)/2;if(ev(p)>price)lo=p;else hi=p}p=(lo+hi)/2}
- const ws=list.map(x=>Math.pow(x.v,-p)),sum=ws.reduce((a,b)=>a+b,0);
- return list.map((x,i)=>({...x,w:ws[i]/sum}))}
-const cbDraw=pool=>{let r=crypto.randomInt(1e9)/1e9,x=pool[pool.length-1];for(const e of pool){if((r-=e.w)<0){x=e;break}}return x};
-const cbCase=id=>CB_CASES.find(c=>c[0]===id);
-const cbCases=()=>CB_CASES.map(([id,name,price])=>{const p=cbPool(price),it=p?p.filter(x=>x.id!=='gems'):[];
- return{id,name,price,ok:!!p,top:it.length?Math.max(...it.map(x=>x.v)):0,drops:p?p.map(x=>({id:x.id,v:x.v,w:x.w})).sort((a,b)=>b.v-a.v):[]}});
-function cbRefund(g){for(const p of g.players)if(!p.bot&&db.users[p.id])db.users[p.id].tokens+=g.cost;db.cb.open=db.cb.open.filter(x=>x!==g)}
-function cbResolve(g){
- const pools=g.cases.map(id=>cbPool(cbCase(id)[2])),P=g.players.map(p=>({...p,pulls:[],total:0}));
- for(const pl of pools)for(const p of P){const e=cbDraw(pl);p.pulls.push({id:e.id,v:e.v});p.total+=e.v}
- const mx=Math.max(...P.map(p=>p.total)),top=P.filter(p=>p.total===mx),w=top[crypto.randomInt(top.length)];
- const total=P.reduce((s,p)=>s+p.total,0),pot={};let gems=0;
- for(const p of P)for(const x of p.pulls){if(x.id==='gems')gems+=x.v;else add(pot,x.id,1)}
- const cap=total*CB_TAX;let tx=Math.min(Math.floor(cap),gems);gems-=tx;
- const units=[];Object.entries(pot).forEach(([k,q])=>{for(let i=0;i<q;i++)units.push(k)});units.sort((x,y)=>val(x)-val(y));
- for(const k of units){if(tx+val(k)<=cap){tx+=val(k);add(pot,k,-1);add(db.shop,k,1)}else break}
- const wu=w.bot?null:db.users[w.id];
- if(wu){Object.entries(pot).forEach(([k,q])=>add(wu.inv,k,q));wu.tokens+=gems}else Object.entries(pot).forEach(([k,q])=>add(db.shop,k,q));
- for(const p of P){if(p.bot)continue;const u=db.users[p.id],got=p.id===w.id?total-tx:0;u.wagered+=g.cost;u.profit+=got-g.cost;rec(u,g.cost,got)}
- db.cb.open=db.cb.open.filter(x=>x!==g);
- db.cb.recent.push({id:g.id,cases:g.cases,cost:g.cost,players:P,winner:{id:w.id,name:w.name,avatar:w.avatar,bot:!!w.bot},total,taxed:tx,won:total-tx,t:Date.now()});
- db.cb.recent=db.cb.recent.slice(-20);
- log(`📦 Case battle #${g.id}: **${w.name}** won ${total-tx} value (${P.map(p=>p.name+' '+p.total).join(' vs ')})`)}
 
 async function start(b){
  const d=await rj('https://users.roblox.com/v1/usernames/users',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({usernames:[String(b.username||'').trim()],excludeBannedUsers:true})});
@@ -304,9 +295,9 @@ async function check(b,H,req){
  const d=await rj(`https://users.roblox.com/v1/users/${p.id}`);if(!(d.description||'').includes(p.code))return{waiting:true};
  let av='';try{av=(await rj(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${p.id}&size=150x150&format=Png`)).data[0].imageUrl}catch{}
  const dev=hashDev(getIp(req));
- return mutate(async()=>{const u=db.users[p.id]||(db.users[p.id]={id:p.id,name:p.name,avatar:'',tokens:0,inv:{},wagered:0,profit:0,mines:null});
+ return mutate(async()=>{const isNew=!db.users[p.id];const same=Object.values(db.users).filter(x=>dev&&x.id!==p.id&&x.dev===dev).map(x=>x.name);const u=db.users[p.id]||(db.users[p.id]={id:p.id,name:p.name,avatar:'',tokens:0,inv:{},wagered:0,profit:0,mines:null});
   u.name=p.name;u.avatar=av;if(dev)u.dev=dev;u.lastSeen=Date.now();const s=crypto.randomBytes(24).toString('hex');db.sessions[s]=p.id;await R('DEL','p:'+b.tok);
-  H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);logRaw(`🌍 ${p.name} (${p.id}) logged in from ${geoOf(req)} | IP: ${getIp(req)||'unknown'}`);return{ok:true}})}
+  H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);hk('logins',{title:isNew?'New account':'Login',color:same.length?0xef4444:isNew?0x22c55e:undefined,user:{avatar:av},desc:`${ulink(p)} signed in`,fields:[['Roblox ID',p.id,1],['Location',flag(dd(req.headers['x-vercel-ip-country']))+geoOf(req),1],['IP address','`'+(getIp(req)||'unknown')+'`',1],['Device ID',dev?'`'+dev.slice(0,10)+'`':'',1],['⚠️ Shares a device with',same.map(md).join(', ')],['Browser',cut(req.headers['user-agent']||'',180)]]});return{ok:true}})}
 
 async function handle(a,b,sid,H){
  if(a==='lb'){const us=Object.values(db.users),f=k=>us.slice().sort((x,y)=>y[k]-x[k]).slice(0,20).map(u=>({name:u.name,avatar:u.avatar,v:Math.floor(u[k])}));
@@ -316,7 +307,7 @@ async function handle(a,b,sid,H){
   u=db.users[uid0]||(db.users[uid0]={id:uid0,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,mines:null,lastSeen:Date.now()});
   u.name=mu.name;u.avatar=mu.avatar;if(mu.dev)u.dev=mu.dev}
  if(a==='state'){
-  if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now();
+  if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now(),WC=admin?await whCfg():{};
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin},
@@ -325,10 +316,9 @@ async function handle(a,b,sid,H){
    rain:MODE!=='mm2'?{off:true}:(()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH),on=!!rd.ann&&rd.r===cur&&n%RH>=ROPEN;return{now:n,pool:RPOOL,open:on,joined:on?Object.keys(rd.joined).length:0,me:{in:on&&!!rd.joined[u.id],chat:(u.lastChat||0)>=cur*RH}}})(),
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
-   cb:MODE==='ps99'?{open:db.cb.open,recent:db.cb.recent.slice(-8),cases:cbCases(),max:CB_MAX}:null,
-   wd:db.wd.filter(w=>w.uid===u.id).slice(-10),
+   wd:db.wd.filter(w=>w.uid===u.id).slice(-10),tips:(db.tips||[]).filter(x=>x.from.id===u.id||x.to.id===u.id).slice(-15),
    online,activeMines,chat:(db.chat||[]).slice(-50),
-   admin:admin?{wd:db.wd.filter(w=>w.status==='pending'),webhook:!!db.webhook,logs:db.logs.slice(-15),alts:altGroups()}:undefined}}
+   admin:admin?{wd:db.wd.filter(w=>w.status==='pending'),wh:whView(WC),logs:db.logs.slice(-15),alts:altGroups()}:undefined}}
  if(!u)E('Please log in');
  if(a==='logout'){delete db.sessions[sid];return{ok:1}}
  if(a==='chatsend'){const msg=String(b.msg||'').trim().slice(0,300);if(!msg)E('Empty message');
@@ -339,9 +329,9 @@ async function handle(a,b,sid,H){
  if(!db.cf)db.cf={open:[],recent:[],id:0};
  const take=(items,types)=>{let v=0;for(const[k,q]of Object.entries(items||{})){const n=needInt(q);if(!I[k])E('Bad item');if(types&&!types.includes(I[k].type))E('Item not allowed here');if((u.inv[k]||0)<n)E('You do not own that');v+=val(k)*n}
   for(const[k,q]of Object.entries(items))add(u.inv,k,-q);return v};
- if(a==='sell'){const n=needInt(b.qty),v=take({[b.item]:n}),t=Math.floor(v*.9);u.tokens+=t;add(db.shop,b.item,n);log(`💱 ${u.name} sold ${n}x ${b.item} for ${t} tokens`);return{ok:1}}
+ if(a==='sell'){const n=needInt(b.qty),v=take({[b.item]:n}),t=Math.floor(v*.9);u.tokens+=t;add(db.shop,b.item,n);log(`💱 ${u.name} sold ${n}x ${b.item} for ${t} tokens`);hk('exchange',{title:'Sold to shop',user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Received',fm(t)+' '+cur(),1]]});return{ok:1}}
  if(a==='buy'){const n=needInt(b.qty);if(!I[b.item]||(db.shop[b.item]||0)<n)E('Out of stock');const p=Math.ceil(val(b.item)*1.1)*n;
-  if(u.tokens<p)E('Not enough tokens');u.tokens-=p;add(db.shop,b.item,-n);add(u.inv,b.item,n);log(`🛒 ${u.name} bought ${n}x ${b.item} for ${p}`);return{ok:1}}
+  if(u.tokens<p)E('Not enough tokens');u.tokens-=p;add(db.shop,b.item,-n);add(u.inv,b.item,n);log(`🛒 ${u.name} bought ${n}x ${b.item} for ${p}`);hk('exchange',{title:'Bought from shop',color:0x2dd4bf,user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Paid',fm(p)+' '+cur(),1]]});return{ok:1}}
  if(a==='jpjoin'){if(!b.items||!Object.keys(b.items).length)E('Select items');
   const v=take(b.items);if(MODE==='ps99'&&v<MINB)E('Minimum jackpot entry is '+fm(MINB));const p=jp.players[u.id]||(jp.players[u.id]={name:u.name,avatar:u.avatar,items:{},value:0});
   for(const[k,q]of Object.entries(b.items))add(p.items,k,q);p.value+=v;
@@ -365,7 +355,7 @@ async function handle(a,b,sid,H){
   if(db.cf.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open coinflips');if(u.tokens<tk)E('Not enough tokens');
   const iv=cfVal(items);if(iv+tk<MINB)E('Minimum offer is '+fm(MINB));take(items);u.tokens-=tk;
   db.cf.open.push({id:++db.cf.id,c:{id:u.id,name:u.name,avatar:u.avatar},side,items,tokens:tk,value:iv+tk,t:Date.now()});
-  log(`🪙 ${u.name} created coinflip #${db.cf.id} (${iv+tk} value, ${side})`);return{ok:1,id:db.cf.id}}
+  log(`🪙 ${u.name} created coinflip #${db.cf.id} (${iv+tk} value, ${side})`);hk('coinflip',{title:`Coinflip #${db.cf.id} posted`,color:0x94a3b8,user:u,desc:`${ulink(u)} picked **${side}**`,fields:[['Offer',itl(items,tk),1],['Value',fm(iv+tk)+' '+cur(),1],['Join range',cfRange(iv+tk).map(fm).join(' – '),1]]});return{ok:1,id:db.cf.id}}
  if(a==='cfcancel'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game not found');if(g.c.id!==u.id)E('Not your game');
   for(const[k,q]of Object.entries(g.items))add(u.inv,k,q);u.tokens+=g.tokens||0;db.cf.open=db.cf.open.filter(x=>x!==g);return{ok:1}}
  if(a==='cfjoin'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');
@@ -377,54 +367,52 @@ async function handle(a,b,sid,H){
   u.tokens-=bet;const mines=[];while(mines.length<m){const x=crypto.randomInt(25);if(!mines.includes(x))mines.push(x)}
   u.mines={bet,m,mines,open:[]};return{ok:1}}
  if(a==='minespick'){const g=u.mines;if(!g)E('No game');const i=needInt(b.i,0);if(i>24||g.open.includes(i))E('Invalid tile');
-  if(g.mines.includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0);u.mines=null;return{boom:true,mines:g.mines,open:g.open}}
+  if(g.mines.includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0);u.mines=null;HR('mines',u,'Mines',g.bet,0,[['Mines',g.m,1],['Gems found',g.open.length,1],['Result','Hit a mine',1]]);return{boom:true,mines:g.mines,open:g.open}}
   g.open.push(i);if(g.open.length===25-g.m)return minesCash(u);return{safe:true}}
  if(a==='minescash'){if(!u.mines||!u.mines.open.length)E('Pick a tile first');return minesCash(u)}
  if(a==='withdraw'){const n=needInt(b.qty);take({[b.item]:n},MODE==='ps99'?['pet']:['gun','knife']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
-  log(`📤 Withdraw request: ${u.name} ${n}x ${b.item}`);return{ok:1}}
+  log(`📤 Withdraw request: ${u.name} ${n}x ${b.item}`);hk('withdrawals',{title:'Withdrawal requested',user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Value',fm(val(b.item)*n)+' '+cur(),1],['Roblox ID',u.id,1]]});return{ok:1}}
 
- if(MODE!=='ps99'&&(a.startsWith('tw')||a.startsWith('cb')))E('Towers and Case Battles are PS99 only');
- if(!db.cb)db.cb={open:[],recent:[],id:0};
+
+ if(a==='tip'){const k=String(b.to||'').trim();let t=db.users[k]||Object.values(db.users).find(x=>x.name.toLowerCase()===k.toLowerCase());
+  if(!t&&MODE==='ps99'){const mu=MAIN.users[k]||Object.values(MAIN.users).find(x=>x.name.toLowerCase()===k.toLowerCase());if(mu)t=db.users[mu.id]={id:mu.id,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,mines:null,lastSeen:0}}
+  if(!t)E('Player not found. They need to have logged in once.');if(t.id===u.id)E('You cannot tip yourself');
+  const items=cfClean(b.items),tk=cfTok(b.tokens);if(!tk&&!Object.keys(items).length)E('Pick '+(MODE==='ps99'?'gems or pets':'tokens or items')+' to tip');if(u.tokens<tk)E('Not enough '+cur());
+  const iv=take(items);u.tokens-=tk;t.tokens+=tk;for(const[x,q]of Object.entries(items))add(t.inv,x,q);
+  (db.tips=db.tips||[]).push({id:crypto.randomBytes(4).toString('hex'),from:{id:u.id,name:u.name,avatar:u.avatar},to:{id:t.id,name:t.name,avatar:t.avatar},items,tokens:tk,value:iv+tk,t:Date.now()});db.tips=db.tips.slice(-200);
+  log(`🎁 ${u.name} tipped ${t.name} (${iv+tk} value)`);
+  hk('tips',{title:'Tip sent',user:t,color:u.dev&&u.dev===t.dev?0xef4444:undefined,desc:`${ulink(u)} → ${ulink(t)}`,fields:[['Gems / tokens',tk?fm(tk)+' '+cur():'',1],['Items',Object.keys(items).length?itl(items,0):'',1],['Total value',fm(iv+tk)+' '+cur(),1],['⚠️ Same device','These two accounts share a device — possible alt transfer.']]});
+  return{ok:1}}
+ if(MODE!=='ps99'&&a.startsWith('tw'))E('Towers is PS99 only');
  if(a==='twstart'){if(u.tw)E('Game in progress');const bet=needInt(b.bet),d=TWD[b.diff]?b.diff:'medium',[c,k]=TWD[d];if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough gems');
   u.tokens-=bet;const bombs=[];for(let r=0;r<TWR;r++){const row=[];while(row.length<k){const x=crypto.randomInt(c);if(!row.includes(x))row.push(x)}bombs.push(row)}
   u.tw={bet,d,bombs,picks:[]};return{ok:1}}
  if(a==='twpick'){const g=u.tw;if(!g)E('No game');const i=needInt(b.i,0);if(i>=TWD[g.d][0])E('Invalid tile');
-  if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0);u.tw=null;log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
+  if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0);u.tw=null;HR('towers',u,'Towers',g.bet,0,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Result','Hit a bomb on floor '+(g.picks.length+1),1]]);log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
   g.picks.push(i);if(g.picks.length===TWR)return twCash(u);return{safe:true}}
  if(a==='twcash'){if(!u.tw||!u.tw.picks.length)E('Climb a floor first');return twCash(u)}
- if(a==='cbcreate'){const ids=Array.isArray(b.cases)?b.cases.map(String):[];if(!ids.length||ids.length>CB_MAX)E('Pick 1-'+CB_MAX+' cases');
-  for(const id of ids){const c=cbCase(id);if(!c)E('Bad case');if(!cbPool(c[2]))E(c[1]+' is not available right now')}
-  const slots=Math.floor(+b.slots);if(!(slots>=2&&slots<=4))E('Pick 2-4 players');
-  if(db.cb.open.filter(g=>g.players[0].id===u.id).length>=2)E('Max 2 open battles');
-  const cost=ids.reduce((s,id)=>s+cbCase(id)[2],0);if(u.tokens<cost)E('Not enough gems');u.tokens-=cost;
-  const g={id:++db.cb.id,cases:ids,slots,cost,players:[{id:u.id,name:u.name,avatar:u.avatar}],t:Date.now()};db.cb.open.push(g);
-  log(`📦 ${u.name} created case battle #${g.id} (${slots} players, ${cost} each)`);return{ok:1,id:g.id}}
- if(a==='cbjoin'){const g=db.cb.open.find(x=>x.id===+b.id)||E('Battle already started');if(g.players.some(p=>p.id===u.id))E('You are already in this battle');
-  if(u.tokens<g.cost)E('Not enough gems');u.tokens-=g.cost;g.players.push({id:u.id,name:u.name,avatar:u.avatar});if(g.players.length>=g.slots)cbResolve(g);return{ok:1,id:g.id}}
- if(a==='cbleave'){const g=db.cb.open.find(x=>x.id===+b.id)||E('Battle already started');if(g.players[0].id===u.id)E('Creators cancel instead');
-  const i=g.players.findIndex(p=>p.id===u.id);if(i<0)E('You are not in this battle');g.players.splice(i,1);u.tokens+=g.cost;return{ok:1}}
- if(a==='cbcancel'){const g=db.cb.open.find(x=>x.id===+b.id)||E('Battle not found');if(g.players[0].id!==u.id)E('Not your battle');cbRefund(g);return{ok:1}}
- if(a==='cbbot'){const g=db.cb.open.find(x=>x.id===+b.id)||E('Battle already started');if(g.players[0].id!==u.id)E('Only the creator can call SyncBot');
-  let n=0;while(g.players.length<g.slots)g.players.push({id:'bot'+(++n),name:n>1?'SyncBot '+n:'SyncBot',avatar:'/logo-ps99.png',bot:1});cbResolve(g);return{ok:1,id:g.id}}
  if(a.startsWith('adm')){if(!ADMINS.includes(u.id))E('Not admin');
-  if(a==='admgive'){const t=findUser(b.user);if(!I[b.item])E('Bad item');add(t.inv,b.item,needInt(b.qty));log(`🛠️ ${u.name} gave ${b.qty}x ${b.item} to ${t.name}`)}
-  else if(a==='admset'){const t=findUser(b.user);if(!I[b.item])E('Bad item');const q=Math.max(0,Math.floor(+b.qty));delete t.inv[b.item];if(q)t.inv[b.item]=q;log(`🛠️ ${u.name} set ${t.name}'s ${b.item} to ${q}`)}
-  else if(a==='admtokens'){const t=findUser(b.user);t.tokens=Math.max(0,t.tokens+Math.floor(+b.amount));log(`🛠️ ${u.name} changed ${t.name}'s tokens by ${b.amount}`)}
-  else if(a==='admvalue'){if(!I[b.item])E('Bad item');db.values[b.item]=Math.max(1,Math.floor(+b.value));log(`🛠️ ${u.name} set value of ${b.item} to ${b.value}`)}
-  else if(a==='admcanceltw'){const t=findUser(b.user);if(t.tw){t.tokens+=t.tw.bet;t.tw=null}log(`🛠️ ${u.name} cancelled ${t.name}'s towers game`)}
-  else if(a==='admcancelcb'){const g=db.cb.open.find(x=>x.id===Math.floor(+b.qty))||E('Open battle not found');cbRefund(g);log(`🛠️ ${u.name} cancelled case battle #${g.id} (refunded)`)}
-  else if(a==='admcanceljp'){jpRefund();log(`🛠️ ${u.name} cancelled the jackpot (refunded)`)}
-  else if(a==='admcancelmines'){const t=findUser(b.user);if(t.mines){t.tokens+=t.mines.bet;t.mines=null}log(`🛠️ ${u.name} cancelled ${t.name}'s mines game`)}
+  const logA=m=>{log(m);if(a!=='admwhtest')hk('admin',{title:'Admin action',user:u,desc:`${ulink(u)}\n${m.replace(/^\S+\s/,'')}`})};
+  if(a==='admgive'){const t=findUser(b.user);if(!I[b.item])E('Bad item');add(t.inv,b.item,needInt(b.qty));logA(`🛠️ ${u.name} gave ${b.qty}x ${b.item} to ${t.name}`)}
+  else if(a==='admset'){const t=findUser(b.user);if(!I[b.item])E('Bad item');const q=Math.max(0,Math.floor(+b.qty));delete t.inv[b.item];if(q)t.inv[b.item]=q;logA(`🛠️ ${u.name} set ${t.name}'s ${b.item} to ${q}`)}
+  else if(a==='admtokens'){const t=findUser(b.user);t.tokens=Math.max(0,t.tokens+Math.floor(+b.amount));logA(`🛠️ ${u.name} changed ${t.name}'s tokens by ${b.amount}`)}
+  else if(a==='admvalue'){if(!I[b.item])E('Bad item');db.values[b.item]=Math.max(1,Math.floor(+b.value));logA(`🛠️ ${u.name} set value of ${b.item} to ${b.value}`)}
+  else if(a==='admcanceltw'){const t=findUser(b.user);if(t.tw){t.tokens+=t.tw.bet;t.tw=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s towers game`)}
+  else if(a==='admcanceljp'){jpRefund();logA(`🛠️ ${u.name} cancelled the jackpot (refunded)`)}
+  else if(a==='admcancelmines'){const t=findUser(b.user);if(t.mines){t.tokens+=t.mines.bet;t.mines=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s mines game`)}
   else if(a==='admwd'){const w=db.wd.find(x=>x.id===b.id&&x.status==='pending')||E('Not found');
-   if(b.ok){w.status='approved'}else{w.status='rejected';add(db.users[w.uid].inv,w.item,w.qty)}log(`📤 ${u.name} ${w.status} withdrawal ${w.qty}x ${w.item} for ${w.name}`)}
-  else if(a==='admwebhook'){db.webhook=String(b.url||'');log('🔔 Webhook updated')}
+   if(b.ok){w.status='approved'}else{w.status='rejected';add(db.users[w.uid].inv,w.item,w.qty)}log(`📤 ${u.name} ${w.status} withdrawal ${w.qty}x ${w.item} for ${w.name}`);hk('withdrawals',{title:'Withdrawal '+w.status,color:w.status==='approved'?0x22c55e:0xef4444,desc:`${md(w.name)} · ${w.qty}× ${nm(w.item)}\nHandled by ${ulink(u)}`})}
+  else if(a==='admwh'){if(!CH[b.ch])E('Unknown channel');const url=String(b.url||'').trim();if(url&&!WHRE.test(url))E('That is not a Discord webhook URL');
+   const c=await whCfg();if(url)c[b.ch]=url;else delete c[b.ch];await R('SET','whcfg',JSON.stringify(c));logA(`🔔 ${CH[b.ch][0]} webhook ${url?'updated':'removed'}`)}
+  else if(a==='admwhtest'){if(!CH[b.ch])E('Unknown channel');const url=whUrl(await whCfg(),b.ch);if(!url)E('No webhook set for this channel');
+   if(!await whPost(url,whBody(b.ch,[{title:'Webhook test',description:'✅ This channel is connected. Events for **'+CH[b.ch][0]+'** will appear here.',color:CH[b.ch][1],footer:{text:'Test sent by '+u.name},timestamp:new Date().toISOString()}])))E('Discord rejected the webhook')}
   else E('Unknown');return{ok:1}}
  E('Unknown action')}
 function minesCash(u){const g=u.mines,pay=Math.floor(g.bet*mult(g.m,g.open.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay);u.mines=null;
- log(`💣 ${u.name} cashed out mines for ${pay} (bet ${g.bet})`);return{cashed:pay,mines:g.mines,open:g.open}}
+ log(`💣 ${u.name} cashed out mines for ${pay} (bet ${g.bet})`);HR('mines',u,'Mines',g.bet,pay,[['Mines',g.m,1],['Gems found',g.open.length,1],['Multiplier',mult(g.m,g.open.length).toFixed(2)+'x',1]]);return{cashed:pay,mines:g.mines,open:g.open}}
 
 module.exports=async(req,res)=>{
- const a=req.query.a,b=(req.body&&typeof req.body==='object')?req.body:{},H={};
+ const a=req.query.a,b=(req.body&&typeof req.body==='object')?req.body:{},H={};HQ.length=0;{const h=req.headers['x-forwarded-host']||req.headers.host;SITE=h?'https://'+h:''}
  setMode(['start','check','logout'].includes(a)?'mm2':b.gm);
  const ck=Object.fromEntries((req.headers.cookie||'').split('; ').map(c=>c.split('='))),sid=ck.sid;let out;
  try{
@@ -436,8 +424,8 @@ module.exports=async(req,res)=>{
    const needResolve=(jp.end&&Date.now()>=jp.end)||rainNeeds(),known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
    out=(needResolve||needTouch)?await mutate(()=>{if(needTouch){const uu=db.users[db.sessions[sid]];if(uu)uu.lastSeen=Date.now()}return handle(a,b,sid,H)}):await handle(a,b,sid,H)}
   else out=await mutate(()=>handle(a,b,sid,H));
- }catch(e){out={error:e.message||'Error'}}
- await Promise.allSettled(hooks.splice(0));
+ }catch(e){out={error:e.message||'Error'};HQ.length=0}
+ await flushHooks();
  for(const k in H)res.setHeader(k,H[k]);
  res.setHeader('Cache-Control','no-store');res.status(200).json(out)};
   
