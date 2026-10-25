@@ -148,7 +148,9 @@ async function psLoad(){
    await R('SET','psitems',JSON.stringify(c))}}
  psSet(c)}
 let db,jp;
-const load=async()=>{const s=await R('GET',KEY);db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
+let DBKEY=KEY; // the Redis key the CURRENT db was loaded from; persist() always writes back to this, never to whatever KEY is now
+const load=async()=>{DBKEY=KEY;const s=await R('GET',DBKEY);db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
+ if(db._m&&db._m!==MODE)throw Error('Data mismatch ('+db._m+' data under '+MODE+'), refusing to continue');
  if(MODE==='ps99'){const mm=await R('GET','db');MAIN=mm?JSON.parse(mm):{users:{},sessions:{}};db.sessions=MAIN.sessions||{};await psLoad()}
  if(db.cb){for(const g of db.cb.open||[])for(const p of g.players)if(!p.bot&&db.users[p.id])db.users[p.id].tokens+=g.cost;delete db.cb} // case battles were removed: refund anything still open
  jp=db.jp||(db.jp={players:{},end:0,id:0,last:null})};
@@ -159,7 +161,7 @@ const getIp=req=>String(req.headers['x-forwarded-for']||req.socket?.remoteAddres
 const hashDev=ip=>ip?crypto.createHash('sha256').update(DEVSALT+ip).digest('hex').slice(0,20):'';
 function altGroups(){const by={};for(const u of Object.values(db.users)){if(!u.dev)continue;(by[u.dev]=by[u.dev]||[]).push(u.name)}
  return Object.values(by).filter(g=>g.length>1)}
-const persist=()=>R('SET',KEY,JSON.stringify(MODE==='ps99'?{...db,sessions:undefined}:db));
+const persist=()=>R('SET',DBKEY,JSON.stringify(MODE==='ps99'?{...db,sessions:undefined,_m:MODE}:{...db,_m:MODE}));
 const save=()=>{};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0;
@@ -300,7 +302,7 @@ async function check(b,H,req){
   H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);hk('logins',{title:isNew?'New account':'Login',color:same.length?0xef4444:isNew?0x22c55e:undefined,user:{avatar:av},desc:`${ulink(p)} signed in`,fields:[['Roblox ID',p.id,1],['Location',flag(dd(req.headers['x-vercel-ip-country']))+geoOf(req),1],['IP address','`'+(getIp(req)||'unknown')+'`',1],['Device ID',dev?'`'+dev.slice(0,10)+'`':'',1],['⚠️ Shares a device with',same.map(md).join(', ')],['Browser',cut(req.headers['user-agent']||'',180)]]});return{ok:true}})}
 
 async function handle(a,b,sid,H){
- if(a==='lb'){const us=Object.values(db.users),f=k=>us.slice().sort((x,y)=>y[k]-x[k]).slice(0,20).map(u=>({name:u.name,avatar:u.avatar,v:Math.floor(u[k])}));
+ if(a==='lb'){const us=Object.values(db.users),f=k=>us.slice().sort((x,y)=>y[k]-x[k]).slice(0,20).map(u=>({id:u.id,name:u.name,avatar:u.avatar,v:Math.floor(u[k])}));
   return{wagered:f('wagered'),profit:f('profit')}}
  const uid0=db.sessions[sid];let u=db.users[uid0];
  if(MODE==='ps99'&&uid0&&MAIN.users[uid0]){const mu=MAIN.users[uid0];
@@ -329,9 +331,23 @@ async function handle(a,b,sid,H){
  if(!db.cf)db.cf={open:[],recent:[],id:0};
  const take=(items,types)=>{let v=0;for(const[k,q]of Object.entries(items||{})){const n=needInt(q);if(!I[k])E('Bad item');if(types&&!types.includes(I[k].type))E('Item not allowed here');if((u.inv[k]||0)<n)E('You do not own that');v+=val(k)*n}
   for(const[k,q]of Object.entries(items))add(u.inv,k,-q);return v};
- if(a==='sell'){const n=needInt(b.qty),v=take({[b.item]:n}),t=Math.floor(v*.9);u.tokens+=t;add(db.shop,b.item,n);log(`💱 ${u.name} sold ${n}x ${b.item} for ${t} tokens`);hk('exchange',{title:'Sold to shop',user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Received',fm(t)+' '+cur(),1]]});return{ok:1}}
+ // ---- Player search / profiles. Only public stats are returned: never the device hash, session, active game state or lastChat. Alts are shown to admins only. ----
+ if(a==='psearch'){const s=String(b.q||'').trim().toLowerCase().slice(0,40);if(!s)return{list:[]};
+  const seen={},out=[];for(const x of Object.values(db.users).concat(MODE==='ps99'?Object.values(MAIN.users||{}):[])){if(seen[x.id])continue;seen[x.id]=1;
+   if(x.name.toLowerCase().includes(s)||String(x.id)===s)out.push({id:x.id,name:x.name,avatar:x.avatar,w:db.users[x.id]?Math.floor(db.users[x.id].wagered||0):0})}
+  const st=x=>x.name.toLowerCase().startsWith(s)?0:1;out.sort((x,y)=>st(x)-st(y)||y.w-x.w);return{list:out.slice(0,12)}}
+ if(a==='profile'){const k=String(b.q||'').trim();let t=db.users[k]||Object.values(db.users).find(x=>x.name.toLowerCase()===k.toLowerCase()),fresh=0;
+  if(!t&&MODE==='ps99'){const mu=(MAIN.users||{})[k]||Object.values(MAIN.users||{}).find(x=>x.name.toLowerCase()===k.toLowerCase());if(mu){t={id:mu.id,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,lastSeen:0};fresh=1}}
+  if(!t)E('Player not found');
+  const us=Object.values(db.users),rank=fresh?null:us.filter(x=>(x.wagered||0)>(t.wagered||0)).length+1,inv=Object.entries(t.inv||{}).filter(([k2])=>I[k2]).map(([k2,q])=>({id:k2,q,v:val(k2)})).sort((x,y)=>y.v*y.q-x.v*x.q),
+   dy=db.day&&db.day.d===dayKey()?db.day:null,admin=ADMINS.includes(u.id);
+  return{p:{id:t.id,name:t.name,avatar:t.avatar,balance:Math.floor(t.tokens||0),invValue:invVal(t),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),
+   rank,players:us.length,pieces:inv.reduce((n,x)=>n+x.q,0),kinds:inv.length,top:inv.slice(0,10),online:Date.now()-(t.lastSeen||0)<45000,lastSeen:t.lastSeen||0,
+   todayWag:dy?Math.floor(dy.w[t.id]||0):0,todayProfit:dy?Math.floor(dy.p[t.id]||0):0,
+   alts:admin&&t.dev?us.filter(x=>x.id!==t.id&&x.dev===t.dev).map(x=>x.name):undefined}}}
+ if(a==='sell'){const n=needInt(b.qty),v=take({[b.item]:n}),t=Math.floor(v*.9);u.tokens+=t;add(db.shop,b.item,n);log(`💱 ${u.name} sold ${n}x ${b.item} for ${t} ${cur()}`);hk('exchange',{title:'Sold to shop',user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Received',fm(t)+' '+cur(),1]]});return{ok:1}}
  if(a==='buy'){const n=needInt(b.qty);if(!I[b.item]||(db.shop[b.item]||0)<n)E('Out of stock');const p=Math.ceil(val(b.item)*1.1)*n;
-  if(u.tokens<p)E('Not enough tokens');u.tokens-=p;add(db.shop,b.item,-n);add(u.inv,b.item,n);log(`🛒 ${u.name} bought ${n}x ${b.item} for ${p}`);hk('exchange',{title:'Bought from shop',color:0x2dd4bf,user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Paid',fm(p)+' '+cur(),1]]});return{ok:1}}
+  if(u.tokens<p)E('Not enough '+cur());u.tokens-=p;add(db.shop,b.item,-n);add(u.inv,b.item,n);log(`🛒 ${u.name} bought ${n}x ${b.item} for ${p}`);hk('exchange',{title:'Bought from shop',color:0x2dd4bf,user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Paid',fm(p)+' '+cur(),1]]});return{ok:1}}
  if(a==='jpjoin'){if(!b.items||!Object.keys(b.items).length)E('Select items');
   const v=take(b.items);if(MODE==='ps99'&&v<MINB)E('Minimum jackpot entry is '+fm(MINB));const p=jp.players[u.id]||(jp.players[u.id]={name:u.name,avatar:u.avatar,items:{},value:0});
   for(const[k,q]of Object.entries(b.items))add(p.items,k,q);p.value+=v;
@@ -348,11 +364,11 @@ async function handle(a,b,sid,H){
   const pb=bjTot(g.p)===21,db_=bjTot(g.d)===21;if(pb||db_)bjEnd(u,g,pb&&db_?'push':pb?'bj':'lose');return{ok:1}}
  if(a==='bjhit'||a==='bjstand'||a==='bjdouble'){const g=u.bj;if(!g||g.done)E('No active hand');
   if(a==='bjstand')bjDealer(u,g);
-  else{if(a==='bjdouble'){if(g.p.length!==2||g.dbl)E('Cannot double now');if(u.tokens<g.bet)E('Not enough tokens to double');u.tokens-=g.bet;g.bet*=2;g.dbl=1}
+  else{if(a==='bjdouble'){if(g.p.length!==2||g.dbl)E('Cannot double now');if(u.tokens<g.bet)E('Not enough '+cur()+' to double');u.tokens-=g.bet;g.bet*=2;g.dbl=1}
    g.p.push(g.k.pop());const t=bjTot(g.p);if(t>21)bjEnd(u,g,'bust');else if(t===21||g.dbl)bjDealer(u,g)}
   return{ok:1}}
  if(a==='cfcreate'){const items=cfClean(b.items),tk=cfTok(b.tokens),side=b.side==='tails'?'tails':'heads';
-  if(db.cf.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open coinflips');if(u.tokens<tk)E('Not enough tokens');
+  if(db.cf.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open coinflips');if(u.tokens<tk)E('Not enough '+cur());
   const iv=cfVal(items);if(iv+tk<MINB)E('Minimum offer is '+fm(MINB));take(items);u.tokens-=tk;
   db.cf.open.push({id:++db.cf.id,c:{id:u.id,name:u.name,avatar:u.avatar},side,items,tokens:tk,value:iv+tk,t:Date.now()});
   log(`🪙 ${u.name} created coinflip #${db.cf.id} (${iv+tk} value, ${side})`);hk('coinflip',{title:`Coinflip #${db.cf.id} posted`,color:0x94a3b8,user:u,desc:`${ulink(u)} picked **${side}**`,fields:[['Offer',itl(items,tk),1],['Value',fm(iv+tk)+' '+cur(),1],['Join range',cfRange(iv+tk).map(fm).join(' – '),1]]});return{ok:1,id:db.cf.id}}
@@ -360,7 +376,7 @@ async function handle(a,b,sid,H){
   for(const[k,q]of Object.entries(g.items))add(u.inv,k,q);u.tokens+=g.tokens||0;db.cf.open=db.cf.open.filter(x=>x!==g);return{ok:1}}
  if(a==='cfjoin'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');
   const items=cfClean(b.items),tk=cfTok(b.tokens),jv=cfVal(items)+tk,[lo,hi]=cfRange(g.value);if(!jv)E('Select items or tokens');if(jv<lo||jv>hi)E(`Your offer must be worth ${lo}-${hi}`);
-  if(u.tokens<tk)E('Not enough tokens');take(items);u.tokens-=tk;cfResolve(g,{user:u,items,tokens:tk,value:jv});return{ok:1,id:g.id}}
+  if(u.tokens<tk)E('Not enough '+cur());take(items);u.tokens-=tk;cfResolve(g,{user:u,items,tokens:tk,value:jv});return{ok:1,id:g.id}}
  if(a==='cfbot'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');
   cfResolve(g,{user:null,items:{},tokens:g.value,value:g.value});return{ok:1,id:g.id}}
  if(a==='minesstart'){if(u.mines)E('Game in progress');const bet=needInt(b.bet),m=needInt(b.m);if(m<1||m>24)E('Pick 1-24 mines');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+(MODE==='ps99'?'gems':'tokens'));
@@ -411,7 +427,12 @@ async function handle(a,b,sid,H){
 function minesCash(u){const g=u.mines,pay=Math.floor(g.bet*mult(g.m,g.open.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay);u.mines=null;
  log(`💣 ${u.name} cashed out mines for ${pay} (bet ${g.bet})`);HR('mines',u,'Mines',g.bet,pay,[['Mines',g.m,1],['Gems found',g.open.length,1],['Multiplier',mult(g.m,g.open.length).toFixed(2)+'x',1]]);return{cashed:pay,mines:g.mines,open:g.open}}
 
-module.exports=async(req,res)=>{
+// Module-level state (MODE, KEY, db, ITEMS, jp...) is shared by every request this instance serves, so requests run one at a time.
+// Without this, an MM2 request and a PS99 request overlapping would flip MODE/ITEMS/db under each other and mix tokens, gems, pets and items.
+let QUEUE=Promise.resolve();
+const exclusive=fn=>{const r=QUEUE.then(fn,fn);QUEUE=r.then(()=>{},()=>{});return r};
+module.exports=(req,res)=>exclusive(()=>run(req,res));
+const run=async(req,res)=>{
  const a=req.query.a,b=(req.body&&typeof req.body==='object')?req.body:{},H={};HQ.length=0;{const h=req.headers['x-forwarded-host']||req.headers.host;SITE=h?'https://'+h:''}
  setMode(['start','check','logout'].includes(a)?'mm2':b.gm);
  const ck=Object.fromEntries((req.headers.cookie||'').split('; ').map(c=>c.split('='))),sid=ck.sid;let out;
