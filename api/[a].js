@@ -167,8 +167,32 @@ const rainQ=()=>{const t=crypto.randomInt(3);let a,b,ans,q;
  if(t===0){a=1+crypto.randomInt(20);b=1+crypto.randomInt(20);ans=a+b;q=`${a} + ${b}`}
  else if(t===1){a=5+crypto.randomInt(16);b=1+crypto.randomInt(a-1);ans=a-b;q=`${a} − ${b}`}
  else{a=2+crypto.randomInt(8);b=2+crypto.randomInt(8);ans=a*b;q=`${a} × ${b}`}return{q,ans}};
+// ---- Blackjack (server-side deck; dealer hole card is never sent until the hand ends) ----
+const BJR=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],BJS=['♠','♥','♦','♣'];
+const bjDeck=()=>{const d=[];for(const s of BJS)for(const r of BJR)d.push(r+s);for(let i=d.length-1;i>0;i--){const j=crypto.randomInt(i+1);[d[i],d[j]]=[d[j],d[i]]}return d};
+const bjTot=h=>{let t=0,a=0;for(const c of h){const r=c.slice(0,-1);if(r==='A'){a++;t+=11}else t+=('JQK'.includes(r)||r==='10')?10:+r}while(t>21&&a){t-=10;a--}return t};
+const bjView=g=>({id:g.id,bet:g.bet,player:g.p,dealer:g.done?g.d:[g.d[0],null],pv:bjTot(g.p),dv:g.done?bjTot(g.d):bjTot([g.d[0]]),done:g.done,result:g.result||null,payout:g.payout||0,doubled:!!g.dbl,canDouble:!g.done&&g.p.length===2&&!g.dbl});
+function bjEnd(u,g,res){g.done=true;g.result=res;g.payout=res==='bj'?Math.floor(g.bet*2.5):res==='win'?g.bet*2:res==='push'?g.bet:0;
+ u.tokens+=g.payout;u.wagered+=g.bet;u.profit+=g.payout-g.bet;log(`🃏 ${u.name} blackjack ${res} (bet ${g.bet}, paid ${g.payout})`)}
+function bjDealer(u,g){while(bjTot(g.d)<17)g.d.push(g.k.pop());const p=bjTot(g.p),d=bjTot(g.d);bjEnd(u,g,d>21||p>d?'win':p===d?'push':'lose')}
 // ---- Coinflip (item vs item, resolved instantly when someone joins) ----
-const cfClean=items=>{const o={};for(const[k,q]of Object.entries(items||{})){if(!I[k])E('Bad item');o[k]=needInt(q)}if(!Object.keys(o).length)E('Select items');return o};
+const cfClean=items=>{const o={};for(const[k,q]of Object.entries(items||{})){if(!I[k])E('Bad item');o[k]=needInt(q)}return o};
+const cfTok=t=>Math.max(0,Math.floor(+t||0));
+// Resolve a coinflip: J = {user|null (null = SyncBot), items, tokens, value}. 3 coins, best of 3. 10% tax (tokens first, then cheapest items) -> shop.
+function cfResolve(g,J){const cu=db.users[g.c.id],bot=!J.user,jSide=g.side==='heads'?'tails':'heads';
+ const flips=[0,1,2].map(()=>crypto.randomInt(2)?'heads':'tails'),res=flips.filter(x=>x==='heads').length>=2?'heads':'tails',winC=res===g.side;
+ const total=g.value+J.value,pot={};for(const it of[g.items,J.items])for(const[k,q]of Object.entries(it))add(pot,k,q);
+ let ptok=(g.tokens||0)+J.tokens;const cap=total*.1;let tx=Math.min(Math.floor(cap),ptok);ptok-=tx;
+ const units=[];Object.entries(pot).forEach(([k,q])=>{for(let i=0;i<q;i++)units.push(k)});units.sort((x,y)=>val(x)-val(y));
+ for(const k of units){if(tx+val(k)<=cap){tx+=val(k);add(pot,k,-1);add(db.shop,k,1)}else break}
+ const wu=winC?cu:J.user;
+ if(wu){Object.entries(pot).forEach(([k,q])=>add(wu.inv,k,q));wu.tokens+=ptok}else Object.entries(pot).forEach(([k,q])=>add(db.shop,k,q));
+ cu.wagered+=g.value;cu.profit+=(winC?total-tx:0)-g.value;if(J.user){J.user.wagered+=J.value;J.user.profit+=(winC?0:total-tx)-J.value}
+ const jn=bot?{id:'bot',name:'SyncBot',avatar:'/logo.png',bot:1}:{id:J.user.id,name:J.user.name,avatar:J.user.avatar},w=winC?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:jn;
+ db.cf.open=db.cf.open.filter(x=>x!==g);
+ db.cf.recent.push({id:g.id,c:g.c,j:jn,cSide:g.side,jSide,result:res,flips,winner:w,cItems:g.items,jItems:J.items,cTokens:g.tokens||0,jTokens:J.tokens,cValue:g.value,jValue:J.value,taxed:tx,won:total-tx,t:Date.now()});
+ db.cf.recent=db.cf.recent.slice(-20);
+ log(`🪙 Coinflip #${g.id}: **${w.name}** won ${total-tx} value (${g.c.name} vs ${jn.name}, ${flips.join('/')})`)}
 const cfVal=items=>Object.entries(items).reduce((s,[k,q])=>s+val(k)*q,0);
 const cfRange=v=>[Math.ceil(v*.9),Math.floor(v*1.1)];
 // ---- Jackpot (resolved lazily by the next request after the timer ends) ----
@@ -215,6 +239,7 @@ async function handle(a,b,sid,H){
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin},
    items:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
+   bj:u.bj?bjView(u.bj):null,
    rain:(()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH),on=!!rd.ann&&rd.r===cur&&n%RH>=ROPEN;return{now:n,pool:RPOOL,open:on,joined:on?Object.keys(rd.joined).length:0,me:{in:on&&!!rd.joined[u.id],chat:(u.lastChat||0)>=cur*RH}}})(),
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),
@@ -243,27 +268,26 @@ async function handle(a,b,sid,H){
  if(a==='rainjoin'){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);if(!(rd.ann&&rd.r===cur&&n%RH>=ROPEN))E('The rain is not open');if(rd.joined[u.id])E('Already joined');
   if((u.lastChat||0)<cur*RH)E('Send a message in the site chat this hour first');const q=u.rq;delete u.rq;if(!q||n>q.exp)E('Question expired, get a new one');
   if(String(b.ans).trim()===''||Math.round(+b.ans)!==q.ans)E('Wrong answer');rd.joined[u.id]=1;return{ok:1}}
- if(a==='cfcreate'){const items=cfClean(b.items),side=b.side==='tails'?'tails':'heads';
-  if(db.cf.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open coinflips');
-  const v=take(items);db.cf.open.push({id:++db.cf.id,c:{id:u.id,name:u.name,avatar:u.avatar},side,items,value:v,t:Date.now()});
-  log(`🪙 ${u.name} created coinflip #${db.cf.id} (${v} value, ${side})`);return{ok:1,id:db.cf.id}}
+ if(a==='bjstart'){if(u.bj&&!u.bj.done)E('Finish your current hand first');const bet=needInt(b.bet);if(bet<5)E('Minimum bet is 5');if(u.tokens<bet)E('Not enough tokens');
+  u.tokens-=bet;const k=bjDeck(),p1=k.pop(),d1=k.pop(),p2=k.pop(),d2=k.pop(),g=u.bj={id:Date.now(),bet,k,p:[p1,p2],d:[d1,d2],done:false};
+  const pb=bjTot(g.p)===21,db_=bjTot(g.d)===21;if(pb||db_)bjEnd(u,g,pb&&db_?'push':pb?'bj':'lose');return{ok:1}}
+ if(a==='bjhit'||a==='bjstand'||a==='bjdouble'){const g=u.bj;if(!g||g.done)E('No active hand');
+  if(a==='bjstand')bjDealer(u,g);
+  else{if(a==='bjdouble'){if(g.p.length!==2||g.dbl)E('Cannot double now');if(u.tokens<g.bet)E('Not enough tokens to double');u.tokens-=g.bet;g.bet*=2;g.dbl=1}
+   g.p.push(g.k.pop());const t=bjTot(g.p);if(t>21)bjEnd(u,g,'bust');else if(t===21||g.dbl)bjDealer(u,g)}
+  return{ok:1}}
+ if(a==='cfcreate'){const items=cfClean(b.items),tk=cfTok(b.tokens),side=b.side==='tails'?'tails':'heads';
+  if(db.cf.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open coinflips');if(u.tokens<tk)E('Not enough tokens');
+  const iv=cfVal(items);if(iv+tk<5)E('Minimum offer is 5');take(items);u.tokens-=tk;
+  db.cf.open.push({id:++db.cf.id,c:{id:u.id,name:u.name,avatar:u.avatar},side,items,tokens:tk,value:iv+tk,t:Date.now()});
+  log(`🪙 ${u.name} created coinflip #${db.cf.id} (${iv+tk} value, ${side})`);return{ok:1,id:db.cf.id}}
  if(a==='cfcancel'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game not found');if(g.c.id!==u.id)E('Not your game');
-  for(const[k,q]of Object.entries(g.items))add(u.inv,k,q);db.cf.open=db.cf.open.filter(x=>x!==g);return{ok:1}}
+  for(const[k,q]of Object.entries(g.items))add(u.inv,k,q);u.tokens+=g.tokens||0;db.cf.open=db.cf.open.filter(x=>x!==g);return{ok:1}}
  if(a==='cfjoin'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');
-  const items=cfClean(b.items),jv=cfVal(items),[lo,hi]=cfRange(g.value);if(jv<lo||jv>hi)E(`Your offer must be worth ${lo}-${hi}`);
-  take(items);const side=g.side==='heads'?'tails':'heads',flips=[0,1,2].map(()=>crypto.randomInt(2)?'heads':'tails'),res=flips.filter(x=>x==='heads').length>=2?'heads':'tails';// best of 3 coins
-  
-  const winC=res===g.side,w=winC?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:{id:u.id,name:u.name,avatar:u.avatar},wu=db.users[w.id];
-  const total=g.value+jv,pot={};for(const it of[g.items,items])for(const[k,q]of Object.entries(it))add(pot,k,q);
-  const units=[];Object.entries(pot).forEach(([k,q])=>{for(let i=0;i<q;i++)units.push(k)});units.sort((x,y)=>val(x)-val(y));
-  let tx=0;const cap=total*.1;for(const k of units){if(tx+val(k)<=cap){tx+=val(k);add(pot,k,-1);add(db.shop,k,1)}else break}
-  Object.entries(pot).forEach(([k,q])=>add(wu.inv,k,q));
-  const cu=db.users[g.c.id];cu.wagered+=g.value;u.wagered+=jv;
-  cu.profit+=(winC?total-tx:0)-g.value;u.profit+=(winC?0:total-tx)-jv;
-  db.cf.open=db.cf.open.filter(x=>x!==g);
-  db.cf.recent.push({id:g.id,c:g.c,j:{id:u.id,name:u.name,avatar:u.avatar},cSide:g.side,jSide:side,result:res,flips,winner:w,cItems:g.items,jItems:items,cValue:g.value,jValue:jv,taxed:tx,won:total-tx,t:Date.now()});
-  db.cf.recent=db.cf.recent.slice(-20);
-  log(`🪙 Coinflip #${g.id}: **${w.name}** won ${total-tx} value (${g.c.name} vs ${u.name}, ${flips.join('/')})`);return{ok:1,id:g.id}}
+  const items=cfClean(b.items),tk=cfTok(b.tokens),jv=cfVal(items)+tk,[lo,hi]=cfRange(g.value);if(!jv)E('Select items or tokens');if(jv<lo||jv>hi)E(`Your offer must be worth ${lo}-${hi}`);
+  if(u.tokens<tk)E('Not enough tokens');take(items);u.tokens-=tk;cfResolve(g,{user:u,items,tokens:tk,value:jv});return{ok:1,id:g.id}}
+ if(a==='cfbot'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');
+  cfResolve(g,{user:null,items:{},tokens:g.value,value:g.value});return{ok:1,id:g.id}}
  if(a==='minesstart'){if(u.mines)E('Game in progress');const bet=needInt(b.bet),m=needInt(b.m);if(m<1||m>24)E('Pick 1-24 mines');if(bet<5)E('Minimum bet is 5');if(u.tokens<bet)E('Not enough tokens');
   u.tokens-=bet;const mines=[];while(mines.length<m){const x=crypto.randomInt(25);if(!mines.includes(x))mines.push(x)}
   u.mines={bet,m,mines,open:[]};return{ok:1}}
