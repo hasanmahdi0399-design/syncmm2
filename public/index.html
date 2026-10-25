@@ -213,6 +213,35 @@ html[data-mode=ps99] .back{background:radial-gradient(circle at 50% 40%,#16356e,
 html[data-mode=ps99] .back img{filter:drop-shadow(0 0 8px #2f8cff)}
 html[data-mode=ps99] .side{background:#2f8cff33;color:#bfe0ff}
 html[data-mode=ps99] #rainbox{display:none}
+
+/* towers + case battles (PS99) */
+.twgrid{display:flex;flex-direction:column;gap:8px;width:min(520px,100%);margin:0 auto}
+.twr{display:grid;grid-template-columns:58px repeat(var(--c),1fr);gap:8px;align-items:center}
+.twr>small{color:var(--m);font-weight:700;font-size:12px;text-align:right;padding-right:2px}
+.twr.cur>small{color:var(--g)}.twr.off{opacity:.5}
+.twgrid .mt{aspect-ratio:auto;height:46px;border-radius:12px}.twgrid .mt svg{width:auto;height:70%}
+.twr.cur .mt:not(:disabled){border-color:#7dc0ff;box-shadow:0 0 16px -4px var(--glow2),inset 0 1px 0 #ffffff33}
+.dfs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}.dfs button{padding:8px 4px;font-size:12px}.dfs button.on{outline:2px solid var(--ac2)}
+.cbx{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}@media(min-width:900px){.cbx{grid-template-columns:430px 1fr}}
+.cbcase{display:flex;align-items:center;gap:10px;background:#12141a;border:1px solid #2c3345;border-radius:12px;padding:8px 10px;margin-bottom:8px}
+.cbcase .ci{font-size:26px;width:38px;text-align:center}.cbcase .cn{flex:1;min-width:0}.cbcase .cn b{display:block}.cbcase .cn small{color:var(--m)}
+.cbcase .qb{display:flex;align-items:center;gap:6px}.cbcase .qb button{padding:4px 10px;min-width:32px}
+.cbodds{margin:-2px 0 8px;font-size:12px;color:var(--m)}.cbodds summary{cursor:pointer}.cbodds .od{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.cbsel{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.cbslots{display:flex;gap:6px;margin-bottom:12px}.cbslots button{flex:1}.cbslots button.on{outline:2px solid var(--ac2)}
+.cbrow{background:linear-gradient(180deg,#172131,#111823);border:1px solid #22314a;border-radius:16px;padding:12px;margin-bottom:10px}.cbrow.mine{border-color:var(--glow)}
+.cbhd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.cbpl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.cbpl .pp{display:flex;align-items:center;gap:6px;background:#0d0f14;border:1px solid #2c3345;border-radius:99px;padding:3px 10px 3px 3px;font-size:12px}
+.cbpl .pp img{width:24px;height:24px;border-radius:50%}.cbpl .pp.em{border-style:dashed;color:var(--m);padding:3px 12px}
+.cbbt{display:flex;gap:8px;flex-wrap:wrap}
+#cbov{position:fixed;inset:0;z-index:900;background:#05060af0;backdrop-filter:blur(6px);overflow:auto;padding:20px 12px;display:flex;flex-direction:column;align-items:center;gap:14px;animation:fade .25s both}
+#cbov h2{margin:0;font:700 16px 'Syncopate',system-ui,sans-serif;letter-spacing:.18em;text-align:center}
+.cbcols{display:grid;grid-template-columns:repeat(var(--n),minmax(110px,1fr));gap:10px;width:min(980px,100%)}
+.cbcol{background:#0d1420;border:2px solid #22314a;border-radius:16px;padding:10px 8px;text-align:center}.cbcol.win{border-color:var(--g);box-shadow:0 0 28px -6px #4ade80aa}
+.cbcol .pn{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:13px;margin-bottom:8px;word-break:break-word}.cbcol .pn img{width:24px;height:24px;border-radius:50%}
+.cbpull{height:96px;border-radius:12px;background:#12141a;border:1px solid #2c3345;margin-bottom:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transform:scale(.7);transition:opacity .35s,transform .35s}
+.cbpull.show{opacity:1;transform:none}.cbpull .ic{height:50px;font-size:34px}.cbpull .ic img,.cbpull .ic svg{height:50px;width:auto;max-width:100%}.cbpull small{color:var(--g);font-size:11px}.cbpull b{font-size:11px;line-height:1.1;text-align:center;padding:0 4px}
+.cbtot{font:700 15px 'Syncopate',system-ui,sans-serif}.cbfin{opacity:0;transition:opacity .4s;text-align:center}.cbfin.show{opacity:1}
 </style></head><body><div id="splash"><img id="splimg" src="/logo.png" alt=""><b>Sync</b><i></i></div><script>if(document.documentElement.dataset.mode==="ps99")document.getElementById("splimg").src="/logo-ps99.png"</script><div id="app"><p style="padding:20px;color:#8b9098">Loading… (if this never goes away, the script did not run)</p></div><div id="toast"></div>
 <script>window.onerror=function(m,u,l){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">JS error: '+m+' (line '+l+')</pre>')};window.onunhandledrejection=function(e){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#f87171;padding:12px;white-space:pre-wrap;font-size:12px">Error: '+(e.reason&&e.reason.message||e.reason)+'</pre>')}</script>
 <script>
@@ -229,11 +258,11 @@ function swMode(m){if(m===MODE)return;localStorage.mode=m;location.reload()}
 let S=null,tab='home',q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=MODE==='ps99'?1000000:10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"anim":true,"hide":false}');
 let chatOpen=false,chatSeen=0;
 const BETS=()=>PS()?[1e6,5e6,10e6,50e6,100e6,500e6]:[5,10,50,100,500,1000];
-const NAV=[['home','🏠','Home'],['values','📈','Values'],['inventory','🎒','Inventory'],['exchange','🔄','Exchange'],['jackpot','🎰','Jackpot'],['coinflip','🪙','Coinflip'],['blackjack','🃏','Blackjack'],['mines','💣','Mines'],['withdraw','📤','Withdraw'],['deposit','💳','Deposit'],['leaderboard','🏆','Leaderboard'],['settings','⚙️','Settings'],['admin','🛠️','Admin']];
+const NAV=[['home','🏠','Home'],['values','📈','Values'],['inventory','🎒','Inventory'],['exchange','🔄','Exchange'],['jackpot','🎰','Jackpot'],['coinflip','🪙','Coinflip'],['blackjack','🃏','Blackjack'],['mines','💣','Mines'],['towers','🗼','Towers',1],['casebattles','📦','Case Battles',1],['withdraw','📤','Withdraw'],['deposit','💳','Deposit'],['leaderboard','🏆','Leaderboard'],['settings','⚙️','Settings'],['admin','🛠️','Admin']];
 const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2500)};
 const api=async(a,b={})=>{try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...b,gm:MODE})});const j=await r.json();if(j.error)toast(j.error);return j}catch{toast('Network error');return{}}};
 // Splash: logo + title, then fades out. Used on site entry and when opening a game.
-const GAMES=['mines','jackpot','coinflip','blackjack'];
+const GAMES=['mines','jackpot','coinflip','blackjack','towers','casebattles'];
 function splash(text,ms=1700){const old=$('#splash');if(old)old.remove();if(!cfg.anim)return;
  const d=document.createElement('div');d.id='splash';d.innerHTML=`<img src="${LG()}" alt=""><b>${text}</b><i></i>`;document.body.appendChild(d);setTimeout(()=>d.remove(),ms)}
 {const s=document.querySelector('#splash');if(s){if(!cfg.anim)s.remove();else setTimeout(()=>s.remove(),1800)}}
@@ -247,9 +276,22 @@ function icSvg(d){const t=d.type,r=d.rar,id=d.id,H=hh(id),H2=(H+50)%360;
  const g=r==='chroma'?['#ff4d6d','#ffd23f','#3ddc97','#4fb3ff','#b47cff']:r==='ancient'?['#fff1b8','#e9b949','#a66a12']:r==='unique'?['#ffb3b3','#e03a3a','#6b0f1a']:[`hsl(${H} 85% 72%)`,`hsl(${H} 75% 55%)`,`hsl(${H2} 70% 38%)`];
  const stops=g.map((c,i)=>`<stop offset="${i/(g.length-1)*100}%" stop-color="${c}"/>`).join('');
  const gl=r==='chroma'?'#ffffff88':r==='ancient'?'#e9b949aa':`hsl(${H} 90% 60% / .55)`;
- const body=t==='gun'
- ?`<path d="M6 21h40l6 4v8H31l-3 4h-5l1-4H15l-3 17H5l4-17H6z" fill="url(#g${id})" stroke="#0007" stroke-width="1.5" stroke-linejoin="round"/><rect x="8" y="23" width="30" height="3" rx="1.5" fill="#fff6"/><circle cx="42" cy="29" r="2" fill="#0006"/>`
- :`<path d="M26 36 61 5c-1 14-9 27-23 35z" fill="url(#g${id})" stroke="#0007" stroke-width="1.5" stroke-linejoin="round"/><path d="M30 35 56 9" stroke="#fff8" stroke-width="1.6" stroke-linecap="round"/><path d="M21 31l15 15" stroke="#2a2d36" stroke-width="5" stroke-linecap="round"/><path d="M26 41 8 59" stroke="url(#g${id})" stroke-width="7" stroke-linecap="round"/><path d="M26 41 8 59" stroke="#0004" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>`;
+ const nm=(id+' '+(d.name||'')).toLowerCase(),F=`fill="url(#g${id})" stroke="#0007" stroke-width="1.5" stroke-linejoin="round"`,HL='stroke="#fff8" stroke-width="1.6" stroke-linecap="round" fill="none"',DK='stroke="#2a2d36" stroke-linecap="round" fill="none"';
+ const gv=/laser|blaster|ray|beam|virtual|pixel|bringer|cannon|alien|iceblaster|amerilaser|heat|flames|evergun|chill/.test(nm)?'blaster':/revolver|traveler|constellation|clockwork|oldglory/.test(nm)?'revolver':'pistol';
+ const kv=/scythe|harvester/.test(nm)?'scythe':/axe|chopper/.test(nm)?'axe':/\bsaw\b|handsaw|chromasaw/.test(nm)?'saw':/cane|peppermint|candy/.test(nm)?'cane':/shard|gemstone|prismatic|iceshard|frost|snowflake|icebreaker|icepiercer|corrupt/.test(nm)?'shard':/wing/.test(nm)?'wing':'blade';
+ const GUNS={
+  pistol:`<path d="M6 21h40l6 4v8H31l-3 4h-5l1-4H15l-3 17H5l4-17H6z" ${F}/><rect x="8" y="23" width="30" height="3" rx="1.5" fill="#fff6"/><circle cx="42" cy="29" r="2" fill="#0006"/>`,
+  revolver:`<path d="M6 20h38l8 5v7H32l-2 6h-6l1-6H16L13 54H6l4-22H6z" ${F}/><circle cx="30" cy="25" r="7" fill="#0005" stroke="#fff5" stroke-width="1.2"/><circle cx="30" cy="25" r="2.4" fill="#fff6"/><rect x="8" y="22" width="14" height="2.5" rx="1.2" fill="#fff6"/>`,
+  blaster:`<path d="M4 22h30l6-6h10l4 4v6h6v8h-6v4H38l-4 4h-8l2-6H16l-4 16H5l4-16H4z" ${F}/><rect x="8" y="25" width="26" height="3" rx="1.5" fill="#fff6"/><circle cx="46" cy="26" r="3" fill="#fffa"/><path d="M50 14v4M54 16l-2 3" ${HL}/>`};
+ const KNIVES={
+  blade:`<path d="M26 36 61 5c-1 14-9 27-23 35z" ${F}/><path d="M30 35 56 9" ${HL}/><path d="M21 31l15 15" ${DK} stroke-width="5"/><path d="M26 41 8 59" stroke="url(#g${id})" stroke-width="7" stroke-linecap="round"/><path d="M26 41 8 59" stroke="#0004" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>`,
+  scythe:`<path d="M12 59 41 16" ${DK} stroke-width="5"/><path d="M12 59 41 16" stroke="url(#g${id})" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M38 17C52 4 64 18 59 35 58 25 51 20 41 24z" ${F}/><path d="M45 14c6-1 10 3 12 8" ${HL}/>`,
+  axe:`<path d="M14 59 41 14" ${DK} stroke-width="5"/><path d="M14 59 41 14" stroke="url(#g${id})" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M33 12 54 6c6 14 1 27-10 32l-8-9z" ${F}/><path d="M41 12c6 6 8 14 5 21" ${HL}/>`,
+  saw:`<path d="M24 38 58 7l-2 8-5-1 1 7-6-1 0 7-6-1-1 7-6-1z" ${F}/><path d="M30 35 54 12" ${HL}/><path d="M21 33l12 12" ${DK} stroke-width="5"/><path d="M26 41 8 59" stroke="url(#g${id})" stroke-width="7" stroke-linecap="round"/>`,
+  cane:`<path d="M20 59V24a12 12 0 0 1 24 0" stroke="url(#g${id})" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M20 59V24a12 12 0 0 1 24 0" stroke="#fff9" stroke-width="9" stroke-dasharray="4 8" stroke-linecap="round" fill="none"/>`,
+  shard:`<path d="M32 3 51 24 32 61 13 24z" ${F}/><path d="M13 24h38M23 24 32 3l9 21M23 24l9 37 9-37" fill="none" stroke="#fff7" stroke-width="1.6" stroke-linejoin="round"/>`,
+  wing:`<path d="M6 42 18 14l7 14 7-20 7 20 7-14 12 28-26-8z" ${F}/><path d="M32 8v26" ${HL}/>`};
+ const body=t==='gun'?GUNS[gv]:KNIVES[kv];
  return `<svg viewBox="0 0 64 64" width="64" height="64" style="filter:drop-shadow(0 0 7px ${gl})"><defs><linearGradient id="g${id}" x1="0" y1="0" x2="1" y2="1">${stops}</linearGradient></defs>${body}</svg>`}
 function petTile(d){const H=hh(d.id),w=(d.name||'').replace(/^(Titanic|Huge) /,'').split(' '),ini=((w[0]||'?')[0]||'?')+(w[1]?w[1][0]:''),bd=d.rar==='titanic'?'#f5c542':'#b47cff';
  return `<svg viewBox="0 0 64 64" width="64" height="64"><defs><linearGradient id="t${d.id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${H} 70% 55%)"/><stop offset="1" stop-color="hsl(${(H+40)%360} 70% 30%)"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="14" fill="url(#t${d.id})" stroke="${bd}" stroke-width="3"/><text x="32" y="40" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">${ini}</text></svg>`}
@@ -260,20 +302,20 @@ const ic=i=>/^(https?:)?\//.test(i.icon)?`<img src="${i.icon}" loading="lazy" al
 const card=(i,x='',c='',o='')=>`<div class="card ${c} ${i.rarity==='titanic'?'tt':i.rarity==='huge'?'hg':''}" ${o}><div class="ic">${ic(i)}</div><b>${i.name}</b><small>${PS()?CI()+' ':''}${fmt(i.value)}</small>${x}</div>`;
 const byId=id=>S.items.find(i=>i.id===id),mlt=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 65% 60%)`};
-async function load(){const r0=await api('state',{iv:ITEMSIV});if(r0.mode&&r0.mode!==MODE)return;if(r0.items){ITEMSC=r0.items;ITEMSIV=r0.iv}else if(r0.me)r0.items=ITEMSC;S=r0;if(S.rain&&S.rain.now)rainSkew=S.rain.now-Date.now();document.body.className=cfg.anim?'':'noanim';if(S.error||(!S.guest&&!S.me)){if(!S.me&&!$('#view'))$('#app').innerHTML='<pre style="color:#f87171;padding:14px;white-space:pre-wrap">Server error: '+(S.error||'no response')+'</pre>';return}if(S.guest){if(!$('#lg'))login();return}if(!$('#view'))shell();head();if(tab==='jackpot')jpUpdate();cfWatch();if(tab==='home'&&$('#view')&&$('#view').firstElementChild)rHome($('#view'));chatTick()}
+async function load(){const r0=await api('state',{iv:ITEMSIV});if(r0.mode&&r0.mode!==MODE)return;if(r0.items){ITEMSC=r0.items;ITEMSIV=r0.iv}else if(r0.me)r0.items=ITEMSC;S=r0;if(S.rain&&S.rain.now)rainSkew=S.rain.now-Date.now();document.body.className=cfg.anim?'':'noanim';if(S.error||(!S.guest&&!S.me)){if(!S.me&&!$('#view'))$('#app').innerHTML='<pre style="color:#f87171;padding:14px;white-space:pre-wrap">Server error: '+(S.error||'no response')+'</pre>';return}if(S.guest){if(!$('#lg'))login();return}if(!$('#view'))shell();head();if(tab==='jackpot')jpUpdate();cfWatch();cbWatch();if(tab==='home'&&$('#view')&&$('#view').firstElementChild)rHome($('#view'));chatTick()}
 let tick=0;setInterval(()=>{if(document.hidden||pend||(S&&S.guest))return;if(tab!=='jackpot'&&tab!=='coinflip'&&++tick%6)return;load()},1500);
 function login(){if($('#un'))return;$('#app').innerHTML=`<main><div class="box" style="max-width:420px;margin:60px auto"><div class="logo" style="font-size:30px;justify-content:center"><img src="${LG()}" alt="" style="width:44px;height:44px"><span>${BRAND()}</span></div><div style="display:flex;justify-content:center;margin:2px 0 14px">${msw()}</div><p class="muted">Verify your Roblox account to play.</p><div id="lg"><input id="un" placeholder="Roblox username" style="width:100%;margin-bottom:10px"><button class="big" style="margin:0" onclick="vstart()">Get verification code</button></div><p class="muted" style="font-size:11px;margin-top:14px">We log basic device/network info to prevent multi-accounting and abuse.</p></div></main>`}
 async function vstart(){const r=await api('start',{username:$('#un').value});if(!r.code)return;pend=r;
  $('#lg').innerHTML=`<p>Paste this into your <b>Roblox bio (About)</b> within 10 minutes:</p><div class="box" style="background:var(--p2);user-select:all;font-weight:700">${r.code}</div><p class="muted" id="cd"></p><button class="s" onclick="navigator.clipboard.writeText('${r.code}');toast('Copied')">Copy code</button>`;
  const t=setInterval(async()=>{if(!pend)return clearInterval(t);const s=Math.max(0,Math.round((r.exp-Date.now())/1000));$('#cd').textContent=`Waiting for bio… expires in ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
   if(s%3===0){const c=await api('check',{tok:r.tok});if(c.ok){pend=null;clearInterval(t);load()}else if(c.error){pend=null;clearInterval(t);$('#app').innerHTML='';login()}}},1000)}
-function shell(){const m=S.me;$('#app').innerHTML=`<aside id="sb"><div class="logo"><img src="${LG()}" alt=""><span>${BRAND()}</span></div><div class="uc"><img class="av" src="${m.avatar}" alt=""><div><b>${m.name}</b><span class="tok" id="sbt"></span></div></div><div id="nv">${NAV.filter(n=>n[0]!=='admin'||m.admin).map(n=>`<button id="t_${n[0]}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div></aside><div id="ov" onclick="sb(0)"></div><div id="mn"><div class="top"><button class="s mb" onclick="sb(1)">☰</button>${msw()}<b id="tt"></b><span class="tok" id="hd"></span></div><main id="view"></main></div><button id="chatbtn" onclick="chatToggle()">💬</button><div id="chatpanel"></div>`;go(tab)}
+function shell(){const m=S.me;$('#app').innerHTML=`<aside id="sb"><div class="logo"><img src="${LG()}" alt=""><span>${BRAND()}</span></div><div class="uc"><img class="av" src="${m.avatar}" alt=""><div><b>${m.name}</b><span class="tok" id="sbt"></span></div></div><div id="nv">${NAV.filter(n=>(n[0]!=='admin'||m.admin)&&(!n[3]||PS())).map(n=>`<button id="t_${n[0]}" onclick="go('${n[0]}')"><span>${n[1]}</span>${n[2]}</button>`).join('')}</div></aside><div id="ov" onclick="sb(0)"></div><div id="mn"><div class="top"><button class="s mb" onclick="sb(1)">☰</button>${msw()}<b id="tt"></b><span class="tok" id="hd"></span></div><main id="view"></main></div><button id="chatbtn" onclick="chatToggle()">💬</button><div id="chatpanel"></div>`;go(tab)}
 const sb=o=>{$('#sb').classList.toggle('open',!!o);$('#ov').classList.toggle('show',!!o)};
 function head(){const t=(cfg.hide?'••••':fmt(S.me.tokens))+' '+CI();if($('#hd'))$('#hd').innerHTML=t;if($('#sbt'))$('#sbt').innerHTML=t}
 function go(t){const was=tab;tab=t;sel={};q='';sb(0);const n=NAV.find(x=>x[0]===t);if(GAMES.includes(t)&&was!==t)splash(n[2]);document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.id==='t_'+t));$('#tt').textContent=n[2];const my=++nav;
  $('#view').innerHTML=`<div class="ld"><div class="sp"></div><span class="muted">Loading ${n[2]}…</span></div>`;
  setTimeout(async()=>{if(my!==nav)return;await load();if(my===nav)render()},cfg.anim?550:0)}
-const render=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,coinflip:rCf,blackjack:rBj,mines:rMines,withdraw:rWd,deposit:rDep,leaderboard:rLb,settings:rSet,admin:rAdm})[tab]($('#view'))};
+const render=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,coinflip:rCf,blackjack:rBj,mines:rMines,towers:rTw,casebattles:rCb,withdraw:rWd,deposit:rDep,leaderboard:rLb,settings:rSet,admin:rAdm})[tab]($('#view'))};
 function srch(f){return`<input placeholder="Search items…" value="${q}" oninput="q=this.value;${f}()" style="width:100%;margin-bottom:12px">`}
 const filt=l=>l.filter(i=>i.name.toLowerCase().includes(q.toLowerCase()));
 let vf='all';
@@ -346,7 +388,7 @@ function rAdm(v){const A=S.admin||{wd:[],logs:[],alts:[]},opts=S.items.map(i=>'<
  const wl=A.wd.map(w=>'<tr><td>'+w.name+'</td><td>'+w.qty+'x '+byId(w.item).name+'</td><td><button data-a="admwd" data-id="'+w.id+'" data-ok="1">Approve</button> <button class="s" data-a="admwd" data-id="'+w.id+'" data-ok="0">Reject</button></td></tr>').join('')||'<tr><td class="muted">None pending</td></tr>';
  v.innerHTML='<div class="box"><h3>Items and tokens</h3><div class="row"><input id="au" placeholder="Username or ID"><select id="ai">'+opts+'</select><input id="aq" type="number" placeholder="Qty / amount / value" style="width:160px"></div>'
  +'<div class="row"><button data-a="admgive">Give item</button><button data-a="admset">Set qty</button><button data-a="admtokens">Add tokens</button><button data-a="admvalue">Set item value</button></div></div>'
- +'<div class="box"><h3>Games</h3><div class="row"><button data-a="admcanceljp">Cancel jackpot</button><button data-a="admcancelmines">Cancel users mines</button></div></div>'
+ +'<div class="box"><h3>Games</h3><div class="row"><button data-a="admcanceljp">Cancel jackpot</button><button data-a="admcancelmines">Cancel users mines</button><button data-a="admcanceltw">Cancel users towers</button><button data-a="admcancelcb">Cancel case battle (id in amount box)</button></div></div>'
  +'<div class="box"><h3>Withdrawals</h3><table>'+wl+'</table></div>'
  +'<div class="box"><h3>Possible alt accounts <span class="muted">— same device</span></h3><table>'+((A.alts&&A.alts.length)?A.alts.map(g=>'<tr><td>'+g.join(', ')+'</td></tr>').join(''):'<tr><td class="muted">None detected</td></tr>')+'</table></div>'
  +'<div class="box"><h3>Discord webhook '+(A.webhook?'(set)':'(not set)')+'</h3><div class="row"><input id="aw" placeholder="Webhook URL" style="flex:1"><button data-a="admwebhook">Save</button></div></div>';
@@ -438,6 +480,79 @@ function cfPlayCore(g){const old=$('#cfov');if(old)old.remove();const d=document
  setTimeout(()=>{const r=$('#cfres');if(r)r.classList.add('show')},t+500);
  setTimeout(()=>d.remove(),cfg.anim?9000:4000)}
 
+
+// ---- Towers (PS99) ----
+const TWD={easy:[4,1],medium:[3,1],hard:[2,1],expert:[3,2]},TWR=8,TWN={easy:'Easy',medium:'Medium',hard:'Hard',expert:'Expert'};
+let twbet=1000000,twd='medium',twres=null,twbusy=false;
+const twm=(d,n)=>.97*Math.pow(TWD[d][0]/(TWD[d][0]-TWD[d][1]),n);
+function rTw(v){const g=S.tw,r=twres,d=g?g.d:twd,[c,k]=TWD[d],n=g?g.picks.length:0,cur=g?g.mult:1;
+ const picks=g?g.picks:(r?r.picks:[]),bombs=!g&&r?r.bombs:null,ended=!g&&r;
+ const chips=g?chip('Multiplier',cur.toFixed(2)+'x','hl')+chip('Payout',fmt(g.bet*cur),'hl')+chip('Next floor',twm(d,n+1).toFixed(2)+'x')+chip('Floor',(n+1)+' / '+TWR)
+  :chip('Tiles',c)+chip('Bombs / floor',k)+chip('Floor 1',twm(d,1).toFixed(2)+'x','hl')+chip('Top floor',twm(d,TWR).toFixed(2)+'x');
+ const setup=g?`<div class="stat"><span>Bet</span><b>${fmt(g.bet)} ${CI()}</b></div><div class="stat"><span>Difficulty</span><b>${TWN[d]}</b></div><div class="stat"><span>Safe chance next</span><b>${((c-k)/c*100).toFixed(1)}%</b></div><button class="big cashbtn" onclick="twca()" ${n?'':'disabled'}>${n?'Cash out '+fmt(g.bet*cur)+' '+CI():'Climb a floor first'}</button>`
+ :`<label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row"><input id="tb" type="number" min="${MINB()}" value="${twbet}" oninput="twbet=+this.value" style="flex:1;min-width:90px"><button class="s" onclick="twset(.5)">½</button><button class="s" onclick="twset(2)">2×</button><button class="s" onclick="twset(0)">Max</button></div>
+ <div class="row">${BETS().map(x=>`<button class="s ${twbet===x?'on':''}" onclick="twbet=${x};twr()">${fmt(x)}</button>`).join('')}</div>
+ <label class="lb">Difficulty</label><div class="dfs">${Object.keys(TWD).map(x=>`<button class="s ${twd===x?'on':''}" onclick="twd='${x}';twr()">${TWN[x]}<br><small>${TWD[x][0]} tiles · ${TWD[x][1]} 💣</small></button>`).join('')}</div>
+ <div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div><button class="big" onclick="twst()" ${twbusy?'disabled':''}>${twbusy?'Building tower…':'Start game'}</button>`;
+ const rows=[];for(let f=TWR-1;f>=0;f--){const isCur=g&&f===n,done=g?f<n:false;
+  const tiles=Array.from({length:c},(_,i)=>{const pk=picks[f]===i,hitRow=ended&&r.boom&&f===picks.length-1,isB=bombs&&bombs[f]&&bombs[f].includes(i);
+   const safe=pk&&!(hitRow&&pk),hit=pk&&hitRow;
+   const cls=safe?'gem':hit?'bomb hit':isB?'bomb dim':'';
+   return `<button class="mt ${cls}" ${isCur&&!twbusy?`onclick="twp(${i})"`:'disabled'} aria-label="floor ${f+1} tile ${i+1}">${safe?GEM:(hit||isB)?BOMB:''}</button>`}).join('');
+  rows.push(`<div class="twr ${isCur?'cur':''} ${g&&!isCur&&!done?'off':''}" style="--c:${c}"><small>${twm(d,f+1).toFixed(2)}x</small>${tiles}</div>`)}
+ const msg=ended?(r.boom?`<div class="mres lose">💥 Boom!<small>Floor ${picks.length} — you lost your bet</small></div>`:`<div class="mres win">Cashed out +${fmt(r.cashed)} ${CI()}<small>${picks.length} floor${picks.length===1?'':'s'} climbed</small></div>`):'';
+ v.innerHTML=`<div class="mw"><div class="box mctl"><h3>🗼 Towers <span class="muted">— ${TWR} floors · ${CN()} only</span></h3>${setup}</div><div class="mstage"><div class="mchips">${chips}</div><div class="twgrid">${rows.join('')}</div>${msg}</div></div>`}
+const twr=()=>{if(tab==='towers')rTw($('#view'))};
+function twset(x){twbet=x?Math.max(MINB(),Math.floor(twbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));twr()}
+async function twst(){if(twbusy)return;if(!(twbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}twres=null;twbusy=true;twr();await new Promise(r=>setTimeout(r,cfg.anim?600:0));await api('twstart',{bet:twbet,diff:twd});twbusy=false;await load();twr()}
+async function twp(i){const r=await api('twpick',{i});if(r.boom||r.cashed!=null)twres=r;await load();twr()}
+async function twca(){const r=await api('twcash');if(r.cashed!=null)twres=r;await load();twr()}
+
+// ---- Case Battles (PS99) ----
+let cbSel=[],cbSlots=2,cbSeen=null;
+const cbIcon=x=>{if(x.id==='gems')return `<div class="ic">${CI()}</div>`;const i=byId(x.id);return i?`<div class="ic">${ic(i)}</div>`:'<div class="ic">❔</div>'};
+const cbName=x=>x.id==='gems'?'Gems':(byId(x.id)||{name:x.id}).name;
+const cbCaseOf=id=>((S.cb&&S.cb.cases)||[]).find(c=>c.id===id)||{name:id,price:0};
+const cbCost=()=>cbSel.reduce((s,id)=>s+cbCaseOf(id).price,0);
+function rCb(v){const cb=S.cb||{open:[],recent:[],cases:[],max:5},cost=cbCost(),can=cbSel.length&&S.me.tokens>=cost;
+ const cases=cb.cases.map(c=>{const n=cbSel.filter(x=>x===c.id).length;
+  return `<div class="cbcase"><div class="ci">📦</div><div class="cn"><b>${c.name}</b><small>${CI()} ${fmt(c.price)}${c.ok?` · top drop ${fmt(c.top)}`:' · unavailable'}</small></div><div class="qb"><button class="s" ${n?'':'disabled'} onclick="cbRem('${c.id}')">−</button><b>${n}</b><button class="s" ${c.ok&&cbSel.length<cb.max?'':'disabled'} onclick="cbAdd('${c.id}')">+</button></div></div>
+  ${c.ok?`<details class="cbodds"><summary>Drops &amp; odds</summary>${c.drops.map(x=>`<div class="od"><span>${cbName(x)} <small>(${fmt(x.v)})</small></span><b>${(x.w*100).toFixed(x.w<.01?2:1)}%</b></div>`).join('')}</details>`:''}`}).join('');
+ v.innerHTML=`<div class="cbx"><div class="box"><h3>📦 Create a case battle <span class="muted">— highest total pull wins everything · 10% tax</span></h3>
+ ${cases}
+ <label class="lb">Players</label><div class="cbslots">${[2,3,4].map(n=>`<button class="s ${cbSlots===n?'on':''}" onclick="cbSlots=${n};rCb($('#view'))">${n}</button>`).join('')}</div>
+ <div class="offer"><div class="oh"><span>Entry per player (${cbSel.length} case${cbSel.length===1?'':'s'})</span><b class="g">${fmt(cost)} ${CI()}</b></div><div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div></div>
+ <button class="big" ${can?'':'disabled'} onclick="cbCreate()">${cbSel.length?(can?'Create battle':'Not enough '+CN()):'Add at least one case'}</button></div>
+ <div><div class="box"><h3>Open battles</h3><div id="cbl"></div></div><div class="box"><h3>Recent battles</h3><div id="cbr"></div></div></div></div>`;cbList()}
+function cbList(){const cb=S.cb||{open:[],recent:[]},l=$('#cbl');if(!l)return;
+ l.innerHTML=cb.open.slice().reverse().map(g=>{const mine=g.players[0].id===S.me.id,inn=g.players.some(p=>p.id===S.me.id),emp=g.slots-g.players.length;
+  const pl=g.players.map(p=>`<div class="pp"><img src="${p.avatar}" alt="">${p.name}</div>`).join('')+Array.from({length:emp},()=>'<div class="pp em">waiting…</div>').join('');
+  const btn=mine?`<button class="botbtn" onclick="cbBot(${g.id})">🤖 Call SyncBot</button><button class="s" onclick="cbCancel(${g.id})">Cancel</button>`:inn?`<button class="s" onclick="cbLeave(${g.id})">Leave</button>`:`<button ${S.me.tokens>=g.cost?'':'disabled'} onclick="cbJoin(${g.id})">Join · ${fmt(g.cost)} ${CI()}</button>`;
+  return `<div class="cbrow ${mine?'mine':''}"><div class="cbhd"><b>#${g.id} · ${g.cases.map(id=>cbCaseOf(id).name).join(', ')}</b><b class="g">${fmt(g.cost)} ${CI()} each</b></div><div class="cbpl">${pl}</div><div class="cbbt">${btn}</div></div>`}).join('')||'<p class="muted">No open battles — create one!</p>';
+ $('#cbr').innerHTML=cb.recent.slice().reverse().map(g=>`<div class="stat"><span>#${g.id} ${g.players.map(p=>`<b>${p.name}</b>`).join(' vs ')}</span><span>🏆 ${g.winner.name} <span class="g">+${fmt(g.won)}</span></span></div>`).join('')||'<p class="muted">Nothing yet.</p>'}
+function cbAdd(id){if(cbSel.length<((S.cb&&S.cb.max)||5))cbSel.push(id);rCb($('#view'))}
+function cbRem(id){const i=cbSel.lastIndexOf(id);if(i>=0)cbSel.splice(i,1);rCb($('#view'))}
+const cbDone=async r=>{await load();if(tab==='casebattles')rCb($('#view'));return r};
+async function cbCreate(){const r=await api('cbcreate',{cases:cbSel,slots:cbSlots});if(r.ok){cbSel=[];toast('Battle created')}await cbDone()}
+async function cbJoin(id){await api('cbjoin',{id});await cbDone()}
+async function cbCancel(id){await api('cbcancel',{id});await cbDone()}
+async function cbLeave(id){await api('cbleave',{id});await cbDone()}
+async function cbBot(id){await api('cbbot',{id});await cbDone()}
+// Called on every state load: refresh lists and play the opening once for battles I'm in
+function cbWatch(){const cb=S.cb;if(!cb)return;const mx=cb.recent.length?cb.recent[cb.recent.length-1].id:0;
+ if(cbSeen===null){cbSeen=mx;return}
+ if(tab==='casebattles')cbList();
+ for(const g of cb.recent){if(g.id>cbSeen&&g.players.some(p=>p.id===S.me.id)){cbSeen=Math.max(cbSeen,g.id);cbPlay(g)}}
+ cbSeen=Math.max(cbSeen,mx)}
+function cbPlay(g){const old=$('#cbov');if(old)old.remove();const d=document.createElement('div');d.id='cbov';const me=S.me.id,rounds=g.cases.length,step=cfg.anim?1100:0;
+ const cols=g.players.map((p,pi)=>`<div class="cbcol" id="cbc${pi}"><div class="pn"><img src="${p.avatar}" alt="">${p.name}</div>${p.pulls.map((x,ri)=>`<div class="cbpull" id="cbp${pi}_${ri}">${cbIcon(x)}<b>${cbName(x)}</b><small>${fmt(x.v)}</small></div>`).join('')}<div class="cbtot" id="cbt${pi}">0</div></div>`).join('');
+ const won=g.winner.id===me;
+ d.innerHTML=`<h2>Case battle #${g.id}</h2><div class="cbcols" style="--n:${g.players.length}">${cols}</div><div class="cbfin" id="cbfin"><div class="mres ${won?'win':'lose'}">${won?'YOU WON!':'YOU LOST'}<small>${won?`+${fmt(g.won)} value`:`${g.winner.name} took everything`}</small></div><small class="muted" style="display:block;margin-top:8px">Tap anywhere to close</small></div>`;
+ d.onclick=()=>d.remove();document.body.appendChild(d);
+ const run=g.players.map(()=>0);
+ for(let ri=0;ri<rounds;ri++)setTimeout(()=>{g.players.forEach((p,pi)=>{const e=$('#cbp'+pi+'_'+ri);if(e)e.classList.add('show');run[pi]+=p.pulls[ri].v;const t=$('#cbt'+pi);if(t)t.textContent=fmt(run[pi])})},step*(ri+1)||0);
+ setTimeout(()=>{const w=g.players.findIndex(p=>p.id===g.winner.id),c=$('#cbc'+w);if(c)c.classList.add('win');const f=$('#cbfin');if(f)f.classList.add('show')},step*(rounds+1)+300);
+ setTimeout(()=>d.remove(),step*(rounds+1)+12000)}
 
 // ---- Blackjack ----
 let bjBet=MODE==='ps99'?1000000:10,bjBusy=false,bjSeen={id:0,p:0,d:0,hole:false};
