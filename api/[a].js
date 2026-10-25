@@ -422,6 +422,18 @@ async function handle(a,b,sid,H){
    const c=await whCfg();if(url)c[b.ch]=url;else delete c[b.ch];await R('SET','whcfg',JSON.stringify(c));logA(`🔔 ${CH[b.ch][0]} webhook ${url?'updated':'removed'}`)}
   else if(a==='admwhtest'){if(!CH[b.ch])E('Unknown channel');const url=whUrl(await whCfg(),b.ch);if(!url)E('No webhook set for this channel');
    if(!await whPost(url,whBody(b.ch,[{title:'Webhook test',description:'✅ This channel is connected. Events for **'+CH[b.ch][0]+'** will appear here.',color:CH[b.ch][1],footer:{text:'Test sent by '+u.name},timestamp:new Date().toISOString()}])))E('Discord rejected the webhook')}
+  else if(a==='admrepair'){ // cleans data polluted by the old MM2/PS99 mix-up. Works on whichever mode the admin is viewing.
+   if(Array.isArray(b.reset)){const n=[];for(const id of b.reset.slice(0,50)){const t=db.users[String(id)];if(!t)continue;t.tokens=0;t.wagered=0;t.profit=0;n.push(t.name)}
+    logA(`🛠️ ${u.name} zeroed balance/stats of ${n.join(', ')||'nobody'}`);return{ok:1,reset:n.length}}
+   const lim=MODE==='mm2'?1e7:0,sus=[];let purged=0;const clean=o=>{for(const k of Object.keys(o||{}))if(!I[k]){delete o[k];purged++}};
+   for(const x of Object.values(db.users)){clean(x.inv);if(lim&&(Math.abs(x.tokens)>lim||Math.abs(x.wagered)>lim*10||Math.abs(x.profit)>lim*10))sus.push({id:x.id,name:x.name,tokens:Math.floor(x.tokens),wagered:Math.floor(x.wagered),profit:Math.floor(x.profit)})}
+   clean(db.shop);const bad=o=>Object.keys(o||{}).some(k=>!I[k]);
+   const co=db.cf.open.length;db.cf.open=db.cf.open.filter(g=>!bad(g.items)&&!(lim&&g.value>lim));
+   db.cf.recent=db.cf.recent.filter(g=>!bad(g.cItems)&&!bad(g.jItems)&&!(lim&&g.cValue+g.jValue>lim));
+   if(Object.values(jp.players).some(p=>bad(p.items)||(lim&&p.value>lim))){jp.players={};jp.end=0;purged++}
+   if(jp.last&&lim&&jp.last.total>lim)jp.last=null;
+   const wn=db.wd.length;db.wd=db.wd.filter(w=>I[w.item]);purged+=wn-db.wd.length+co-db.cf.open.length;db.day=null;
+   logA(`🛠️ ${u.name} ran data repair (${purged} foreign entries removed, ${sus.length} suspicious players)`);return{ok:1,purged,sus}}
   else E('Unknown');return{ok:1}}
  E('Unknown action')}
 function minesCash(u){const g=u.mines,pay=Math.floor(g.bet*mult(g.m,g.open.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay);u.mines=null;
