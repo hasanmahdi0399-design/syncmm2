@@ -148,7 +148,7 @@ async function psLoad(){
    await R('SET','psitems',JSON.stringify(c))}}
  psSet(c)}
 let db,jp,hooks=[];
-const load=async()=>{const s=await R('GET',KEY);db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
+const load=async()=>{const s=await R('GET',KEY);db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},cb:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
  if(MODE==='ps99'){const mm=await R('GET','db');MAIN=mm?JSON.parse(mm):{users:{},sessions:{}};db.sessions=MAIN.sessions||{};await psLoad()}
  jp=db.jp||(db.jp={players:{},end:0,id:0,last:null})};
 // Device fingerprint: a salted, one-way hash of the request IP, stored per user so admins can see
@@ -181,6 +181,11 @@ const add=(o,k,q)=>{o[k]=(o[k]||0)+q;if(o[k]<=0)delete o[k]};
 const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100);const w=db.webhook||process.env.WEBHOOK_URL;
  if(w)hooks.push(fetch(w,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({content:String(m).slice(0,1900)})}).catch(()=>{}))};
 const E=m=>{throw Error(m)};
+// Webhook-only message (never saved in db.logs / the admin panel), used for login location + raw IP.
+const logRaw=m=>{const w=db.webhook||process.env.WEBHOOK_URL;if(w)hooks.push(fetch(w,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({content:String(m).slice(0,1900)})}).catch(()=>{}))};
+const dd=x=>{try{return decodeURIComponent(x||'')}catch{return x||''}};
+const geoOf=req=>{const h=req.headers,c=dd(h['x-vercel-ip-country']),r=dd(h['x-vercel-ip-country-region']),t=dd(h['x-vercel-ip-city']);return[t,r,c].filter(Boolean).join(', ')||'unknown location'};
+
 const rj=async(u,o)=>{const r=await fetch(u,o);if(!r.ok)E('Roblox API error, try again');return r.json()};
 const WORDS='apple tiger moon river frost ember cloud maple storm pearl cobra delta falcon jade lotus nova onyx pixel quartz raven solar tulip vivid zebra'.split(' ');
 const needInt=(n,min=1)=>{n=Math.floor(+n);if(!(n>=min))E('Invalid amount');return n};
@@ -250,6 +255,44 @@ function jpResolve(){
  jp.players={};jp.end=0;log(`🎰 Jackpot #${jp.id}: **${w[1].name}** won ${got} value (pot ${total}, tax ${s})`)}
 const mult=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 
+// ---- Towers (PS99 only): climb 8 floors, one safe tile per floor. Bomb layout is hidden server-side until the game ends. ----
+const TWD={easy:[4,1],medium:[3,1],hard:[2,1],expert:[3,2]},TWR=8; // [tiles per floor, bombs per floor]
+const twMult=(d,n)=>.97*Math.pow(TWD[d][0]/(TWD[d][0]-TWD[d][1]),n);
+function twCash(u){const g=u.tw,pay=Math.floor(g.bet*twMult(g.d,g.picks.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay);u.tw=null;
+ log(`🗼 ${u.name} cashed out towers for ${pay} (bet ${g.bet}, ${g.picks.length} floors, ${g.d})`);return{cashed:pay,bombs:g.bombs,picks:g.picks,d:g.d}}
+// ---- Case Battles (PS99 only): everyone opens the same cases, highest total pull takes every pull (10% tax -> shop). Entry is gems only. ----
+const CB_CASES=[['c1','Rookie Case',25e6],['c2','Bronze Case',100e6],['c3','Silver Case',500e6],['c4','Gold Case',2.5e9],['c5','Diamond Case',10e9]],CB_TAX=.1,CB_MAX=5;
+// Prize table for a case: the pets whose value sits closest to the case price, odds tuned so an average pull is worth about the price. 'gems' is a small filler drop.
+function cbPool(price){
+ const near=ITEMS.filter(i=>val(i.id)>=price*.15&&val(i.id)<=price*30).sort((a,b)=>Math.abs(Math.log(val(a.id)/price))-Math.abs(Math.log(val(b.id)/price))).slice(0,12);
+ if(near.length<3)return null;
+ const list=near.map(i=>({id:i.id,v:val(i.id)})).concat([{id:'gems',v:Math.floor(price*.2)}]);
+ const ev=p=>{let s=0,w=0;for(const x of list){const k=Math.pow(x.v,-p);s+=x.v*k;w+=k}return s/w};
+ let p=0;if(ev(0)>price){let lo=0,hi=8;for(let n=0;n<40;n++){p=(lo+hi)/2;if(ev(p)>price)lo=p;else hi=p}p=(lo+hi)/2}
+ const ws=list.map(x=>Math.pow(x.v,-p)),sum=ws.reduce((a,b)=>a+b,0);
+ return list.map((x,i)=>({...x,w:ws[i]/sum}))}
+const cbDraw=pool=>{let r=crypto.randomInt(1e9)/1e9,x=pool[pool.length-1];for(const e of pool){if((r-=e.w)<0){x=e;break}}return x};
+const cbCase=id=>CB_CASES.find(c=>c[0]===id);
+const cbCases=()=>CB_CASES.map(([id,name,price])=>{const p=cbPool(price),it=p?p.filter(x=>x.id!=='gems'):[];
+ return{id,name,price,ok:!!p,top:it.length?Math.max(...it.map(x=>x.v)):0,drops:p?p.map(x=>({id:x.id,v:x.v,w:x.w})).sort((a,b)=>b.v-a.v):[]}});
+function cbRefund(g){for(const p of g.players)if(!p.bot&&db.users[p.id])db.users[p.id].tokens+=g.cost;db.cb.open=db.cb.open.filter(x=>x!==g)}
+function cbResolve(g){
+ const pools=g.cases.map(id=>cbPool(cbCase(id)[2])),P=g.players.map(p=>({...p,pulls:[],total:0}));
+ for(const pl of pools)for(const p of P){const e=cbDraw(pl);p.pulls.push({id:e.id,v:e.v});p.total+=e.v}
+ const mx=Math.max(...P.map(p=>p.total)),top=P.filter(p=>p.total===mx),w=top[crypto.randomInt(top.length)];
+ const total=P.reduce((s,p)=>s+p.total,0),pot={};let gems=0;
+ for(const p of P)for(const x of p.pulls){if(x.id==='gems')gems+=x.v;else add(pot,x.id,1)}
+ const cap=total*CB_TAX;let tx=Math.min(Math.floor(cap),gems);gems-=tx;
+ const units=[];Object.entries(pot).forEach(([k,q])=>{for(let i=0;i<q;i++)units.push(k)});units.sort((x,y)=>val(x)-val(y));
+ for(const k of units){if(tx+val(k)<=cap){tx+=val(k);add(pot,k,-1);add(db.shop,k,1)}else break}
+ const wu=w.bot?null:db.users[w.id];
+ if(wu){Object.entries(pot).forEach(([k,q])=>add(wu.inv,k,q));wu.tokens+=gems}else Object.entries(pot).forEach(([k,q])=>add(db.shop,k,q));
+ for(const p of P){if(p.bot)continue;const u=db.users[p.id],got=p.id===w.id?total-tx:0;u.wagered+=g.cost;u.profit+=got-g.cost;rec(u,g.cost,got)}
+ db.cb.open=db.cb.open.filter(x=>x!==g);
+ db.cb.recent.push({id:g.id,cases:g.cases,cost:g.cost,players:P,winner:{id:w.id,name:w.name,avatar:w.avatar,bot:!!w.bot},total,taxed:tx,won:total-tx,t:Date.now()});
+ db.cb.recent=db.cb.recent.slice(-20);
+ log(`📦 Case battle #${g.id}: **${w.name}** won ${total-tx} value (${P.map(p=>p.name+' '+p.total).join(' vs ')})`)}
+
 async function start(b){
  const d=await rj('https://users.roblox.com/v1/usernames/users',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({usernames:[String(b.username||'').trim()],excludeBannedUsers:true})});
  const p=d.data[0];if(!p)E('Roblox user not found');
@@ -263,7 +306,7 @@ async function check(b,H,req){
  const dev=hashDev(getIp(req));
  return mutate(async()=>{const u=db.users[p.id]||(db.users[p.id]={id:p.id,name:p.name,avatar:'',tokens:0,inv:{},wagered:0,profit:0,mines:null});
   u.name=p.name;u.avatar=av;if(dev)u.dev=dev;u.lastSeen=Date.now();const s=crypto.randomBytes(24).toString('hex');db.sessions[s]=p.id;await R('DEL','p:'+b.tok);
-  H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);return{ok:true}})}
+  H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);logRaw(`🌍 ${p.name} (${p.id}) logged in from ${geoOf(req)} | IP: ${getIp(req)||'unknown'}`);return{ok:true}})}
 
 async function handle(a,b,sid,H){
  if(a==='lb'){const us=Object.values(db.users),f=k=>us.slice().sort((x,y)=>y[k]-x[k]).slice(0,20).map(u=>({name:u.name,avatar:u.avatar,v:Math.floor(u[k])}));
@@ -281,6 +324,8 @@ async function handle(a,b,sid,H){
    bj:u.bj?bjView(u.bj):null,
    rain:MODE!=='mm2'?{off:true}:(()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH),on=!!rd.ann&&rd.r===cur&&n%RH>=ROPEN;return{now:n,pool:RPOOL,open:on,joined:on?Object.keys(rd.joined).length:0,me:{in:on&&!!rd.joined[u.id],chat:(u.lastChat||0)>=cur*RH}}})(),
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
+   tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
+   cb:MODE==='ps99'?{open:db.cb.open,recent:db.cb.recent.slice(-8),cases:cbCases(),max:CB_MAX}:null,
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),
    online,activeMines,chat:(db.chat||[]).slice(-50),
    admin:admin?{wd:db.wd.filter(w=>w.status==='pending'),webhook:!!db.webhook,logs:db.logs.slice(-15),alts:altGroups()}:undefined}}
@@ -337,11 +382,37 @@ async function handle(a,b,sid,H){
  if(a==='minescash'){if(!u.mines||!u.mines.open.length)E('Pick a tile first');return minesCash(u)}
  if(a==='withdraw'){const n=needInt(b.qty);take({[b.item]:n},MODE==='ps99'?['pet']:['gun','knife']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
   log(`📤 Withdraw request: ${u.name} ${n}x ${b.item}`);return{ok:1}}
+
+ if(MODE!=='ps99'&&(a.startsWith('tw')||a.startsWith('cb')))E('Towers and Case Battles are PS99 only');
+ if(!db.cb)db.cb={open:[],recent:[],id:0};
+ if(a==='twstart'){if(u.tw)E('Game in progress');const bet=needInt(b.bet),d=TWD[b.diff]?b.diff:'medium',[c,k]=TWD[d];if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough gems');
+  u.tokens-=bet;const bombs=[];for(let r=0;r<TWR;r++){const row=[];while(row.length<k){const x=crypto.randomInt(c);if(!row.includes(x))row.push(x)}bombs.push(row)}
+  u.tw={bet,d,bombs,picks:[]};return{ok:1}}
+ if(a==='twpick'){const g=u.tw;if(!g)E('No game');const i=needInt(b.i,0);if(i>=TWD[g.d][0])E('Invalid tile');
+  if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0);u.tw=null;log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
+  g.picks.push(i);if(g.picks.length===TWR)return twCash(u);return{safe:true}}
+ if(a==='twcash'){if(!u.tw||!u.tw.picks.length)E('Climb a floor first');return twCash(u)}
+ if(a==='cbcreate'){const ids=Array.isArray(b.cases)?b.cases.map(String):[];if(!ids.length||ids.length>CB_MAX)E('Pick 1-'+CB_MAX+' cases');
+  for(const id of ids){const c=cbCase(id);if(!c)E('Bad case');if(!cbPool(c[2]))E(c[1]+' is not available right now')}
+  const slots=Math.floor(+b.slots);if(!(slots>=2&&slots<=4))E('Pick 2-4 players');
+  if(db.cb.open.filter(g=>g.players[0].id===u.id).length>=2)E('Max 2 open battles');
+  const cost=ids.reduce((s,id)=>s+cbCase(id)[2],0);if(u.tokens<cost)E('Not enough gems');u.tokens-=cost;
+  const g={id:++db.cb.id,cases:ids,slots,cost,players:[{id:u.id,name:u.name,avatar:u.avatar}],t:Date.now()};db.cb.open.push(g);
+  log(`📦 ${u.name} created case battle #${g.id} (${slots} players, ${cost} each)`);return{ok:1,id:g.id}}
+ if(a==='cbjoin'){const g=db.cb.open.find(x=>x.id===+b.id)||E('Battle already started');if(g.players.some(p=>p.id===u.id))E('You are already in this battle');
+  if(u.tokens<g.cost)E('Not enough gems');u.tokens-=g.cost;g.players.push({id:u.id,name:u.name,avatar:u.avatar});if(g.players.length>=g.slots)cbResolve(g);return{ok:1,id:g.id}}
+ if(a==='cbleave'){const g=db.cb.open.find(x=>x.id===+b.id)||E('Battle already started');if(g.players[0].id===u.id)E('Creators cancel instead');
+  const i=g.players.findIndex(p=>p.id===u.id);if(i<0)E('You are not in this battle');g.players.splice(i,1);u.tokens+=g.cost;return{ok:1}}
+ if(a==='cbcancel'){const g=db.cb.open.find(x=>x.id===+b.id)||E('Battle not found');if(g.players[0].id!==u.id)E('Not your battle');cbRefund(g);return{ok:1}}
+ if(a==='cbbot'){const g=db.cb.open.find(x=>x.id===+b.id)||E('Battle already started');if(g.players[0].id!==u.id)E('Only the creator can call SyncBot');
+  let n=0;while(g.players.length<g.slots)g.players.push({id:'bot'+(++n),name:n>1?'SyncBot '+n:'SyncBot',avatar:'/logo-ps99.png',bot:1});cbResolve(g);return{ok:1,id:g.id}}
  if(a.startsWith('adm')){if(!ADMINS.includes(u.id))E('Not admin');
   if(a==='admgive'){const t=findUser(b.user);if(!I[b.item])E('Bad item');add(t.inv,b.item,needInt(b.qty));log(`🛠️ ${u.name} gave ${b.qty}x ${b.item} to ${t.name}`)}
   else if(a==='admset'){const t=findUser(b.user);if(!I[b.item])E('Bad item');const q=Math.max(0,Math.floor(+b.qty));delete t.inv[b.item];if(q)t.inv[b.item]=q;log(`🛠️ ${u.name} set ${t.name}'s ${b.item} to ${q}`)}
   else if(a==='admtokens'){const t=findUser(b.user);t.tokens=Math.max(0,t.tokens+Math.floor(+b.amount));log(`🛠️ ${u.name} changed ${t.name}'s tokens by ${b.amount}`)}
   else if(a==='admvalue'){if(!I[b.item])E('Bad item');db.values[b.item]=Math.max(1,Math.floor(+b.value));log(`🛠️ ${u.name} set value of ${b.item} to ${b.value}`)}
+  else if(a==='admcanceltw'){const t=findUser(b.user);if(t.tw){t.tokens+=t.tw.bet;t.tw=null}log(`🛠️ ${u.name} cancelled ${t.name}'s towers game`)}
+  else if(a==='admcancelcb'){const g=db.cb.open.find(x=>x.id===Math.floor(+b.qty))||E('Open battle not found');cbRefund(g);log(`🛠️ ${u.name} cancelled case battle #${g.id} (refunded)`)}
   else if(a==='admcanceljp'){jpRefund();log(`🛠️ ${u.name} cancelled the jackpot (refunded)`)}
   else if(a==='admcancelmines'){const t=findUser(b.user);if(t.mines){t.tokens+=t.mines.bet;t.mines=null}log(`🛠️ ${u.name} cancelled ${t.name}'s mines game`)}
   else if(a==='admwd'){const w=db.wd.find(x=>x.id===b.id&&x.status==='pending')||E('Not found');
