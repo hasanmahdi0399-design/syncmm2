@@ -125,3 +125,6 @@ Recommended: square PNG, transparent background, at least 128x128px.
 | pet2.png | Pet Dragon | pet |
 
 PS99 pets are not listed here: they use the official thumbnails from the BIG Games API automatically.
+
+## Added from supremevalues screenshots
+All knife/gun images (every item in the screenshots, including ones not yet in the item list, named by their slug) and every MM2 pet image (`pet_<name>.png`, e.g. `pet_zombiedog.png`) are included here.

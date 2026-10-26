@@ -117,9 +117,90 @@ const MM2_ITEMS=[
 ['gingerscope','Gingerscope','gun','godly',90,'🍬'],
 ['harvester','Harvester','knife','ancient',300,'⚔️'],
 ['corrupt','Corrupt','knife','unique',220,'💀'],
+// ---- MM2 pets: values copied from supremevalues.com/mm2/pets. Tier 1 pets are priced there in T1 items (e.g. 'x3 T1 Legendaries'), so they are worth 1 here and show that text.
+['pet_zombiedog','Zombie Dog','pet','pet',750,'🐾'],
+['pet_elf2019','Elf (2019)','pet','pet',625,'🐾'],
+['pet_bluepumpkin220','Blue Pumpkin','pet','pet',220,'🐾'],
+['pet_dogey','Dogey','pet','pet',150,'🐾'],
+['pet_redpumpkin120','Red Pumpkin','pet','pet',120,'🐾'],
+['pet_blackcat','Black Cat','pet','pet',75,'🐾'],
+['pet_greenpumpkin60','Green Pumpkin','pet','pet',60,'🐾'],
+['pet_piggy','Piggy','pet','pet',55,'🐾'],
+['pet_mrreindeer','Mr. Reindeer','pet','pet',50,'🐾'],
+['pet_pumpkin2017','Pumpkin (2017)','pet','pet',50,'🐾'],
+['pet_elf','Elf','pet','pet',25,'🐾'],
+['pet_redpumpkin20','Red Pumpkin','pet','pet',20,'🐾'],
+['pet_mrsnowman','Mr. Snowman','pet','pet',20,'🐾'],
+['pet_redpumpkin17','Red Pumpkin','pet','pet',17,'🐾'],
+['pet_skully','Skully','pet','pet',15,'🐾'],
+['pet_greenpumpkin12','Green Pumpkin','pet','pet',12,'🐾'],
+['pet_greenpumpkin10','Green Pumpkin','pet','pet',10,'🐾'],
+['pet_bluepumpkin7','Blue Pumpkin','pet','pet',7,'🐾'],
+['pet_lt3','<3','pet','pet',7,'🐾'],
+['pet_shadowpumpkin','Shadow Pumpkin','pet','pet',5,'🐾'],
+['pet_nobledragon','Nobledragon','pet','pet',5,'🐾'],
+['pet_snowbear','Snowbear','pet','pet',3,'🐾'],
+['pet_chilly','Chilly','pet','pet',3,'🐾'],
+['pet_eyeball','Eyeball','pet','pet',3,'🐾'],
+['pet_fairy','Fairy','pet','pet',3,'🐾'],
+['pet_greenpumpkin3','Green Pumpkin','pet','pet',3,'🐾'],
+['pet_jetstream','Jetstream','pet','pet',3,'🐾'],
+['pet_mechbug','Mechbug','pet','pet',3,'🐾'],
+['pet_overseereye','Overseer Eye','pet','pet',3,'🐾'],
+['pet_pengy','Pengy','pet','pet',3,'🐾'],
+['pet_purplepumpkin','Purple Pumpkin','pet','pet',3,'🐾'],
+['pet_redpumpkin3','Red Pumpkin','pet','pet',3,'🐾'],
+['pet_reindeer','Reindeer','pet','pet',3,'🐾'],
+['pet_rudolph','Rudolph','pet','pet',3,'🐾'],
+['pet_seahorsey','Seahorsey','pet','pet',3,'🐾'],
+['pet_tankie','Tankie','pet','pet',3,'🐾'],
+['pet_ufo','UFO','pet','pet',3,'🐾'],
+['pet_vampirebat','Vampire Bat','pet','pet',3,'🐾'],
+['pet_lilalien','Lil\' Alien','pet','pet',1,'🐾'],
+['pet_badger','Badger','pet','pet',1,'🐾'],
+['pet_bluepumpkin1','Blue Pumpkin','pet','pet',1,'🐾'],
+['pet_chromafirebat','Chroma Fire Bat','pet','pet',3,'🐾'],
+['pet_chromafirebear','Chroma Fire Bear','pet','pet',3,'🐾'],
+['pet_chromafirebunny','Chroma Fire Bunny','pet','pet',3,'🐾'],
+['pet_chromafirecat','Chroma Fire Cat','pet','pet',3,'🐾'],
+['pet_chromafiredog','Chroma Fire Dog','pet','pet',3,'🐾'],
+['pet_chromafirefox','Chroma Fire Fox','pet','pet',3,'🐾'],
+['pet_chromafirepig','Chroma Fire Pig','pet','pet',3,'🐾'],
+['pet_carrotbunny','Carrot Bunny','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_deathspeaker','Deathspeaker','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_electro','Electro','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_frostbird','Frostbird','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_icephoenix','Ice Phoenix','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_icey','Icey','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_phoenix','Phoenix','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_sammy','Sammy','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_skelly','Skelly','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_steambird','Steambird','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_traveller','Traveller','pet','pet',1,'🐾','x3 T1 Legendaries'],
+['pet_pumpkin2018','Pumpkin (2018)','pet','pet',1,'🐾','x2 T1 Legendaries'],
+['pet_firebat','Fire Bat','pet','pet',1,'🐾','x2 T1 Legendaries'],
+['pet_firebear','Fire Bear','pet','pet',1,'🐾','x2 T1 Legendaries'],
+['pet_firebunny','Fire Bunny','pet','pet',1,'🐾','x2 T1 Legendaries'],
+['pet_firecat','Fire Cat','pet','pet',1,'🐾','x2 T1 Legendaries'],
+['pet_firedog','Fire Dog','pet','pet',1,'🐾','x2 T1 Legendaries'],
+['pet_firefox','Fire Fox','pet','pet',1,'🐾','x2 T1 Legendaries'],
+['pet_firepig','Fire Pig','pet','pet',1,'🐾','x2 T1 Legendaries'],
+['pet_scarecrow','Scarecrow','pet','pet',1,'🐾','x1 T1 Legendary'],
+['pet_teddy','Teddy','pet','pet',1,'🐾','x1 T1 Legendary'],
+['pet_pumpkin2019','Pumpkin (2019)','pet','pet',1,'🐾','x3 T1 Uncommons'],
+['pet_bat','Bat','pet','pet',1,'🐾','x2 T1 Uncommons'],
+['pet_santadog','Santa Dog','pet','pet',1,'🐾','x1 T1 Uncommon'],
+['pet_elitey','Elitey','pet','pet',1,'🐾','x1 T1 Uncommon'],
+['pet_bear','Bear','pet','pet',1,'🐾','x3 T1 Commons'],
+['pet_fox','Fox','pet','pet',1,'🐾','x2 T1 Commons'],
+['pet_pig','Pig','pet','pet',1,'🐾','x2 T1 Commons'],
+['pet_pumpkin2020','Pumpkin (2020)','pet','pet',1,'🐾','x2 T1 Commons'],
+['pet_cat','Cat','pet','pet',1,'🐾','x1 T1 Common'],
+['pet_dog','Dog','pet','pet',1,'🐾','x1 T1 Common'],
+['pet_pumpkin2021','Pumpkin (2021)','pet','pet',1,'🐾','x1 T1 Common'],
 ['pet1','Pet Cat','pet','pet',5,'🐱'],
 ['pet2','Pet Dragon','pet','pet',70,'🐲']
-].map(([id,name,type,rarity,value,icon])=>({id,name,type,rarity,value,icon}));
+].map(([id,name,type,rarity,value,icon,vt])=>vt?{id,name,type,rarity,value,icon,vt}:{id,name,type,rarity,value,icon});
 let ITEMS=MM2_ITEMS,I=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 // ---- Game modes: MM2 (tokens) and PS99 (gems). Each mode is its own world in Redis; Roblox logins/sessions are shared. ----
 let MODE='mm2',KEY='db',MINB=5,MAIN=null,PSTS=0;
@@ -211,8 +292,15 @@ const geoOf=req=>{const h=req.headers,c=dd(h['x-vercel-ip-country']),r=dd(h['x-v
 
 const rj=async(u,o)=>{const r=await fetch(u,o);if(!r.ok)E('Roblox API error, try again');return r.json()};
 const WORDS='apple tiger moon river frost ember cloud maple storm pearl cobra delta falcon jade lotus nova onyx pixel quartz raven solar tulip vivid zebra'.split(' ');
-const needInt=(n,min=1)=>{n=Math.floor(+n);if(!(n>=min))E('Invalid amount');return n};
-const findUser=s=>db.users[s]||Object.values(db.users).find(u=>u.name.toLowerCase()===String(s).toLowerCase())||E('User not found');
+// Amounts accept plain numbers or shorthand: 50m, 1.5b, 250k, 2t, 50,000,000
+const UNIT={k:1e3,m:1e6,mil:1e6,million:1e6,b:1e9,bil:1e9,billion:1e9,t:1e12,trillion:1e12},MAXAMT=9e15;
+const amt=x=>{if(typeof x==='number')return Number.isFinite(x)?Math.min(Math.floor(x),MAXAMT):NaN;
+ const m=String(x??'').trim().toLowerCase().replace(/[,_\s]/g,'').match(/^([+-]?(?:\d+\.?\d*|\.\d+))([a-z]*)$/);if(!m)return NaN;
+ const u=m[2]?UNIT[m[2]]:1;if(!u)return NaN;const n=Math.round(+m[1]*u*1e6)/1e6;return Number.isFinite(n)?Math.min(Math.floor(n),MAXAMT):NaN};
+const needInt=(n,min=1)=>{n=amt(n);if(!(n>=min))E('Invalid amount');return n};
+const findUser=s=>{s=String(s??'').trim();const l=s.toLowerCase();let t=db.users[s]||Object.values(db.users).find(u=>u.name.toLowerCase()===l);
+ if(!t&&MODE==='ps99'&&MAIN){const mu=(MAIN.users||{})[s]||Object.values(MAIN.users||{}).find(x=>x.name.toLowerCase()===l);if(mu)t=db.users[mu.id]={id:mu.id,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,mines:null,lastSeen:0}}
+ return t||E('User not found')};
 
 // ---- Sync Rain: every hour (GMT+6 hours align with UTC hours) the window opens at :55 and pays out at :00 ----
 const RH=3600000,ROPEN=55*60000,RPOOL=100;
@@ -241,7 +329,7 @@ function bjEnd(u,g,res){g.done=true;g.result=res;g.payout=res==='bj'?Math.floor(
 function bjDealer(u,g){while(bjTot(g.d)<17)g.d.push(g.k.pop());const p=bjTot(g.p),d=bjTot(g.d);bjEnd(u,g,d>21||p>d?'win':p===d?'push':'lose')}
 // ---- Coinflip (item vs item, resolved instantly when someone joins) ----
 const cfClean=items=>{const o={};for(const[k,q]of Object.entries(items||{})){if(!I[k])E('Bad item');o[k]=needInt(q)}return o};
-const cfTok=t=>Math.max(0,Math.floor(+t||0));
+const cfTok=t=>{const n=amt(t);return n>0?n:0};
 // Resolve a coinflip: J = {user|null (null = SyncBot), items, tokens, value}. 3 coins, best of 3. 10% tax (tokens first, then cheapest items) -> shop.
 function cfResolve(g,J){const cu=db.users[g.c.id],bot=!J.user,jSide=g.side==='heads'?'tails':'heads';
  const flips=[0,1,2].map(()=>crypto.randomInt(2)?'heads':'tails'),res=flips.filter(x=>x==='heads').length>=2?'heads':'tails',winC=res===g.side;
@@ -301,6 +389,14 @@ async function check(b,H,req){
   u.name=p.name;u.avatar=av;if(dev)u.dev=dev;u.lastSeen=Date.now();const s=crypto.randomBytes(24).toString('hex');db.sessions[s]=p.id;await R('DEL','p:'+b.tok);
   H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);hk('logins',{title:isNew?'New account':'Login',color:same.length?0xef4444:isNew?0x22c55e:undefined,user:{avatar:av},desc:`${ulink(p)} signed in`,fields:[['Roblox ID',p.id,1],['Location',flag(dd(req.headers['x-vercel-ip-country']))+geoOf(req),1],['IP address','`'+(getIp(req)||'unknown')+'`',1],['Device ID',dev?'`'+dev.slice(0,10)+'`':'',1],['⚠️ Shares a device with',same.map(md).join(', ')],['Browser',cut(req.headers['user-agent']||'',180)]]});return{ok:true}})}
 
+const admData=WC=>{const us=Object.values(db.users),tk=us.reduce((s,x)=>s+(x.tokens||0),0),iv=us.reduce((s,x)=>s+invVal(x),0),sv=Object.entries(db.shop).reduce((s,[k,q])=>s+val(k)*q,0),now=Date.now();
+ return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:whView(WC),logs:db.logs.slice(-100).reverse(),alts:altGroups(),
+  stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<45000).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length,
+   cfOpen:db.cf.open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
+  cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]}))}};
+const admPlayer=t=>({id:t.id,name:t.name,avatar:t.avatar,tokens:Math.floor(t.tokens||0),invValue:Math.floor(invVal(t)),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),lastSeen:t.lastSeen||0,
+ inv:Object.entries(t.inv||{}).filter(([k])=>I[k]).map(([k,q])=>({id:k,q})),games:{mines:!!t.mines,tw:!!t.tw,bj:!!(t.bj&&!t.bj.done),jp:!!jp.players[t.id],cf:db.cf.open.filter(g=>g.c.id===t.id).length},
+ alts:t.dev?Object.values(db.users).filter(x=>x.id!==t.id&&x.dev===t.dev).map(x=>x.name):[]});
 async function handle(a,b,sid,H){
  if(a==='lb'){const us=Object.values(db.users),f=k=>us.slice().sort((x,y)=>y[k]-x[k]).slice(0,20).map(u=>({id:u.id,name:u.name,avatar:u.avatar,v:Math.floor(u[k])}));
   return{wagered:f('wagered'),profit:f('profit')}}
@@ -312,7 +408,7 @@ async function handle(a,b,sid,H){
   if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now(),WC=admin?await whCfg():{};
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
-  return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin},
+  return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
    day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
    bj:u.bj?bjView(u.bj):null,
    rain:MODE!=='mm2'?{off:true}:(()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH),on=!!rd.ann&&rd.r===cur&&n%RH>=ROPEN;return{now:n,pool:RPOOL,open:on,joined:on?Object.keys(rd.joined).length:0,me:{in:on&&!!rd.joined[u.id],chat:(u.lastChat||0)>=cur*RH}}})(),
@@ -320,9 +416,9 @@ async function handle(a,b,sid,H){
    tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),tips:(db.tips||[]).filter(x=>x.from.id===u.id||x.to.id===u.id).slice(-15),
    online,activeMines,chat:(db.chat||[]).slice(-50),
-   admin:admin?{wd:db.wd.filter(w=>w.status==='pending'),wh:whView(WC),logs:db.logs.slice(-15),alts:altGroups()}:undefined}}
+   admin:admin?admData(WC):undefined}}
  if(!u)E('Please log in');
- if(a==='logout'){delete db.sessions[sid];return{ok:1}}
+ if(a==='logout'){delete db.sessions[sid];H['Set-Cookie']='asid=; HttpOnly; Secure; Path=/; Max-Age=0; SameSite=Lax';return{ok:1}}
  if(a==='chatsend'){const msg=String(b.msg||'').trim().slice(0,300);if(!msg)E('Empty message');
   db.chat=db.chat||[];const last=db.chat[db.chat.length-1];
   if(last&&last.uid===u.id&&Date.now()-last.t<1500)E('Slow down');
@@ -407,12 +503,34 @@ async function handle(a,b,sid,H){
   if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0);u.tw=null;HR('towers',u,'Towers',g.bet,0,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Result','Hit a bomb on floor '+(g.picks.length+1),1]]);log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
   g.picks.push(i);if(g.picks.length===TWR)return twCash(u);return{safe:true}}
  if(a==='twcash'){if(!u.tw||!u.tw.picks.length)E('Climb a floor first');return twCash(u)}
+ if(a==='admreturn'){const o=b.asid&&db.sessions[b.asid];if(!o||!ADMINS.includes(o))E('Not impersonating');
+  const tn=u.name;delete db.sessions[sid];H['Set-Cookie']=[`sid=${b.asid}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`,'asid=; HttpOnly; Secure; Path=/; Max-Age=0; SameSite=Lax'];
+  const ad=db.users[o]||(MAIN&&MAIN.users[o])||{id:o,name:o,avatar:''};log(`🛠️ ${ad.name} returned from ${tn}'s account`);hk('admin',{title:'Admin action',user:ad,desc:`${ulink(ad)}\nreturned from **${md(tn)}**'s account`});return{ok:1}}
  if(a.startsWith('adm')){if(!ADMINS.includes(u.id))E('Not admin');
   const logA=m=>{log(m);if(a!=='admwhtest')hk('admin',{title:'Admin action',user:u,desc:`${ulink(u)}\n${m.replace(/^\S+\s/,'')}`})};
-  if(a==='admgive'){const t=findUser(b.user);if(!I[b.item])E('Bad item');add(t.inv,b.item,needInt(b.qty));logA(`🛠️ ${u.name} gave ${b.qty}x ${b.item} to ${t.name}`)}
-  else if(a==='admset'){const t=findUser(b.user);if(!I[b.item])E('Bad item');const q=Math.max(0,Math.floor(+b.qty));delete t.inv[b.item];if(q)t.inv[b.item]=q;logA(`🛠️ ${u.name} set ${t.name}'s ${b.item} to ${q}`)}
-  else if(a==='admtokens'){const t=findUser(b.user);t.tokens=Math.max(0,t.tokens+Math.floor(+b.amount));logA(`🛠️ ${u.name} changed ${t.name}'s tokens by ${b.amount}`)}
-  else if(a==='admvalue'){if(!I[b.item])E('Bad item');db.values[b.item]=Math.max(1,Math.floor(+b.value));logA(`🛠️ ${u.name} set value of ${b.item} to ${b.value}`)}
+  const iname=k=>(I[k]||{name:k}).name,cn=cur();
+  if(a==='admgive'){const t=findUser(b.user),src=b.items&&typeof b.items==='object'?b.items:{[b.item]:b.qty},ls=[];
+   const ent=Object.entries(src);if(!ent.length)E('Pick at least one item');
+   for(const[k,q]of ent){if(!I[k])E('Bad item');needInt(q)}
+   for(const[k,q]of ent){const n=needInt(q);add(t.inv,k,n);ls.push(`${fm(n)}× ${iname(k)}`)}
+   logA(`🛠️ ${u.name} gave ${ls.join(', ')} to ${t.name}`)}
+  else if(a==='admtake'){const t=findUser(b.user),k=b.item;if(!I[k])E('Bad item');const n=needInt(b.qty),have=t.inv[k]||0;add(t.inv,k,-Math.min(n,have));logA(`🛠️ ${u.name} removed ${fm(Math.min(n,have))}× ${iname(k)} from ${t.name}`)}
+  else if(a==='admset'){const t=findUser(b.user);if(!I[b.item])E('Bad item');const q=amt(b.qty);if(!(q>=0))E('Invalid amount');delete t.inv[b.item];if(q)t.inv[b.item]=q;logA(`🛠️ ${u.name} set ${t.name}'s ${iname(b.item)} to ${fm(q)}`)}
+  else if(a==='admtokens'){const t=findUser(b.user),n=amt(b.amount);if(!Number.isFinite(n)||n===0)E('Invalid amount');t.tokens=Math.max(0,(t.tokens||0)+n);logA(`🛠️ ${u.name} ${n>0?'added':'removed'} ${fm(Math.abs(n))} ${cn} ${n>0?'to':'from'} ${t.name}`)}
+  else if(a==='admsetbal'){const t=findUser(b.user),n=amt(b.amount);if(!(n>=0))E('Invalid amount');t.tokens=n;logA(`🛠️ ${u.name} set ${t.name}'s ${cn} to ${fm(n)}`)}
+  else if(a==='admvalue'){if(!I[b.item])E('Bad item');const n=amt(b.value);if(!(n>=1))E('Invalid value');db.values[b.item]=n;logA(`🛠️ ${u.name} set value of ${iname(b.item)} to ${fm(n)}`)}
+  else if(a==='admvalreset'){if(!I[b.item])E('Bad item');delete db.values[b.item];logA(`🛠️ ${u.name} reset value of ${iname(b.item)} to default`)}
+  else if(a==='admshop'){if(!I[b.item])E('Bad item');const n=amt(b.qty);if(!(n>=0))E('Invalid amount');const k=b.item;if(b.mode==='add')add(db.shop,k,n);else{delete db.shop[k];if(n)db.shop[k]=n}logA(`🛠️ ${u.name} ${b.mode==='add'?'added':'set'} shop stock of ${iname(k)} ${b.mode==='add'?'+':'to '}${fm(n)}`)}
+  else if(a==='admlogin'){const t=findUser(b.user);if(MODE!=='mm2')E('Login-as must run from the main site');
+   if(ADMINS.includes(t.id)&&t.id!==u.id)E('Cannot log in as another admin');
+   const s2=crypto.randomBytes(24).toString('hex');db.sessions[s2]=t.id;
+   H['Set-Cookie']=[`sid=${s2}; HttpOnly; Secure; Path=/; Max-Age=43200; SameSite=Lax`,`asid=${sid}; HttpOnly; Secure; Path=/; Max-Age=43200; SameSite=Lax`];
+   logA(`🛠️ ${u.name} logged in as ${t.name} (admin login-as)`)}
+  else if(a==='admlist'){return{list:Object.values(db.users).map(x=>({id:x.id,name:x.name,avatar:x.avatar,tokens:Math.floor(x.tokens||0),invValue:Math.floor(invVal(x)),wagered:Math.floor(x.wagered||0),lastSeen:x.lastSeen||0})).sort((x,y)=>y.lastSeen-x.lastSeen).slice(0,500)}}
+  else if(a==='admplayer'){return{p:admPlayer(findUser(b.user))}}
+  else if(a==='admcancelbj'){const t=findUser(b.user);if(t.bj&&!t.bj.done){t.tokens+=t.bj.bet;t.bj=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s blackjack hand (refunded)`)}
+  else if(a==='admcancelcf'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Coinflip not found');const o=db.users[g.c.id];if(o){for(const[k,q]of Object.entries(g.items))add(o.inv,k,q);o.tokens+=g.tokens||0}db.cf.open=db.cf.open.filter(x=>x!==g);logA(`🛠️ ${u.name} cancelled coinflip #${g.id} (refunded)`)}
+  else if(a==='admkick'){const t=findUser(b.user);let n=0;if(MODE==='mm2')for(const k of Object.keys(db.sessions))if(db.sessions[k]===t.id){delete db.sessions[k];n++}logA(`🛠️ ${u.name} force-logged-out ${t.name} (${n} sessions)`)}
   else if(a==='admcanceltw'){const t=findUser(b.user);if(t.tw){t.tokens+=t.tw.bet;t.tw=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s towers game`)}
   else if(a==='admcanceljp'){jpRefund();logA(`🛠️ ${u.name} cancelled the jackpot (refunded)`)}
   else if(a==='admcancelmines'){const t=findUser(b.user);if(t.mines){t.tokens+=t.mines.bet;t.mines=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s mines game`)}
@@ -446,12 +564,13 @@ const exclusive=fn=>{const r=QUEUE.then(fn,fn);QUEUE=r.then(()=>{},()=>{});retur
 module.exports=(req,res)=>exclusive(()=>run(req,res));
 const run=async(req,res)=>{
  const a=req.query.a,b=(req.body&&typeof req.body==='object')?req.body:{},H={};HQ.length=0;{const h=req.headers['x-forwarded-host']||req.headers.host;SITE=h?'https://'+h:''}
- setMode(['start','check','logout'].includes(a)?'mm2':b.gm);
- const ck=Object.fromEntries((req.headers.cookie||'').split('; ').map(c=>c.split('='))),sid=ck.sid;let out;
+ setMode(['start','check','logout','admlogin','admreturn','admkick'].includes(a)?'mm2':b.gm);
+ const ck=Object.fromEntries((req.headers.cookie||'').split('; ').map(c=>c.split('='))),sid=ck.sid;b.asid=ck.asid||'';let out;
  try{
   if(!URL_||!TOK)E('Database not configured (Upstash env vars missing)');
   if(a==='start')out=await start(b);
   else if(a==='check')out=await check(b,H,req);
+  else if(a==='admlist'||a==='admplayer'){await load();out=await handle(a,b,sid,H)}
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
    const needResolve=(jp.end&&Date.now()>=jp.end)||rainNeeds(),known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
@@ -459,6 +578,6 @@ const run=async(req,res)=>{
   else out=await mutate(()=>handle(a,b,sid,H));
  }catch(e){out={error:e.message||'Error'};HQ.length=0}
  await flushHooks();
- for(const k in H)res.setHeader(k,H[k]);
+ for(const k in H)res.setHeader(k,H[k]); // Set-Cookie may be an array
  res.setHeader('Cache-Control','no-store');res.status(200).json(out)};
   
