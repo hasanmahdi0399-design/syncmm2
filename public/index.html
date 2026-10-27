@@ -616,7 +616,7 @@ function mset(x){mbet=x?Math.max(MINB(),Math.floor(mbet*x)):Math.max(MINB(),Math
 async function mst(){if(mbusy)return;if(!(mbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}mres=null;mbusy=true;rr();await new Promise(r=>setTimeout(r,cfg.anim?700:0));await api('minesstart',{bet:mbet,m:mmn});mbusy=false;await load();rr()}
 async function mp(i){mlast=i;const r=await api('minespick',{i});if(r.boom)mres=r;else if(r.cashed!=null)mres=r;await load();rr()}
 async function mca(){const r=await api('minescash');if(r.cashed!=null)mres=r;await load();rr()}
-let WF='all',WS='',WQ={},WC={},DF='all',DS_='',DQ={},DC={},DP_LIMIT=40;const dpList=()=>S.items.filter(i=>(PS()?i.type==='pet':['gun','knife','pet'].includes(i.type))&&(DF==='all'||i.type===DF)&&(!DS_||i.name.toLowerCase().includes(DS_.toLowerCase()))).sort((a,b)=>b.value-a.value);const BOT_NAME='cr33pyz0mbi3',BOT_URL='https://www.roblox.com/users/650893251/profile?friendshipSourceType=PlayerSearch',DISCORD_URL='https://discord.gg/AFyru7hAnn';
+let WF='all',WS='',WQ={},WC={},DP_LIMIT=40;const BOT_NAME='cr33pyz0mbi3',BOT_URL='https://www.roblox.com/users/650893251/profile?friendshipSourceType=PlayerSearch',DISCORD_URL='https://discord.gg/AFyru7hAnn';
 const WTYPES=()=>PS()?[['all','All']]:[['all','All'],['gun','Guns'],['knife','Knives'],['pet','Pets']];
 const wdList=()=>owned().filter(i=>(PS()||['gun','knife','pet'].includes(i.type))&&(WF==='all'||i.type===WF)&&(!WS||i.name.toLowerCase().includes(WS.toLowerCase()))).sort((a,b)=>b.value-a.value);
 function rWd(v){const all=owned().filter(i=>PS()||['gun','knife','pet'].includes(i.type)),tv=all.reduce((n,i)=>n+i.value*i.q,0),pend=S.wd.filter(w=>w.status==='pending').length;
