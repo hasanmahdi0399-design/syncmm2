@@ -287,12 +287,12 @@ let ITEMS=MM2_ITEMS,I=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
 let MODE='mm2',KEY='db',MINB=5,MAIN=null,PSTS=0;
 const setMode=m=>{MODE=m==='ps99'?'ps99':'mm2';KEY=MODE==='ps99'?'dbps':'db';MINB=MODE==='ps99'?1000000:5;if(MODE==='mm2'){ITEMS=MM2_ITEMS;I=Object.fromEntries(ITEMS.map(i=>[i.id,i]))}};
 const fm=n=>Math.floor(n).toLocaleString('en-US');
-// PS99 items = every Titanic + Huge pet from BIG Games' official API, valued at RAP (gems), with their official thumbnails. Cached 1h.
+// PS99 pets from BIG Games' official API with RAP values and official thumbnails. Cached 1h.
 const PSTTL=3600000;
 async function psFetch(prev){
  const g=u=>fetch(u,{headers:{accept:'application/json'}}).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()});
  const[col,rap]=await Promise.all([g('https://ps99.biggamesapi.io/api/collection/Pets'),g('https://ps99.biggamesapi.io/api/rap')]);
- const th={};for(const p of col.data||[]){const n=p.configName,t=p.configData&&p.configData.thumbnail;if(/^(Titanic|Huge) /.test(n)&&t)th[n]=String(t).replace(/\D/g,'')}
+ const th={};for(const p of col.data||[]){const n=p.configName,t=p.configData&&p.configData.thumbnail;if(n&&t)th[n]=String(t).replace(/\D/g,'')}
  const items=[],seen={};
  for(const r of rap.data||[]){const cd=r.configData||{},n=cd.id;
   if(!n||cd.pt||cd.sh||!th[n]||!(r.value>0)||(r.category&&r.category!=='Pet'))continue;
