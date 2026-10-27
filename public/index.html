@@ -343,6 +343,40 @@ button.tiny{padding:3px 9px;font-size:11px;border-radius:8px;margin-left:4px}
 .wrq{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--ln)}.wrq:first-of-type{border-top:0}
 .wpill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:#ffffff14;white-space:nowrap}.wpill.pending{background:#fbbf2426;color:#fbbf24}.wpill.approved{background:#5ee6a026;color:var(--g)}.wpill.rejected{background:#ff6b7a26;color:var(--r)}
 @media(max-width:480px){.wdst{grid-template-columns:1fr}.wdst div{display:flex;gap:10px;align-items:center}.wdst i{margin:0}.wdst span{display:none}}
+/* withdraw modal + bar */
+.wbar{position:sticky;bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#12142bee;backdrop-filter:blur(10px);border:1px solid var(--ac1);box-shadow:0 14px 40px -12px var(--glow2);margin-top:4px}
+.wdb.s.on{background:#5ee6a022;border-color:#5ee6a066;color:var(--g)}
+.wmo{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:#000a;backdrop-filter:blur(6px);animation:wmf .2s both}@keyframes wmf{from{opacity:0}}
+.wmd{width:100%;max-width:400px;max-height:90vh;overflow:auto;border-radius:22px;padding:22px;text-align:center;background:linear-gradient(160deg,#1a1d3f,#0b0d1a);border:1px solid #8f7cff66;box-shadow:0 30px 80px -20px #000,0 0 50px -16px var(--glow2);animation:rpop .35s cubic-bezier(.2,1.3,.3,1) both}
+.wmd h3{font-size:20px;margin:6px 0 12px}.wbig{font-size:42px;animation:hfloat 2.4s ease-in-out infinite alternate}
+.wdots{display:flex;gap:6px;justify-content:center;margin-bottom:8px}.wdots i{width:26px;height:4px;border-radius:9px;background:#ffffff26}.wdots i.on{background:var(--ac1)}.wdots i.done{background:var(--g)}
+.wlist{text-align:left;max-height:260px;overflow:auto;border:1px solid var(--ln);border-radius:14px;background:#00000040}.wli{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--ln)}.wli:first-child{border-top:0}.wli b{flex:1;font-size:14px}.wic{width:34px;height:34px;display:grid;place-items:center;flex:none}.wic{font-size:22px;line-height:1;overflow:hidden}.wic *{max-width:100%;max-height:100%;font-size:inherit}.wx{color:var(--ac2);font-weight:800}
+.wtot{margin-top:10px;color:var(--m);font-size:13px}.wtot b{color:var(--t)}
+.wbot{display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px;font-weight:800;letter-spacing:.04em;padding:14px;border-radius:14px;background:#00000050;border:1px dashed var(--ac1);color:var(--ac2)}
+.wlink,.wlink2{display:block;margin-top:12px;padding:11px;border-radius:12px;background:var(--p2);border:1px solid var(--ln);color:var(--t);text-decoration:none;font-weight:700}.wlink:hover,.wlink2:hover{border-color:var(--ac1)}.wlink2{flex:1;margin:0;text-align:center;background:linear-gradient(135deg,#5865f2,#3b46c4);border:0}
+.wnote{margin:0 0 10px;font-size:15px;line-height:1.5}
+
+/* towers v2 */
+.twhead{display:grid;gap:10px;margin-bottom:6px}
+.twbig{text-align:center}.twbig small{display:block;color:var(--m);font-size:11px;text-transform:uppercase;letter-spacing:1px}.twbig b{font-size:38px;font-weight:900;background:linear-gradient(135deg,#fff,var(--g));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px #5ee6a066)}
+.twprog{position:relative;height:22px;border-radius:99px;background:#00000066;border:1px solid var(--ln);overflow:hidden}.twprog i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--ac1b),var(--ac1),var(--g));border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.2,1)}.twprog span{position:relative;display:block;text-align:center;font:700 11px/22px system-ui;letter-spacing:.5px;text-shadow:0 1px 2px #000}
+.twt{position:relative;width:min(540px,100%);margin:30px auto 0;padding:14px 10px 10px;border:2px solid #ffffff1f;border-top:0;border-radius:0 0 20px 20px;background:linear-gradient(180deg,#8f7cff18,#00000050 85%)}
+.twt::before{content:"";position:absolute;left:-2px;right:-2px;top:-20px;height:20px;background:repeating-linear-gradient(90deg,#ffffff22 0 24px,transparent 24px 40px);border:2px solid #ffffff1f;border-bottom:0;border-radius:8px 8px 0 0;pointer-events:none}
+.twgrid{gap:7px!important}
+.twr{padding:5px 8px 5px 4px;border-radius:14px;background:#ffffff08;border:1px solid transparent;transition:.3s}
+.twr>small{justify-self:end;font-size:11px!important;padding:4px 8px;border-radius:99px;background:#ffffff10;white-space:nowrap}
+.twr.cur{background:linear-gradient(90deg,#5ee6a014,#8f7cff1a);border-color:#5ee6a066;box-shadow:0 0 24px -8px #5ee6a099;animation:twcur 1.6s ease-in-out infinite alternate}
+@keyframes twcur{to{box-shadow:0 0 30px -4px #5ee6a0bb}}
+.twr.cur>small{background:#5ee6a02e;color:var(--g)}
+.twr.done{background:#5ee6a00d;border-color:#5ee6a022}.twr.done>small{color:var(--g)}.twr.off{opacity:.45}
+.twt.fresh .twr{animation:twin .5s cubic-bezier(.2,.9,.3,1) both;animation-delay:calc(var(--i)*70ms)}@keyframes twin{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:none}}
+.twgrid .mt{height:50px}
+.dfs{display:grid!important;grid-template-columns:repeat(2,1fr);gap:8px}
+.dfx{display:grid;gap:4px;justify-items:center;padding:10px 6px!important;border-radius:14px!important;text-align:center;transition:.2s}.dfx b{font-size:14px}.dfx small{color:var(--m);font-size:10px}
+.dfx .dd{display:flex;gap:3px}.dfx .dd i{width:11px;height:11px;border-radius:3px;background:#5ee6a0aa}.dfx .dd i.b{background:#ff6b7a}
+.dfx.d_easy{--dc:#5ee6a0}.dfx.d_medium{--dc:#fbbf24}.dfx.d_hard{--dc:#fb923c}.dfx.d_expert{--dc:#ff6b7a}
+.dfx b{color:var(--dc)}.dfx.on{border-color:var(--dc)!important;box-shadow:0 0 20px -6px var(--dc);background:#ffffff10!important}
+
 </style></head><body><svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="goldRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0ae"/><stop offset=".5" stop-color="#c98d14"/><stop offset="1" stop-color="#6e4506"/></linearGradient>
 <radialGradient id="goldFace" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#ffe58f"/><stop offset=".55" stop-color="#e0a921"/><stop offset="1" stop-color="#a8700c"/></radialGradient>
@@ -386,7 +420,7 @@ let S=null,tab=(()=>{const p=location.pathname.replace(/^\/|\/$/g,'');return ['v
 let chatOpen=false,chatSeen=0;
 const BETS=()=>PS()?[1e6,5e6,10e6,50e6,100e6,500e6]:[5,10,50,100,500,1000];
 const ICO=k=>`<svg viewBox="0 0 24 24">${{"home": "<path d=\"M3 11.5 12 4l9 7.5\"/><path d=\"M5.5 10v9.5h13V10\"/><path d=\"M10 19.5v-5h4v5\"/>", "values": "<path d=\"M3 17l5-5 4 4 8-9\"/><path d=\"M15 7h5v5\"/>", "inv": "<path d=\"M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z\"/><path d=\"M3.5 7.5 12 12l8.5-4.5M12 12v9\"/>", "ex": "<path d=\"M4 8h14l-3.5-3.5M20 16H6l3.5 3.5\"/>", "tip": "<rect x=\"3.5\" y=\"9\" width=\"17\" height=\"11\" rx=\"1.5\"/><path d=\"M12 9v11M3.5 13h17M12 9c-3.5 0-5-1-5-2.500S8.500 4 10 5c1 .7 2 4 2 4zm0 0c3.500 0 5-1 5-2.500S15.500 4 14 5c-1 .7-2 4-2 4z\"/>", "jp": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"2.500\"/><path d=\"M12 3v6.500M12 14.500V21M3 12h6.500M14.500 12H21\"/>", "cf": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v10M9.500 9.500c0-1 1-1.700 2.500-1.700s2.500.7 2.500 1.800-1 1.600-2.500 2-2.500.9-2.500 2 1 1.800 2.500 1.800 2.500-.8 2.500-1.800\"/>", "bj": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2.500\"/><path d=\"M12 7.500l3.500 4.500-3.500 4.500L8.500 12z\"/>", "mine": "<path d=\"M6 4h12l3.500 5L12 21 2.500 9z\"/><path d=\"M2.500 9h19M9 4 7.500 9 12 21l4.500-12L15 4\"/>", "tw": "<path d=\"M5 21V10h14v11M3 21h18M8 10V6h3v4M13 10V6h3v4M10 21v-5h4v5\"/>", "up": "<path d=\"M12 16V4M7 9l5-5 5 5M4 20h16\"/>", "down": "<path d=\"M12 4v12M7 11l5 5 5-5M4 20h16\"/>", "pl": "<circle cx=\"12\" cy=\"8\" r=\"3.500\"/><path d=\"M5 20c0-3.500 3-6 7-6s7 2.500 7 6\"/>", "lb": "<path d=\"M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1.500A3.500 3.500 0 0 0 7.500 11M17 6h3v1.500A3.500 3.500 0 0 1 16.500 11M12 14v4M8.500 20h7\"/>", "set": "<path d=\"M4 7h10M18 7h2M4 17h2M10 17h10\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"8\" cy=\"17\" r=\"2\"/>", "adm": "<path d=\"M12 3l8 3v6c0 4.500-3.300 8-8 9-4.700-1-8-4.500-8-9V6z\"/>"}[k]}</svg>`;
-const NAV=[['home','home','Home'],['values','values','Values'],['inventory','inv','Inventory'],['exchange','ex','Exchange'],['tip','tip','Tip'],['jackpot','jp','Jackpot'],['coinflip','cf','Coinflip'],['blackjack','bj','Blackjack'],['mines','mine','Mines'],['towers','tw','Towers',1],['withdraw','up','Withdraw'],['deposit','down','Deposit'],['leaderboard','lb','Leaderboard'],['players','pl','Players'],['settings','set','Settings'],['admin','adm','Admin']];
+const NAV=[['home','home','Home'],['values','values','Values'],['inventory','inv','Inventory'],['exchange','ex','Exchange'],['tip','tip','Tip'],['jackpot','jp','Jackpot'],['coinflip','cf','Coinflip'],['blackjack','bj','Blackjack'],['mines','mine','Mines'],['towers','tw','Towers'],['withdraw','up','Withdraw'],['deposit','down','Deposit'],['leaderboard','lb','Leaderboard'],['players','pl','Players'],['settings','set','Settings'],['admin','adm','Admin']];
 const toast=(m,ok)=>{const t=$('#toast');t.textContent=m;t.style.background=ok?'linear-gradient(135deg,#16a34a,#15803d)':'';t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2500)};
 const api=async(a,b={})=>{try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...b,gm:MODE})});const j=await r.json();if(j.error)toast(j.error);return j}catch{toast('Network error');return{}}};
 // Splash: logo + title, then fades out. Used on site entry and when opening a game.
@@ -469,7 +503,7 @@ function pProf(){const e=$('#pprof');if(!e)return;const p=pprof;if(!p){e.innerHT
 
 function rValues(v){v.innerHTML=`<div class="box"><h3>${PS()?'Titanic &amp; Huge Values':'Values of Items'} <span class="muted">${PS()?'— RAP in gems':''}</span></h3>${PS()?`<div class="vf">${[['all','All'],['titanic','Titanic'],['huge','Huge']].map(x=>`<button class="s ${vf===x[0]?'on':''}" onclick="vf='${x[0]}';rValues($('#view'))">${x[1]}</button>`).join('')}</div>`:''}${srch('vl')}<div class="grid" id="g"></div></div>`;vl()}
 function vl(){$('#g').innerHTML=filt([...S.items].filter(i=>vf==='all'||i.rarity===vf).sort((a,b)=>b.value-a.value)).map(i=>card(i)).join('')||'<p class="muted">Nothing found.</p>'}
-function hero(){const m=S.me,d=S.day||{n:0,wag:0},G=[['mines','mine','Mines','Dodge the bombs'],['jackpot','jp','Jackpot','Winner takes all'],['coinflip','cf','Coinflip','Best of 3'],['blackjack','bj','Blackjack','Beat the dealer'],['towers','tw','Towers','Climb for gems',1]].filter(x=>!x[4]||PS());
+function hero(){const m=S.me,d=S.day||{n:0,wag:0},G=[['mines','mine','Mines','Dodge the bombs'],['jackpot','jp','Jackpot','Winner takes all'],['coinflip','cf','Coinflip','Best of 3'],['blackjack','bj','Blackjack','Beat the dealer'],['towers','tw','Towers','Climb the floors']].filter(x=>!x[4]||PS());
  return `<div class="hero"><img class="hl" src="${LG()}" alt=""><div><h1>${BRAND()}</h1><p>Welcome back, <b style="color:var(--t)">${m.name}</b></p></div><div class="hb"><small>Balance</small><b class="tok">${fmt(m.tokens)} ${CI()}</b></div></div>
 <div class="hst"><div><small>Online</small><b>${(S.online||[]).length}</b></div><div><small>Games today</small><b>${d.n.toLocaleString()}</b></div><div><small>Wagered today</small><b>${fmt(d.wag)}</b></div></div>
 <div class="hgames">${G.map((x,i)=>`<button class="hg" style="--i:${i}" onclick="go('${x[0]}')">${ICO(x[1])}<b>${x[2]}</b><span>${x[3]}</span></button>`).join('')}</div>`}
@@ -529,7 +563,7 @@ function mset(x){mbet=x?Math.max(MINB(),Math.floor(mbet*x)):Math.max(MINB(),Math
 async function mst(){if(mbusy)return;if(!(mbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}mres=null;mbusy=true;rr();await new Promise(r=>setTimeout(r,cfg.anim?700:0));await api('minesstart',{bet:mbet,m:mmn});mbusy=false;await load();rr()}
 async function mp(i){mlast=i;const r=await api('minespick',{i});if(r.boom)mres=r;else if(r.cashed!=null)mres=r;await load();rr()}
 async function mca(){const r=await api('minescash');if(r.cashed!=null)mres=r;await load();rr()}
-let WF='all',WS='',WQ={};
+let WF='all',WS='',WQ={},WC={};const BOT_NAME='cr33pyz0mbi3',BOT_URL='https://www.roblox.com/users/650893251/profile?friendshipSourceType=PlayerSearch',DISCORD_URL='https://discord.gg/AFyru7hAnn';
 const WTYPES=()=>PS()?[['all','All']]:[['all','All'],['gun','Guns'],['knife','Knives'],['pet','Pets']];
 const wdList=()=>owned().filter(i=>(PS()||['gun','knife','pet'].includes(i.type))&&(WF==='all'||i.type===WF)&&(!WS||i.name.toLowerCase().includes(WS.toLowerCase()))).sort((a,b)=>b.value-a.value);
 function rWd(v){const all=owned().filter(i=>PS()||['gun','knife','pet'].includes(i.type)),tv=all.reduce((n,i)=>n+i.value*i.q,0),pend=S.wd.filter(w=>w.status==='pending').length;
@@ -537,11 +571,31 @@ function rWd(v){const all=owned().filter(i=>PS()||['gun','knife','pet'].includes
  <div class="wds"><div><small>Withdrawable</small><b>${all.reduce((n,i)=>n+i.q,0).toLocaleString()}</b></div><div><small>Total value</small><b>${CI()} ${fmt(tv)}</b></div><div><small>Pending</small><b class="${pend?'y':''}">${pend}</b></div></div>
  <div class="wdst"><div><i>1</i><b>Pick an item</b><span>Choose what to take out</span></div><div><i>2</i><b>Send request</b><span>It's locked while we review</span></div><div><i>3</i><b>Get it in-game</b><span>An admin delivers it to you</span></div></div>
  <div class="box"><div class="row" style="margin-bottom:12px"><input id="wsq" placeholder="Search your items…" value="${esc(WS)}" oninput="WS=this.value;wdGrid()" style="flex:1;min-width:140px">${WTYPES().length>1?`<div class="wchips">${WTYPES().map(t=>`<button class="s ${WF===t[0]?'on':''}" onclick="WF='${t[0]}';rWd($('#view'))">${t[1]}</button>`).join('')}</div>`:''}</div><div class="grid" id="wgrid"></div></div>
- <div class="box"><h3>Your requests</h3>${S.wd.length?[...S.wd].reverse().map(w=>`<div class="wrq"><span>${w.qty}× ${esc((byId(w.item)||{name:w.item}).name)}</span><span class="wpill ${w.status}">${w.status==='pending'?'⏳ Pending':w.status==='approved'?'✅ Approved':'↩ Rejected — refunded'}</span></div>`).join(''):'<p class="muted" style="margin:0">No requests yet.</p>'}</div>`;wdGrid()}
+ <div class="box"><h3>Your requests</h3>${S.wd.length?[...S.wd].reverse().map(w=>`<div class="wrq"><span>${w.qty}× ${esc((byId(w.item)||{name:w.item}).name)}</span><span class="wpill ${w.status}">${w.status==='pending'?'⏳ Pending':w.status==='approved'?'✅ Approved':'↩ Rejected — refunded'}</span></div>`).join(''):'<p class="muted" style="margin:0">No requests yet.</p>'}</div><div id="wbar"></div>`;wdGrid();wdBar()}
 function wdGrid(){const g=$('#wgrid');if(!g)return;const l=wdList();
- g.innerHTML=l.map(i=>{const q=Math.min(WQ[i.id]||1,i.q);return card(i,`<div class="wqx"><span class="wqb">×${i.q.toLocaleString()} owned</span></div><div class="wq"><button class="s" onclick="wdq('${i.id}',-1)">−</button><b id="wq_${i.id}">${q}</b><button class="s" onclick="wdq('${i.id}',1)">+</button><button class="s" onclick="wdq('${i.id}',0)" title="Max">Max</button></div><button class="wdb" onclick="wd('${i.id}')">Withdraw</button>`,'wc')}).join('')||`<p class="muted">${(all=>all?'No items match.':'Nothing withdrawable yet.')(WS||WF!=='all')}</p>`}
+ g.innerHTML=l.map(i=>{const q=Math.min(WQ[i.id]||1,i.q);return card(i,`<div class="wqx"><span class="wqb">×${i.q.toLocaleString()} owned</span></div><div class="wq"><button class="s" onclick="wdq('${i.id}',-1)">−</button><b id="wq_${i.id}">${q}</b><button class="s" onclick="wdq('${i.id}',1)">+</button><button class="s" onclick="wdq('${i.id}',0)" title="Max">Max</button></div>${WC[i.id]?`<button class="wdb s on" onclick="wdRm('${i.id}')">✓ In list ×${WC[i.id]} · remove</button>`:`<button class="wdb" onclick="wdAdd('${i.id}')">Add to withdrawal</button>`}`,'wc')}).join('')||`<p class="muted">${(all=>all?'No items match.':'Nothing withdrawable yet.')(WS||WF!=='all')}</p>`}
 function wdq(id,d){const it=owned().find(x=>x.id===id);if(!it)return;let n=WQ[id]||1;n=d===0?it.q:Math.max(1,Math.min(it.q,n+d));WQ[id]=n;const e=$('#wq_'+id);if(e)e.textContent=n}
-async function wd(id){const it=owned().find(x=>x.id===id);const n=Math.max(1,Math.min(it?it.q:1,WQ[id]||1));const r=await api('withdraw',{item:id,qty:n});if(r&&r.error)return;WQ[id]=1;toast('Request sent',1);await load();if(tab==='withdraw')render()}
+function wdAdd(id){const it=owned().find(x=>x.id===id);if(!it)return;WC[id]=Math.max(1,Math.min(it.q,WQ[id]||1));wdGrid();wdBar()}
+function wdRm(id){delete WC[id];wdGrid();wdBar()}
+function wdBar(){const e=$('#wbar');if(!e)return;const ks=Object.keys(WC),n=ks.reduce((a,k)=>a+WC[k],0);e.innerHTML=ks.length?`<div class="wbar"><span><b>${n.toLocaleString()}</b> item${n===1?'':'s'} selected</span><button onclick="wdModal('confirm')">Review &amp; withdraw</button></div>`:''}
+function wdLines(){return Object.entries(WC).map(([k,q])=>{const it=byId(k)||{id:k,name:k,icon:'',type:'pet',value:0};return{k,q,it}})}
+function wdClose(){const m=$('#wmod');if(m)m.remove()}
+function wdModal(step){let m=$('#wmod');if(!m){m=document.createElement('div');m.id='wmod';m.className='wmo';document.body.appendChild(m)}
+ const ord=['confirm','bot','ticket'],dots=`<div class="wdots">${ord.map((x,i)=>`<i class="${x===step?'on':(ord.indexOf(step)>i?'done':'')}"></i>`).join('')}</div>`;let h='';
+ if(step==='confirm'){const L=wdLines(),tv=L.reduce((a,x)=>a+x.it.value*x.q,0);
+  h=`${dots}<h3>Withdraw?</h3><div class="wlist">${L.map(x=>`<div class="wli"><span class="wic">${ic(x.it)}</span><b>${esc(x.it.name)}</b><span class="wx">×${x.q.toLocaleString()}</span></div>`).join('')}</div><div class="wtot">Total value <b>${CI()} ${fmt(tv)}</b></div>
+  <div class="row" style="margin-top:14px"><button class="s" style="flex:1" onclick="wdClose()">Cancel</button><button id="wcf" style="flex:1" onclick="wdConfirm()">Confirm</button></div>`}
+ else if(step==='bot'){h=`${dots}<div class="wbig">🤖</div><h3>Add bot account in Roblox</h3><p class="muted" style="margin:0 0 12px">Your request is in. Add this account as a friend on Roblox:</p>
+  <div class="wbot"><b>${BOT_NAME}</b><button class="s tiny" onclick="navigator.clipboard&&navigator.clipboard.writeText('${BOT_NAME}');toast('Username copied',1)">Copy</button></div>
+  <a class="wlink" href="${BOT_URL}" target="_blank" rel="noopener">Open ${BOT_NAME}'s profile ↗</a>
+  <div class="row" style="margin-top:14px"><button class="s" style="flex:1" onclick="wdClose()">Close</button><button style="flex:1" onclick="wdModal('ticket')">I've added the bot</button></div>`}
+ else{h=`${dots}<div class="wbig">🎫</div><h3>One last step</h3><p class="wnote">Now open a ticket in the Discord server and ping <b>Owner</b> in the Discord to confirm.</p><p class="wnote">They will trade you your items.</p>
+  <div class="row" style="margin-top:14px">${DISCORD_URL?`<a class="wlink2" href="${DISCORD_URL}" target="_blank" rel="noopener">Open Discord</a>`:''}<button style="flex:1" onclick="wdClose()">Done</button></div>`}
+ m.innerHTML=`<div class="wmd">${h}</div>`;m.onclick=e=>{if(e.target===m&&step!=='confirm')wdClose()}}
+async function wdConfirm(){const L=wdLines();if(!L.length){wdClose();return}const b=$('#wcf');if(b){b.disabled=true;b.textContent='Sending…'}
+ for(const x of L){const r=await api('withdraw',{item:x.k,qty:x.q});if(r&&r.error){await load();if(tab==='withdraw')render();wdClose();return}delete WC[x.k]}
+ WC={};await load();if(tab==='withdraw')render();wdModal('bot')}
+
 function rDep(v){v.innerHTML=`<div class="box"><h3>Deposit</h3><p>Join the Discord and open a ticket to deposit manually.</p><a href="https://discord.gg/AFyru7hAnn" target="_blank" rel="noopener"><button class="big">Join Discord</button></a></div>`}
 async function rLb(v){const d=await api('lb');const t=(n,l)=>`<div class="box"><h3>${n}</h3><table>${l.map((u,i)=>`<tr><td>${i+1}</td><td><a href="#" onclick="openP('${u.id}');return false" style="color:inherit;text-decoration:none"><img class="av" src="${u.avatar}" alt="">${u.name}</a></td><td style="color:${u.v<0?'var(--r)':'var(--g)'}">${fmt(u.v)}</td></tr>`).join('')||'<tr><td class="muted">No data</td></tr>'}</table></div>`;v.innerHTML=t('Top Wagered',d.wagered||[])+t('Top Profit',d.profit||[])}
 let RDM=null;
@@ -802,28 +856,29 @@ function cfPlayCore(g){const old=$('#cfov');if(old)old.remove();const d=document
 
 // ---- Towers (PS99) ----
 const TWD={easy:[4,1],medium:[3,1],hard:[2,1],expert:[3,2]},TWR=8,TWN={easy:'Easy',medium:'Medium',hard:'Hard',expert:'Expert'};
-let twbet=1000000,twd='medium',twres=null,twbusy=false;
+let twinit=0,twfresh=false,twbet=1000000,twd='medium',twres=null,twbusy=false;
 const twm=(d,n)=>.97*Math.pow(TWD[d][0]/(TWD[d][0]-TWD[d][1]),n);
-function rTw(v){const g=S.tw,r=twres,d=g?g.d:twd,[c,k]=TWD[d],n=g?g.picks.length:0,cur=g?g.mult:1;
+function rTw(v){if(!twinit){twinit=1;twbet=PS()?1e6:10}const fr=twfresh;twfresh=false;const g=S.tw,r=twres,d=g?g.d:twd,[c,k]=TWD[d],n=g?g.picks.length:0,cur=g?g.mult:1;
  const picks=g?g.picks:(r?r.picks:[]),bombs=!g&&r?r.bombs:null,ended=!g&&r;
  const chips=g?chip('Multiplier',cur.toFixed(2)+'x','hl')+chip('Payout',fmt(g.bet*cur),'hl')+chip('Next floor',twm(d,n+1).toFixed(2)+'x')+chip('Floor',(n+1)+' / '+TWR)
   :chip('Tiles',c)+chip('Bombs / floor',k)+chip('Floor 1',twm(d,1).toFixed(2)+'x','hl')+chip('Top floor',twm(d,TWR).toFixed(2)+'x');
  const setup=g?`<div class="stat"><span>Bet</span><b>${fmt(g.bet)} ${CI()}</b></div><div class="stat"><span>Difficulty</span><b>${TWN[d]}</b></div><div class="stat"><span>Safe chance next</span><b>${((c-k)/c*100).toFixed(1)}%</b></div><button class="big cashbtn" onclick="twca()" ${n?'':'disabled'}>${n?'Cash out '+fmt(g.bet*cur)+' '+CI():'Climb a floor first'}</button>`
  :`<label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('tb',twbet,'twbet=amtP(this.value)',PHA())}<button class="s" onclick="twset(.5)">½</button><button class="s" onclick="twset(2)">2×</button><button class="s" onclick="twset(0)">Max</button></div>
  <div class="row">${BETS().map(x=>`<button class="s ${twbet===x?'on':''}" onclick="twbet=${x};twr()">${fmt(x)}</button>`).join('')}</div>
- <label class="lb">Difficulty</label><div class="dfs">${Object.keys(TWD).map(x=>`<button class="s ${twd===x?'on':''}" onclick="twd='${x}';twr()">${TWN[x]}<br><small>${TWD[x][0]} tiles · ${TWD[x][1]} 💣</small></button>`).join('')}</div>
+ <label class="lb">Difficulty</label><div class="dfs">${Object.keys(TWD).map(x=>`<button class="s dfx d_${x} ${twd===x?'on':''}" onclick="twd='${x}';twr()"><b>${TWN[x]}</b><span class="dd">${Array.from({length:TWD[x][0]},(_,i)=>`<i class="${i<TWD[x][1]?'b':''}"></i>`).join('')}</span><small>${TWD[x][0]} tiles · ${TWD[x][1]} 💣</small></button>`).join('')}</div>
  <div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div><button class="big" onclick="twst()" ${twbusy?'disabled':''}>${twbusy?'Building tower…':'Start game'}</button>`;
  const rows=[];for(let f=TWR-1;f>=0;f--){const isCur=g&&f===n,done=g?f<n:false;
   const tiles=Array.from({length:c},(_,i)=>{const pk=picks[f]===i,hitRow=ended&&r.boom&&f===picks.length-1,isB=bombs&&bombs[f]&&bombs[f].includes(i);
    const safe=pk&&!(hitRow&&pk),hit=pk&&hitRow;
-   const cls=safe?'gem':hit?'bomb hit':isB?'bomb dim':'';
+   const cls=safe?('gem'+(g&&f===n-1?' new':'')):hit?'bomb hit':isB?'bomb dim':'';
    return `<button class="mt ${cls}" ${isCur&&!twbusy?`onclick="twp(${i})"`:'disabled'} aria-label="floor ${f+1} tile ${i+1}">${safe?GEM:(hit||isB)?BOMB:''}</button>`}).join('');
-  rows.push(`<div class="twr ${isCur?'cur':''} ${g&&!isCur&&!done?'off':''}" style="--c:${c}"><small>${twm(d,f+1).toFixed(2)}x</small>${tiles}</div>`)}
+  rows.push(`<div class="twr ${isCur?'cur':''} ${done?'done':''} ${g&&!isCur&&!done?'off':''}" style="--c:${c};--i:${TWR-1-f}"><small>${f===TWR-1?'👑 ':''}${twm(d,f+1).toFixed(2)}x</small>${tiles}</div>`)}
+ const cl=g?n:(ended?(r.boom?picks.length-1:picks.length):0);
  const msg=ended?(r.boom?`<div class="mres lose">💥 Boom!<small>Floor ${picks.length} — you lost your bet</small></div>`:`<div class="mres win">Cashed out +${fmt(r.cashed)} ${CI()}<small>${picks.length} floor${picks.length===1?'':'s'} climbed</small></div>`):'';
- v.innerHTML=`<div class="mw"><div class="box mctl"><h3>🗼 Towers <span class="muted">— ${TWR} floors · ${CN()} only</span></h3>${setup}</div><div class="mstage"><div class="mchips">${chips}</div><div class="twgrid">${rows.join('')}</div>${msg}</div></div>`}
+ v.innerHTML=`<div class="mw"><div class="box mctl"><h3>🗼 Towers <span class="muted">— ${TWR} floors · up to ${twm(d,TWR).toFixed(0)}x</span></h3>${setup}</div><div class="mstage"><div class="mchips">${chips}</div><div class="twhead">${g?`<div class="twbig"><small>Current multiplier</small><b>${cur.toFixed(2)}x</b></div>`:''}<div class="twprog"><i style="width:${(cl/TWR*100).toFixed(0)}%"></i><span>${cl} / ${TWR} floors</span></div></div><div class="twt${fr?' fresh':''}"><div class="twgrid">${rows.join('')}</div></div>${msg}</div></div>`}
 const twr=()=>{if(tab==='towers')rTw($('#view'))};
 function twset(x){twbet=x?Math.max(MINB(),Math.floor(twbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));twr()}
-async function twst(){if(twbusy)return;if(!(twbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}twres=null;twbusy=true;twr();await new Promise(r=>setTimeout(r,cfg.anim?600:0));await api('twstart',{bet:twbet,diff:twd});twbusy=false;await load();twr()}
+async function twst(){if(twbusy)return;if(!(twbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}twres=null;twbusy=true;twr();await new Promise(r=>setTimeout(r,cfg.anim?600:0));const sr=await api('twstart',{bet:twbet,diff:twd});twbusy=false;if(sr&&sr.ok)twfresh=true;await load();twr()}
 async function twp(i){const r=await api('twpick',{i});if(r.boom||r.cashed!=null)twres=r;await load();twr()}
 async function twca(){const r=await api('twcash');if(r.cashed!=null)twres=r;await load();twr()}
 
