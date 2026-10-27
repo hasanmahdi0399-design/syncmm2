@@ -634,6 +634,7 @@ function dpAdd(id){DC[id]=DQ[id]||1;dpGrid();dpBar()}
 function dpRm(id){delete DC[id];dpGrid();dpBar()}
 function dpBar(){const e=$('#dbar');if(!e)return;const ks=Object.keys(DC),n=ks.reduce((a,k)=>a+DC[k],0),had=!!e.firstChild;e.innerHTML=ks.length?`<div class="wbar dpbar-fixed${had?'':' in'}"><span><b>${n.toLocaleString()}</b> item${n===1?'':'s'} selected</span><button onclick="dpModal('confirm')">Review &amp; deposit</button></div>`:''}
 function dpLines(){return Object.entries(DC).map(([k,q])=>{const it=byId(k)||{id:k,name:k,icon:'',type:'pet',value:0};return{k,q,it}})}
+function wdClose(){const m=$('#wmod');if(m)m.remove()}
 function dpModal(step){let m=$('#wmod');if(!m){m=document.createElement('div');m.id='wmod';m.className='wmo';document.body.appendChild(m)}
  const ord=['confirm','bot','ticket'],dots=`<div class="wdots">${ord.map((x,i)=>`<i class="${x===step?'on':(ord.indexOf(step)>i?'done':'')}"></i>`).join('')}</div>`;let h='';
  if(step==='confirm'){const L=dpLines(),tv=L.reduce((a,x)=>a+x.it.value*x.q,0);
