@@ -269,6 +269,7 @@ const WHRE=/^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\
 let SITE='',HQ=[];
 const md=s=>String(s??'').replace(/([\\*_`~|>\[\]])/g,'\\$1'),cut=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
 const cur=()=>MODE==='ps99'?'gems':'tokens',nm=k=>(I[k]||{name:k}).name;
+const RF=new Map();const codeList=()=>Object.entries(db.codes||{}).map(([k,c])=>({code:k,tokens:c.tokens||0,items:c.items||{},max:c.max||0,used:Object.keys(c.by||{}).length,exp:c.exp||0,off:!!c.off,note:c.note||'',t:c.t||0})).sort((x,y)=>y.t-x.t);
 const ulink=u=>`[${md(u.name)}](https://www.roblox.com/users/${u.id}/profile)`;
 const itl=(items,tk)=>[tk?`${fm(tk)} ${cur()}`:'',...Object.entries(items||{}).map(([k,q])=>`${q}× ${nm(k)}`)].filter(Boolean).join('\n')||'—';
 function hk(ch,e){if(!CH[ch])return;HQ.push([ch,{title:cut(e.title,256),description:cut(e.desc||'',3800),color:e.color??CH[ch][1],
@@ -390,7 +391,7 @@ async function check(b,H,req){
   H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);hk('logins',{title:isNew?'New account':'Login',color:same.length?0xef4444:isNew?0x22c55e:undefined,user:{avatar:av},desc:`${ulink(p)} signed in`,fields:[['Roblox ID',p.id,1],['Location',flag(dd(req.headers['x-vercel-ip-country']))+geoOf(req),1],['IP address','`'+(getIp(req)||'unknown')+'`',1],['Device ID',dev?'`'+dev.slice(0,10)+'`':'',1],['⚠️ Shares a device with',same.map(md).join(', ')],['Browser',cut(req.headers['user-agent']||'',180)]]});return{ok:true}})}
 
 const admData=WC=>{const us=Object.values(db.users),tk=us.reduce((s,x)=>s+(x.tokens||0),0),iv=us.reduce((s,x)=>s+invVal(x),0),sv=Object.entries(db.shop).reduce((s,[k,q])=>s+val(k)*q,0),now=Date.now();
- return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:whView(WC),logs:db.logs.slice(-100).reverse(),alts:altGroups(),
+ return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:whView(WC),logs:db.logs.slice(-100).reverse(),alts:altGroups(),codes:codeList(),
   stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<45000).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length,
    cfOpen:db.cf.open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
   cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]}))}};
@@ -424,6 +425,19 @@ async function handle(a,b,sid,H){
   if(last&&last.uid===u.id&&Date.now()-last.t<1500)E('Slow down');
   db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,avatar:u.avatar,msg,t:Date.now()});u.lastChat=Date.now();
   db.chat=db.chat.slice(-50);return{ok:1}}
+ if(a==='redeem'){const code=String(b.code||'').trim().toUpperCase().replace(/\s+/g,'');if(!code)E('Enter a code');
+  const now=Date.now(),L=(RF.get(u.id)||[]).filter(t=>now-t<60000);if(L.length>=8)E('Too many tries, wait a minute');
+  db.codes=db.codes||{};const c=db.codes[code];
+  if(!c||c.off||(c.mode&&c.mode!==MODE)){L.push(now);RF.set(u.id,L);E('Invalid code')}
+  if(c.exp&&now>c.exp)E('This code has expired');
+  c.by=c.by||{};if(c.by[u.id])E('You already redeemed this code');
+  if(c.max&&Object.keys(c.by).length>=c.max)E('This code has been fully claimed');
+  c.by[u.id]=now;const ls=[];
+  if(c.tokens>0){u.tokens=(u.tokens||0)+c.tokens;ls.push(`${fm(c.tokens)} ${cur()}`)}
+  for(const[k,q]of Object.entries(c.items||{})){if(!I[k])continue;add(u.inv,k,q);ls.push(`${fm(q)}× ${nm(k)}`)}
+  const n=Object.keys(c.by).length;log(`🎟️ ${u.name} redeemed code ${code} (${ls.join(', ')})`);
+  hk('admin',{title:'Code redeemed',user:u,desc:`${ulink(u)}\nredeemed **${md(code)}** (${c.max?n+'/'+c.max:n} claimed)\n${ls.join(', ')}`});
+  return{ok:1,msg:'Redeemed: '+ls.join(', ')}}
  if(!db.cf)db.cf={open:[],recent:[],id:0};
  const take=(items,types)=>{let v=0;for(const[k,q]of Object.entries(items||{})){const n=needInt(q);if(!I[k])E('Bad item');if(types&&!types.includes(I[k].type))E('Item not allowed here');if((u.inv[k]||0)<n)E('You do not own that');v+=val(k)*n}
   for(const[k,q]of Object.entries(items))add(u.inv,k,-q);return v};
@@ -521,6 +535,15 @@ async function handle(a,b,sid,H){
   else if(a==='admvalue'){if(!I[b.item])E('Bad item');const n=amt(b.value);if(!(n>=1))E('Invalid value');db.values[b.item]=n;logA(`🛠️ ${u.name} set value of ${iname(b.item)} to ${fm(n)}`)}
   else if(a==='admvalreset'){if(!I[b.item])E('Bad item');delete db.values[b.item];logA(`🛠️ ${u.name} reset value of ${iname(b.item)} to default`)}
   else if(a==='admshop'){if(!I[b.item])E('Bad item');const n=amt(b.qty);if(!(n>=0))E('Invalid amount');const k=b.item;if(b.mode==='add')add(db.shop,k,n);else{delete db.shop[k];if(n)db.shop[k]=n}logA(`🛠️ ${u.name} ${b.mode==='add'?'added':'set'} shop stock of ${iname(k)} ${b.mode==='add'?'+':'to '}${fm(n)}`)}
+  else if(a==='admcodemake'){db.codes=db.codes||{};let code=String(b.code||'').trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,24);if(!code)code=crypto.randomBytes(4).toString('hex').toUpperCase();if(db.codes[code])E('That code already exists');
+   const tk=b.tokens?amt(b.tokens):0;if(!(tk>=0))E('Invalid '+cn+' amount');const items={};
+   for(const[k,q]of Object.entries(b.items&&typeof b.items==='object'?b.items:{})){if(!I[k])E('Bad item');items[k]=needInt(q)}
+   if(!tk&&!Object.keys(items).length)E('Add a reward: '+cn+' or items');
+   const max=b.max?Math.floor(+b.max):0;if(!(max>=0)||max>1e6)E('Invalid claim limit');const hrs=b.hours?+b.hours:0;if(!(hrs>=0)||hrs>87600)E('Invalid expiry');
+   db.codes[code]={mode:MODE,tokens:tk,items,max,exp:hrs?Date.now()+hrs*3600000:0,note:String(b.note||'').slice(0,60),by:{},t:Date.now(),off:0};
+   logA(`🛠️ ${u.name} created code ${code} (${itl(items,tk).replace(/\n/g,', ')}${max?`, first ${max} people`:''}${hrs?`, ${hrs}h`:''})`)}
+  else if(a==='admcodedel'){const k=String(b.code||'').toUpperCase();if(!(db.codes&&db.codes[k]))E('Code not found');delete db.codes[k];logA(`🛠️ ${u.name} deleted code ${k}`)}
+  else if(a==='admcodeoff'){const k=String(b.code||'').toUpperCase(),c=db.codes&&db.codes[k];if(!c)E('Code not found');c.off=!c.off;logA(`🛠️ ${u.name} ${c.off?'disabled':'enabled'} code ${k}`)}
   else if(a==='admlogin'){const t=findUser(b.user);if(MODE!=='mm2')E('Login-as must run from the main site');
    if(ADMINS.includes(t.id)&&t.id!==u.id)E('Cannot log in as another admin');
    const s2=crypto.randomBytes(24).toString('hex');db.sessions[s2]=t.id;
