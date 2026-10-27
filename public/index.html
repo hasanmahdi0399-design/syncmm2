@@ -334,6 +334,7 @@ button.tiny{padding:3px 9px;font-size:11px;border-radius:8px;margin-left:4px}
 @media(max-width:480px){.wdst{grid-template-columns:1fr}.wdst div{display:flex;gap:10px;align-items:center}.wdst i{margin:0}.wdst span{display:none}}
 /* withdraw modal + bar */
 .wbar{position:sticky;bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#12142bee;backdrop-filter:blur(10px);border:1px solid var(--ac1);box-shadow:0 14px 40px -12px var(--glow2);margin-top:4px}
+.wbar.dpbar-fixed{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:1001;margin:0 auto;max-width:720px;width:auto;box-sizing:border-box}
 .wdb.s.on{background:#5ee6a022;border-color:#5ee6a066;color:var(--g)}
 .wmo{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:#000a;backdrop-filter:blur(6px);animation:wmf .2s both}@keyframes wmf{from{opacity:0}}
 .wmd{width:100%;max-width:400px;max-height:90vh;overflow:auto;border-radius:22px;padding:22px;text-align:center;background:linear-gradient(160deg,#1a1d3f,#0b0d1a);border:1px solid #8f7cff66;box-shadow:0 30px 80px -20px #000,0 0 50px -16px var(--glow2);animation:rpop .35s cubic-bezier(.2,1.3,.3,1) both}
@@ -630,7 +631,7 @@ function dpGrid(){const g=$('#dgrid');if(!g)return;const l=dpList();
 function dpq(id,d){const n=Math.max(1,Math.min(999,(DQ[id]||1)+d));DQ[id]=n;const e=$('#dq_'+id);if(e){e.textContent=n;e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump')}}
 function dpAdd(id){DC[id]=DQ[id]||1;dpGrid();dpBar()}
 function dpRm(id){delete DC[id];dpGrid();dpBar()}
-function dpBar(){const e=$('#dbar');if(!e)return;const ks=Object.keys(DC),n=ks.reduce((a,k)=>a+DC[k],0),had=!!e.firstChild;e.innerHTML=ks.length?`<div class="wbar${had?'':' in'}"><span><b>${n.toLocaleString()}</b> item${n===1?'':'s'} selected</span><button onclick="dpModal('confirm')">Review &amp; deposit</button></div>`:''}
+function dpBar(){const e=$('#dbar');if(!e)return;const ks=Object.keys(DC),n=ks.reduce((a,k)=>a+DC[k],0),had=!!e.firstChild;e.innerHTML=ks.length?`<div class="wbar dpbar-fixed${had?'':' in'}"><span><b>${n.toLocaleString()}</b> item${n===1?'':'s'} selected</span><button onclick="dpModal('confirm')">Review &amp; deposit</button></div>`:''}
 function dpLines(){return Object.entries(DC).map(([k,q])=>{const it=byId(k)||{id:k,name:k,icon:'',type:'pet',value:0};return{k,q,it}})}
 function dpModal(step){let m=$('#wmod');if(!m){m=document.createElement('div');m.id='wmod';m.className='wmo';document.body.appendChild(m)}
  const ord=['confirm','bot','ticket'],dots=`<div class="wdots">${ord.map((x,i)=>`<i class="${x===step?'on':(ord.indexOf(step)>i?'done':'')}"></i>`).join('')}</div>`;let h='';
