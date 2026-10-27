@@ -117,6 +117,87 @@ const MM2_ITEMS=[
 ['gingerscope','Gingerscope','gun','godly',90,'🍬'],
 ['harvester','Harvester','knife','ancient',300,'⚔️'],
 ['corrupt','Corrupt','knife','unique',220,'💀'],
+// ---- MM2 legendaries: values copied from supremevalues.com/mm2/legendaries. Tier 3 is priced in tokens; Tier 2 / Tier 1 are priced in T1 items (shown via the vt label, same as pets). ----
+['lattegun','Latte (Gun)','gun','legendary',140,'🔫'],
+['latteknife','Latte (Knife)','knife','legendary',140,'🗡️'],
+['spectralknife','Spectral (Knife)','knife','legendary',50,'🗡️'],
+['travelergun','Traveler (Gun)','gun','legendary',50,'🔫'],
+['auroragun','Aurora (Gun)','gun','legendary',45,'🔫'],
+['vampiregun','Vampire (Gun)','gun','legendary',45,'🔫'],
+['beach','Beach','knife','legendary',35,'🗡️'],
+['cottoncandy','Cotton Candy','knife','legendary',35,'🗡️'],
+['jd','JD','knife','legendary',28,'🗡️'],
+['bunnies','Bunnies','knife','legendary',15,'🗡️'],
+['arcticgun','Arctic (Gun)','gun','legendary',10,'🔫'],
+['golden','Golden','knife','legendary',10,'🗡️'],
+['shadow','Shadow','gun','legendary',10,'🔫'],
+['cavernknife','Cavern (Knife)','knife','legendary',7,'🗡️'],
+['broken','Broken','knife','legendary',7,'🗡️'],
+['emberknife','Emberknife','knife','legendary',5,'🗡️'],
+['icedriller','Icedriller','gun','legendary',5,'🔫'],
+['nightsky','Nightsky','gun','legendary',5,'🔫'],
+['ghostknife','Ghost (Knife)','knife','legendary',5,'🗡️'],
+['gingergun','Ginger (Gun)','gun','legendary',5,'🔫'],
+['redscratch','Red Scratch','knife','legendary',4,'🗡️'],
+['skulls','Skulls','knife','legendary',4,'🗡️'],
+['auroraknife','Aurora (Knife)','knife','legendary',3,'🗡️'],
+['spectralgun','Spectral (Gun)','gun','legendary',3,'🔫'],
+['travelerknife','Traveler (Knife)','knife','legendary',3,'🗡️'],
+['vampireknife','Vampire (Knife)','knife','legendary',3,'🗡️'],
+['witched','Witched','knife','legendary',3,'🗡️'],
+['blueelite','Blue Elite','knife','legendary',3,'🗡️'],
+['greenelite','Green Elite','knife','legendary',3,'🗡️'],
+['santasmagic','Santa\'s Magic','knife','legendary',3,'🗡️'],
+['santasspirit','Santa\'s Spirit','knife','legendary',3,'🗡️'],
+['energizedgun','Energized (Gun)','gun','legendary',2,'🔫'],
+['frostfadeknife','Frostfade (Knife)','knife','legendary',2,'🗡️'],
+['bluescratch','Blue Scratch','knife','legendary',2,'🗡️'],
+['ghostgun','Ghost (Gun)','gun','legendary',2,'🔫'],
+['chromaticknife','Chromatic (Knife)','knife','legendary',1,'🗡️'],
+['icecracker','Icecracker','knife','legendary',1,'🗡️'],
+['redfire','Red Fire','knife','legendary',1,'🗡️'],
+['caverngun','Cavern (Gun)','gun','legendary',1,'🔫'],
+['arcticknife','Arctic (Knife)','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['chromaticgun','Chromatic (Gun)','gun','legendary',1,'🔫','x4 T1 Legendaries'],
+['cursedknife','Cursed (Knife)','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['embergun','Embergun','gun','legendary',1,'🔫','x4 T1 Legendaries'],
+['emerald','Emerald','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['energizedknife','Energized (Knife)','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['frozengun','Frozen (Gun)','gun','legendary',1,'🔫','x4 T1 Legendaries'],
+['nightstar','Nightstar','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['overseergun','Overseer (Gun)','gun','legendary',1,'🔫','x4 T1 Legendaries'],
+['predatorknife','Predator (Knife)','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['ripperknife','Ripper (Knife)','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['rupture','Rupture','gun','legendary',1,'🔫','x4 T1 Legendaries'],
+['treegun','Tree (Gun)','gun','legendary',1,'🔫','x4 T1 Legendaries'],
+['treeknife','Tree (Knife)','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['web','Web','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['greenfire','Green Fire','knife','legendary',1,'🗡️','x4 T1 Legendaries'],
+['aquariumgun','Aquarium (Gun)','gun','legendary',1,'🔫','x3 T1 Legendaries'],
+['cursedgun','Cursed (Gun)','gun','legendary',1,'🔫','x3 T1 Legendaries'],
+['frostfadegun','Frostfade (Gun)','gun','legendary',1,'🔫','x3 T1 Legendaries'],
+['frozenknife','Frozen (Knife)','knife','legendary',1,'🗡️','x3 T1 Legendaries'],
+['midnight','Midnight','knife','legendary',1,'🗡️','x3 T1 Legendaries'],
+['palmsgun','Palms (Gun)','gun','legendary',1,'🔫','x3 T1 Legendaries'],
+['sparkle','Sparkle','gun','legendary',1,'🔫','x3 T1 Legendaries'],
+['bubbles','Bubbles','knife','legendary',1,'🗡️','x2 T1 Legendaries'],
+['cupid','Cupid','knife','legendary',1,'🗡️','x2 T1 Legendaries'],
+['gingerknife','Ginger (Knife)','knife','legendary',1,'🗡️','x2 T1 Legendaries'],
+['rippergun','Ripper (Gun)','gun','legendary',1,'🔫','x2 T1 Legendaries'],
+['aquariumknife','Aquarium (Knife)','knife','legendary',1,'🗡️','x2 T1 Legendaries'],
+['palmsknife','Palms (Knife)','knife','legendary',1,'🗡️','x2 T1 Legendaries'],
+['overseerknife','Overseer (Knife)','knife','legendary',1,'🗡️','x4 T1 Rares'],
+['predatorgun','Predator (Gun)','gun','legendary',1,'🔫','x4 T1 Rares'],
+['rune','Rune','knife','legendary',1,'🗡️','x4 T1 Rares'],
+['universe','Universe','gun','legendary',1,'🔫','x4 T1 Rares'],
+['viper','Viper','gun','legendary',1,'🔫','x4 T1 Rares'],
+['fade','Fade','knife','legendary',1,'🗡️','x4 T1 Rares'],
+['fusion','Fusion','knife','legendary',1,'🗡️','x4 T1 Rares'],
+['plasmite','Plasmite','knife','legendary',1,'🗡️','x4 T1 Rares'],
+['shiny','Shiny','knife','legendary',1,'🗡️','x4 T1 Rares'],
+['splashknife','Splash (Knife)','knife','legendary',1,'🗡️','x4 T1 Rares'],
+['elite','Elite','knife','legendary',1,'🗡️','x3 T1 Rares'],
+['splashgun','Splash (Gun)','gun','legendary',1,'🔫','x3 T1 Rares'],
 // ---- MM2 pets: values copied from supremevalues.com/mm2/pets. Tier 1 pets are priced there in T1 items (e.g. 'x3 T1 Legendaries'), so they are worth 1 here and show that text.
 ['pet_zombiedog','Zombie Dog','pet','pet',750,'🐾'],
 ['pet_elf2019','Elf (2019)','pet','pet',625,'🐾'],
@@ -230,7 +311,7 @@ async function psLoad(){
  psSet(c)}
 let db,jp;
 let DBKEY=KEY; // the Redis key the CURRENT db was loaded from; persist() always writes back to this, never to whatever KEY is now
-const load=async()=>{DBKEY=KEY;const s=await R('GET',DBKEY);db={users:{},sessions:{},shop:{},wd:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},rain:{r:-1,ann:false,joined:{}},...(s?JSON.parse(s):{})};
+const load=async()=>{DBKEY=KEY;const s=await R('GET',DBKEY);db={users:{},sessions:{},shop:{},wd:[],dp:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},...(s?JSON.parse(s):{})};
  if(db._m&&db._m!==MODE)throw Error('Data mismatch ('+db._m+' data under '+MODE+'), refusing to continue');
  if(MODE==='ps99'){const mm=await R('GET','db');MAIN=mm?JSON.parse(mm):{users:{},sessions:{}};db.sessions=MAIN.sessions||{};await psLoad()}
  if(db.cb){for(const g of db.cb.open||[])for(const p of g.players)if(!p.bot&&db.users[p.id])db.users[p.id].tokens+=g.cost;delete db.cb} // case battles were removed: refund anything still open
@@ -248,7 +329,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0;
  for(let i=0;i<60&&!ok;i++){if(await R('SET','lock',t,'NX','PX',9000)==='OK')ok=1;else await sleep(100)}
  if(!ok)throw Error('Server busy, try again');
- try{await load();if(jp.end&&Date.now()>=jp.end)jpResolve();rainTick();const out=await fn();await persist();return out}
+ try{await load();if(jp.end&&Date.now()>=jp.end)jpResolve();const out=await fn();await persist();return out}
  finally{if(await R('GET','lock')===t)await R('DEL','lock')}}
 // ---- daily stats (UTC day) for the Home page ----
 const dayKey=()=>new Date().toISOString().slice(0,10);
@@ -264,7 +345,7 @@ const invVal=u=>Object.entries(u.inv).reduce((s,[k,q])=>s+val(k)*q,0);
 const add=(o,k,q)=>{o[k]=(o[k]||0)+q;if(o[k]<=0)delete o[k]};
 const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100)};
 // ---- Discord webhooks: one channel per category, each with its own embed. URLs live in Redis ('whcfg', set in Admin > Webhooks) or env WEBHOOK_<CHANNEL>. A channel with no URL is skipped, never rerouted. ----
-const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals',0xf59e0b],rain:['🌧️ Rain',0x60a5fa],admin:['🛠️ Admin',0x94a3b8]};
+const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
 const WHRE=/^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 let SITE='',HQ=[];
 const md=s=>String(s??'').replace(/([\\*_`~|>\[\]])/g,'\\$1'),cut=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
@@ -303,23 +384,6 @@ const findUser=s=>{s=String(s??'').trim();const l=s.toLowerCase();let t=db.users
  if(!t&&MODE==='ps99'&&MAIN){const mu=(MAIN.users||{})[s]||Object.values(MAIN.users||{}).find(x=>x.name.toLowerCase()===l);if(mu)t=db.users[mu.id]={id:mu.id,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,mines:null,lastSeen:0}}
  return t||E('User not found')};
 
-// ---- Sync Rain: every hour (GMT+6 hours align with UTC hours) the window opens at :55 and pays out at :00 ----
-const RH=3600000,ROPEN=55*60000,RPOOL=100;
-const chatSys=m=>{db.chat=db.chat||[];db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:'sys',name:'🌧️ Sync Rain',avatar:'',msg:m,t:Date.now(),sys:1});db.chat=db.chat.slice(-50)};
-const rainNeeds=()=>{if(MODE!=='mm2')return false;const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);return(rd.ann&&n>=(rd.r+1)*RH)||(n%RH>=ROPEN&&rd.r!==cur)};
-function rainPay(){const rd=db.rain,ids=Object.keys(rd.joined).filter(id=>db.users[id]),n=ids.length;rd.ann=false;rd.joined={};
- if(!n){chatSys('🌧️ Sync Rain ended — nobody joined.');return}
- let per=Math.floor(RPOOL/n),w=ids;
- if(per<1){per=1;for(let i=w.length-1;i>0;i--){const j=crypto.randomInt(i+1);[w[i],w[j]]=[w[j],w[i]]}w=w.slice(0,RPOOL)}
- w.forEach(id=>{db.users[id].tokens+=per});
- chatSys(`🌧️ Sync Rain distributed between ${n} each get ${per}`+(w.length<n?` (${w.length} lucky winners)`:''));log(`🌧️ Sync Rain: ${n} joined, ${per} each`);hk('rain',{title:'Sync Rain paid out',desc:`**${n}** player${n===1?'':'s'} joined`,fields:[['Each got',per+' tokens',1],['Winners',w.length+(w.length<n?' (lucky draw)':''),1],['Pool',RPOOL+' tokens',1]]})}
-function rainTick(){if(MODE!=='mm2')return;const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);
- if(rd.ann&&n>=(rd.r+1)*RH)rainPay();
- if(n%RH>=ROPEN&&rd.r!==cur){rd.r=cur;rd.ann=true;rd.joined={};chatSys('Sync Rain started! 5 minutes to join— send a message in the site chat in this hour to be able to join.')}}
-const rainQ=()=>{const t=crypto.randomInt(3);let a,b,ans,q;
- if(t===0){a=1+crypto.randomInt(20);b=1+crypto.randomInt(20);ans=a+b;q=`${a} + ${b}`}
- else if(t===1){a=5+crypto.randomInt(16);b=1+crypto.randomInt(a-1);ans=a-b;q=`${a} − ${b}`}
- else{a=2+crypto.randomInt(8);b=2+crypto.randomInt(8);ans=a*b;q=`${a} × ${b}`}return{q,ans}};
 // ---- Blackjack (server-side deck; dealer hole card is never sent until the hand ends) ----
 const BJR=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],BJS=['♠','♥','♦','♣'];
 const bjDeck=()=>{const d=[];for(const s of BJS)for(const r of BJR)d.push(r+s);for(let i=d.length-1;i>0;i--){const j=crypto.randomInt(i+1);[d[i],d[j]]=[d[j],d[i]]}return d};
@@ -391,8 +455,8 @@ async function check(b,H,req){
   H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);hk('logins',{title:isNew?'New account':'Login',color:same.length?0xef4444:isNew?0x22c55e:undefined,user:{avatar:av},desc:`${ulink(p)} signed in`,fields:[['Roblox ID',p.id,1],['Location',flag(dd(req.headers['x-vercel-ip-country']))+geoOf(req),1],['IP address','`'+(getIp(req)||'unknown')+'`',1],['Device ID',dev?'`'+dev.slice(0,10)+'`':'',1],['⚠️ Shares a device with',same.map(md).join(', ')],['Browser',cut(req.headers['user-agent']||'',180)]]});return{ok:true}})}
 
 const admData=WC=>{const us=Object.values(db.users),tk=us.reduce((s,x)=>s+(x.tokens||0),0),iv=us.reduce((s,x)=>s+invVal(x),0),sv=Object.entries(db.shop).reduce((s,[k,q])=>s+val(k)*q,0),now=Date.now();
- return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:whView(WC),logs:db.logs.slice(-100).reverse(),alts:altGroups(),codes:codeList(),
-  stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<45000).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length,
+ return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),dp:db.dp.filter(w=>w.status==='pending'),dpDone:db.dp.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:whView(WC),logs:db.logs.slice(-100).reverse(),alts:altGroups(),codes:codeList(),
+  stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<45000).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length+db.dp.filter(w=>w.status==='pending').length,
    cfOpen:db.cf.open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
   cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]}))}};
 const admPlayer=t=>({id:t.id,name:t.name,avatar:t.avatar,tokens:Math.floor(t.tokens||0),invValue:Math.floor(invVal(t)),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),lastSeen:t.lastSeen||0,
@@ -412,10 +476,9 @@ async function handle(a,b,sid,H){
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
    day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
    bj:u.bj?bjView(u.bj):null,
-   rain:MODE!=='mm2'?{off:true}:(()=>{const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH),on=!!rd.ann&&rd.r===cur&&n%RH>=ROPEN;return{now:n,pool:RPOOL,open:on,joined:on?Object.keys(rd.joined).length:0,me:{in:on&&!!rd.joined[u.id],chat:(u.lastChat||0)>=cur*RH}}})(),
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
-   wd:db.wd.filter(w=>w.uid===u.id).slice(-10),tips:(db.tips||[]).filter(x=>x.from.id===u.id||x.to.id===u.id).slice(-15),
+   wd:db.wd.filter(w=>w.uid===u.id).slice(-10),dp:db.dp.filter(w=>w.uid===u.id).slice(-10),tips:(db.tips||[]).filter(x=>x.from.id===u.id||x.to.id===u.id).slice(-15),
    online,activeMines,chat:(db.chat||[]).slice(-50),
    admin:admin?admData(WC):undefined}}
  if(!u)E('Please log in');
@@ -463,12 +526,6 @@ async function handle(a,b,sid,H){
   for(const[k,q]of Object.entries(b.items))add(p.items,k,q);p.value+=v;
   if(Object.keys(jp.players).length>=2&&!jp.end)jp.end=Date.now()+25000;return{ok:1}}
  if(a==='jpleave'){const p=jp.players[u.id];if(!p||Object.keys(jp.players).length>1)E('Cannot leave now');for(const[k,q]of Object.entries(p.items))add(u.inv,k,q);delete jp.players[u.id];return{ok:1}}
- if((a==='rainq'||a==='rainjoin')&&MODE!=='mm2')E('Sync Rain is MM2 only');
- if(a==='rainq'){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);if(!(rd.ann&&rd.r===cur&&n%RH>=ROPEN))E('The rain is not open');if(rd.joined[u.id])E('Already joined');
-  if((u.lastChat||0)<cur*RH)E('Send a message in the site chat this hour first');const x=rainQ();u.rq={ans:x.ans,exp:n+60000};return{q:x.q}}
- if(a==='rainjoin'){const n=Date.now(),rd=db.rain,cur=Math.floor(n/RH);if(!(rd.ann&&rd.r===cur&&n%RH>=ROPEN))E('The rain is not open');if(rd.joined[u.id])E('Already joined');
-  if((u.lastChat||0)<cur*RH)E('Send a message in the site chat this hour first');const q=u.rq;delete u.rq;if(!q||n>q.exp)E('Question expired, get a new one');
-  if(String(b.ans).trim()===''||Math.round(+b.ans)!==q.ans)E('Wrong answer');rd.joined[u.id]=1;return{ok:1}}
  if(a==='bjstart'){if(u.bj&&!u.bj.done)E('Finish your current hand first');const bet=needInt(b.bet);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+(MODE==='ps99'?'gems':'tokens'));
   u.tokens-=bet;const k=bjDeck(),p1=k.pop(),d1=k.pop(),p2=k.pop(),d2=k.pop(),g=u.bj={id:Date.now(),bet,k,p:[p1,p2],d:[d1,d2],done:false};
   const pb=bjTot(g.p)===21,db_=bjTot(g.d)===21;if(pb||db_)bjEnd(u,g,pb&&db_?'push':pb?'bj':'lose');return{ok:1}}
@@ -498,6 +555,10 @@ async function handle(a,b,sid,H){
  if(a==='minescash'){if(!u.mines||!u.mines.open.length)E('Pick a tile first');return minesCash(u)}
  if(a==='withdraw'){const n=needInt(b.qty);take({[b.item]:n},MODE==='ps99'?['pet']:['gun','knife','pet']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
   log(`📤 Withdraw request: ${u.name} ${n}x ${b.item}`);hk('withdrawals',{title:'Withdrawal requested',user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Value',fm(val(b.item)*n)+' '+cur(),1],['Roblox ID',u.id,1]]});return{ok:1}}
+ if(a==='deposit'){const n=needInt(b.qty),k=String(b.item||'');if(!I[k])E('Bad item');if(!(MODE==='ps99'?['pet']:['gun','knife','pet']).includes(I[k].type))E('Item not allowed here');
+  if(db.dp.filter(x=>x.uid===u.id&&x.status==='pending').length>=25)E('Too many pending deposits — wait for them to be reviewed');
+  db.dp.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:k,qty:n,status:'pending',t:Date.now()});
+  log(`📥 Deposit request: ${u.name} ${n}x ${k}`);hk('withdrawals',{title:'Deposit requested',color:0x38bdf8,user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(k)}`,1],['Value',fm(val(k)*n)+' '+cur(),1],['Roblox ID',u.id,1]]});return{ok:1}}
 
 
  if(a==='tip'){const k=String(b.to||'').trim();let t=db.users[k]||Object.values(db.users).find(x=>x.name.toLowerCase()===k.toLowerCase());
@@ -559,6 +620,9 @@ async function handle(a,b,sid,H){
   else if(a==='admcancelmines'){const t=findUser(b.user);if(t.mines){t.tokens+=t.mines.bet;t.mines=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s mines game`)}
   else if(a==='admwd'){const w=db.wd.find(x=>x.id===b.id&&x.status==='pending')||E('Not found');
    if(b.ok){w.status='approved'}else{w.status='rejected';add(db.users[w.uid].inv,w.item,w.qty)}log(`📤 ${u.name} ${w.status} withdrawal ${w.qty}x ${w.item} for ${w.name}`);hk('withdrawals',{title:'Withdrawal '+w.status,color:w.status==='approved'?0x22c55e:0xef4444,desc:`${md(w.name)} · ${w.qty}× ${nm(w.item)}\nHandled by ${ulink(u)}`})}
+  else if(a==='admdp'){const w=db.dp.find(x=>x.id===b.id&&x.status==='pending')||E('Not found');
+   if(b.ok){if(!I[w.item])E('Item no longer exists');const t=db.users[w.uid]||E('Player not found');add(t.inv,w.item,w.qty);w.status='approved'}else w.status='rejected';
+   log(`📥 ${u.name} ${w.status} deposit ${w.qty}x ${w.item} for ${w.name}`);hk('withdrawals',{title:'Deposit '+w.status,color:w.status==='approved'?0x22c55e:0xef4444,desc:`${md(w.name)} · ${w.qty}× ${nm(w.item)}\nHandled by ${ulink(u)}`})}
   else if(a==='admwh'){if(!CH[b.ch])E('Unknown channel');const url=String(b.url||'').trim();if(url&&!WHRE.test(url))E('That is not a Discord webhook URL');
    const c=await whCfg();if(url)c[b.ch]=url;else delete c[b.ch];await R('SET','whcfg',JSON.stringify(c));logA(`🔔 ${CH[b.ch][0]} webhook ${url?'updated':'removed'}`)}
   else if(a==='admwhtest'){if(!CH[b.ch])E('Unknown channel');const url=whUrl(await whCfg(),b.ch);if(!url)E('No webhook set for this channel');
@@ -573,7 +637,7 @@ async function handle(a,b,sid,H){
    db.cf.recent=db.cf.recent.filter(g=>!bad(g.cItems)&&!bad(g.jItems)&&!(lim&&g.cValue+g.jValue>lim));
    if(Object.values(jp.players).some(p=>bad(p.items)||(lim&&p.value>lim))){jp.players={};jp.end=0;purged++}
    if(jp.last&&lim&&jp.last.total>lim)jp.last=null;
-   const wn=db.wd.length;db.wd=db.wd.filter(w=>I[w.item]);purged+=wn-db.wd.length+co-db.cf.open.length;db.day=null;
+   const wn=db.wd.length;db.wd=db.wd.filter(w=>I[w.item]);db.dp=db.dp.filter(w=>I[w.item]);purged+=wn-db.wd.length+co-db.cf.open.length;db.day=null;
    logA(`🛠️ ${u.name} ran data repair (${purged} foreign entries removed, ${sus.length} suspicious players)`);return{ok:1,purged,sus}}
   else E('Unknown');return{ok:1}}
  E('Unknown action')}
@@ -596,7 +660,7 @@ const run=async(req,res)=>{
   else if(a==='admlist'||a==='admplayer'){await load();out=await handle(a,b,sid,H)}
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
-   const needResolve=(jp.end&&Date.now()>=jp.end)||rainNeeds(),known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
+   const needResolve=(jp.end&&Date.now()>=jp.end)||false,known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
    out=(needResolve||needTouch)?await mutate(()=>{if(needTouch){const uu=db.users[db.sessions[sid]];if(uu)uu.lastSeen=Date.now()}return handle(a,b,sid,H)}):await handle(a,b,sid,H)}
   else out=await mutate(()=>handle(a,b,sid,H));
  }catch(e){out={error:e.message||'Error'};HQ.length=0}
