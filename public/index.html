@@ -344,6 +344,18 @@ button.tiny{padding:3px 9px;font-size:11px;border-radius:8px;margin-left:4px}
 .wbot{display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px;font-weight:800;letter-spacing:.04em;padding:14px;border-radius:14px;background:#00000050;border:1px dashed var(--ac1);color:var(--ac2)}
 .wlink,.wlink2{display:block;margin-top:12px;padding:11px;border-radius:12px;background:var(--p2);border:1px solid var(--ln);color:var(--t);text-decoration:none;font-weight:700}.wlink:hover,.wlink2:hover{border-color:var(--ac1)}.wlink2{flex:1;margin:0;text-align:center;background:linear-gradient(135deg,#5865f2,#3b46c4);border:0}
 .wnote{margin:0 0 10px;font-size:15px;line-height:1.5}
+/* deposit extras (light) */
+@keyframes dpup{from{opacity:0;transform:translateY(14px)}}@keyframes dppulse{50%{box-shadow:0 0 0 5px #fbbf2400,0 0 0 0 #fbbf2400}0%{box-shadow:0 0 0 0 #fbbf2466}}@keyframes dpsh{to{background-position:200% 0}}@keyframes dpchk{0%{transform:scale(.85)}60%{transform:scale(1.06)}}
+.wbar.in{animation:dpup .35s cubic-bezier(.2,1.2,.3,1) both}
+.wbar button{background:linear-gradient(110deg,var(--ac1),var(--ac1b),#fff6,var(--ac1b),var(--ac1));background-size:200% 100%;animation:dpsh 3s linear infinite}
+.wdb{transition:transform .12s,background .2s}.wdb:active,.wq .s:active,{transform:scale(.95)}
+.wdb.s.on{animation:dpchk .3s both}
+.wpill.pending{animation:dppulse 1.8s ease-out infinite}
+.wrq{animation:dpup .35s both}.wrq:nth-of-type(2){animation-delay:.05s}.wrq:nth-of-type(3){animation-delay:.1s}
+.wdots i{transition:background .3s,width .3s}.wdots i.on{width:38px}
+.wli{animation:dpup .3s both}.wli:nth-child(2){animation-delay:.05s}.wli:nth-child(3){animation-delay:.1s}.wli:nth-child(4){animation-delay:.15s}
+.wbot{animation:dppulse 2s ease-out infinite}
+@media(prefers-reduced-motion:reduce){.wbar button,.wpill.pending,.wbot{animation:none}}
 
 /* towers v2 */
 .twhead{display:grid;gap:10px;margin-bottom:6px}
@@ -598,7 +610,7 @@ function dpGrid(){const g=$('#dgrid');if(!g)return;const l=dpList();
 function dpq(id,d){const n=Math.max(1,Math.min(999,(DQ[id]||1)+d));DQ[id]=n;const e=$('#dq_'+id);if(e)e.textContent=n}
 function dpAdd(id){DC[id]=DQ[id]||1;dpGrid();dpBar()}
 function dpRm(id){delete DC[id];dpGrid();dpBar()}
-function dpBar(){const e=$('#dbar');if(!e)return;const ks=Object.keys(DC),n=ks.reduce((a,k)=>a+DC[k],0);e.innerHTML=ks.length?`<div class="wbar"><span><b>${n.toLocaleString()}</b> item${n===1?'':'s'} selected</span><button onclick="dpModal('confirm')">Review &amp; deposit</button></div>`:''}
+function dpBar(){const e=$('#dbar');if(!e)return;const ks=Object.keys(DC),n=ks.reduce((a,k)=>a+DC[k],0),had=!!e.firstChild;e.innerHTML=ks.length?`<div class="wbar${had?'':' in'}"><span><b>${n.toLocaleString()}</b> item${n===1?'':'s'} selected</span><button onclick="dpModal('confirm')">Review &amp; deposit</button></div>`:''}
 function dpLines(){return Object.entries(DC).map(([k,q])=>{const it=byId(k)||{id:k,name:k,icon:'',type:'pet',value:0};return{k,q,it}})}
 function dpModal(step){let m=$('#wmod');if(!m){m=document.createElement('div');m.id='wmod';m.className='wmo';document.body.appendChild(m)}
  const ord=['confirm','bot','ticket'],dots=`<div class="wdots">${ord.map((x,i)=>`<i class="${x===step?'on':(ord.indexOf(step)>i?'done':'')}"></i>`).join('')}</div>`;let h='';
