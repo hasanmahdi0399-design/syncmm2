@@ -509,8 +509,8 @@ async function handle(a,b,sid,H){
   log(`🎁 ${u.name} tipped ${t.name} (${iv+tk} value)`);
   hk('tips',{title:'Tip sent',user:t,color:u.dev&&u.dev===t.dev?0xef4444:undefined,desc:`${ulink(u)} → ${ulink(t)}`,fields:[['Gems / tokens',tk?fm(tk)+' '+cur():'',1],['Items',Object.keys(items).length?itl(items,0):'',1],['Total value',fm(iv+tk)+' '+cur(),1],['⚠️ Same device','These two accounts share a device — possible alt transfer.']]});
   return{ok:1}}
- if(MODE!=='ps99'&&a.startsWith('tw'))E('Towers is PS99 only');
- if(a==='twstart'){if(u.tw)E('Game in progress');const bet=needInt(b.bet),d=TWD[b.diff]?b.diff:'medium',[c,k]=TWD[d];if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough gems');
+ 
+ if(a==='twstart'){if(u.tw)E('Game in progress');const bet=needInt(b.bet),d=TWD[b.diff]?b.diff:'medium',[c,k]=TWD[d];if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
   u.tokens-=bet;const bombs=[];for(let r=0;r<TWR;r++){const row=[];while(row.length<k){const x=crypto.randomInt(c);if(!row.includes(x))row.push(x)}bombs.push(row)}
   u.tw={bet,d,bombs,picks:[]};return{ok:1}}
  if(a==='twpick'){const g=u.tw;if(!g)E('No game');const i=needInt(b.i,0);if(i>=TWD[g.d][0])E('Invalid tile');
