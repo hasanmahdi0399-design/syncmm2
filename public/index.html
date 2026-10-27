@@ -378,6 +378,31 @@ button.tiny{padding:3px 9px;font-size:11px;border-radius:8px;margin-left:4px}
 .dfx.d_easy{--dc:#5ee6a0}.dfx.d_medium{--dc:#fbbf24}.dfx.d_hard{--dc:#fb923c}.dfx.d_expert{--dc:#ff6b7a}
 .dfx b{color:var(--dc)}.dfx.on{border-color:var(--dc)!important;box-shadow:0 0 20px -6px var(--dc);background:#ffffff10!important}
 
+
+/* ===== v3 neon glass ===== */
+@keyframes au{50%{transform:translate(30px,18px) scale(1.15)}}@keyframes gbd{to{background-position:300% 0}}@keyframes lv{50%{opacity:.35;transform:scale(1.6)}}
+.sec{margin:18px 2px 10px;font:700 12px 'Syncopate',system-ui,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--ac2);display:flex;align-items:center;gap:10px}.sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--ac1),transparent)}
+.hero2{position:relative;border-radius:26px;padding:2px;margin-bottom:16px;background:linear-gradient(110deg,var(--ac1),#38e8ff,#ff5fd2,var(--ac1));background-size:300% 100%;animation:gbd 9s linear infinite;box-shadow:0 24px 70px -26px var(--glow2)}
+.hero2 .hr-in{position:relative;z-index:1;display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:26px 24px;border-radius:24px;background:linear-gradient(135deg,#0d1024f2,#06070fee);overflow:hidden}
+.au{position:absolute;width:260px;height:260px;border-radius:50%;filter:blur(60px);opacity:.35;z-index:0;animation:au 9s ease-in-out infinite;pointer-events:none}.au.a1{background:var(--ac1);right:6%;top:-90px}.au.a2{background:#38e8ff;left:-70px;bottom:-110px;animation-delay:-4s}
+.hero2 .hl{position:relative;z-index:1;width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 0 22px var(--glow2));animation:hfloat 4s ease-in-out infinite alternate}
+.hr-t,.hb2{position:relative;z-index:1}.hr-t h1{margin:8px 0 0;font:800 clamp(22px,5vw,34px)/1.1 'Syncopate',system-ui,sans-serif;letter-spacing:.05em;background:linear-gradient(110deg,#fff,var(--ac2),#7de9ff,#fff);background-size:250% 100%;animation:gbd 7s linear infinite;-webkit-background-clip:text;background-clip:text;color:transparent}
+.hr-t p{margin:8px 0 0;color:var(--m)}.hr-t p b{color:var(--t)}
+.hr-tag{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.14em;color:#7dffc4;background:#5ee6a01a;border:1px solid #5ee6a044;border-radius:99px;padding:4px 11px}.hr-tag i{width:7px;height:7px;border-radius:50%;background:#5ee6a0;box-shadow:0 0 10px #5ee6a0;animation:lv 1.6s ease-in-out infinite}
+.hb2{margin-left:auto;text-align:right}.hb2 small{display:block;color:var(--m);font-size:11px;letter-spacing:.14em;text-transform:uppercase}.hb2>b{display:block;font-size:30px;line-height:1.2;text-shadow:0 0 24px #fbbf2455}
+.hb2b{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}.hb2b button{padding:8px 14px;border-radius:99px;font-size:13px}
+.hst div{position:relative;overflow:hidden;background:linear-gradient(160deg,#ffffff0d,#ffffff04);backdrop-filter:blur(12px);border:1px solid #ffffff1a;border-radius:18px;padding:14px 10px;transition:transform .2s,border-color .2s}.hst div:hover{transform:translateY(-3px);border-color:var(--ac1)}
+.hst em{display:block;font-style:normal;font-size:20px;margin-bottom:2px}.hst b{font-size:20px}
+.hg{display:flex;flex-direction:column;gap:2px;padding:18px 16px;border-radius:22px;border:1px solid #ffffff1a;background:linear-gradient(160deg,#ffffff0f,#ffffff03),var(--p);backdrop-filter:blur(10px)}
+.hg::after{content:"";position:absolute;inset:auto -30% -70% -30%;height:90%;background:radial-gradient(closest-side,var(--glow2),transparent);opacity:0;transition:opacity .3s}.hg:hover::after{opacity:.55}
+.hg>*{position:relative;z-index:1}.hgi{display:grid!important;place-items:center;width:46px;height:46px;border-radius:14px;margin-bottom:10px;background:linear-gradient(135deg,var(--ac1),var(--ac1b));box-shadow:0 10px 24px -8px var(--glow2);transition:transform .25s}.hg:hover .hgi{transform:rotate(-8deg) scale(1.1)}
+.hg .hgi svg{width:24px;height:24px;color:#fff;margin:0}.hg u{text-decoration:none;margin-top:8px;font-size:12px;font-weight:700;color:var(--ac2);opacity:.6;transition:.25s}.hg:hover u{opacity:1;transform:translateX(4px)}
+.box h3{display:flex;align-items:center;gap:8px;font-size:15px}.box h3::before{content:"";width:4px;height:16px;border-radius:9px;background:linear-gradient(var(--ac1),#38e8ff)}
+.stat{transition:background .2s,padding .2s;border-radius:10px}.stat:hover{background:#ffffff0a;padding-left:8px;padding-right:8px}
+.card:hover{border-color:var(--ac1);box-shadow:0 14px 30px -14px var(--glow2)}
+.top{border-bottom:1px solid #ffffff14;box-shadow:0 10px 30px -20px var(--glow2)}
+@media(max-width:560px){.hb2{margin-left:0;text-align:left;width:100%}.hb2b{justify-content:flex-start}.hero2 .hl{width:70px;height:70px}}
+@media(prefers-reduced-motion:reduce){.hero2,.au,.hr-t h1,.hr-tag i{animation:none!important}}
 </style></head><body><svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="goldRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0ae"/><stop offset=".5" stop-color="#c98d14"/><stop offset="1" stop-color="#6e4506"/></linearGradient>
 <radialGradient id="goldFace" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#ffe58f"/><stop offset=".55" stop-color="#e0a921"/><stop offset="1" stop-color="#a8700c"/></radialGradient>
@@ -505,9 +530,9 @@ function pProf(){const e=$('#pprof');if(!e)return;const p=pprof;if(!p){e.innerHT
 function rValues(v){v.innerHTML=`<div class="box"><h3>${PS()?'Titanic &amp; Huge Values':'Values of Items'} <span class="muted">${PS()?'— RAP in gems':''}</span></h3>${PS()?`<div class="vf">${[['all','All'],['titanic','Titanic'],['huge','Huge']].map(x=>`<button class="s ${vf===x[0]?'on':''}" onclick="vf='${x[0]}';rValues($('#view'))">${x[1]}</button>`).join('')}</div>`:''}${srch('vl')}<div class="grid" id="g"></div></div>`;vl()}
 function vl(){$('#g').innerHTML=filt([...S.items].filter(i=>vf==='all'||i.rarity===vf).sort((a,b)=>b.value-a.value)).map(i=>card(i)).join('')||'<p class="muted">Nothing found.</p>'}
 function hero(){const m=S.me,d=S.day||{n:0,wag:0},G=[['mines','mine','Mines','Dodge the bombs'],['jackpot','jp','Jackpot','Winner takes all'],['coinflip','cf','Coinflip','Best of 3'],['blackjack','bj','Blackjack','Beat the dealer'],['towers','tw','Towers','Climb the floors']].filter(x=>!x[4]||PS());
- return `<div class="hero"><img class="hl" src="${LG()}" alt=""><div><h1>${BRAND()}</h1><p>Welcome back, <b style="color:var(--t)">${m.name}</b></p></div><div class="hb"><small>Balance</small><b class="tok">${fmt(m.tokens)} ${CI()}</b></div></div>
-<div class="hst"><div><small>Online</small><b>${(S.online||[]).length}</b></div><div><small>Games today</small><b>${d.n.toLocaleString()}</b></div><div><small>Wagered today</small><b>${fmt(d.wag)}</b></div></div>
-<div class="hgames">${G.map((x,i)=>`<button class="hg" style="--i:${i}" onclick="go('${x[0]}')">${ICO(x[1])}<b>${x[2]}</b><span>${x[3]}</span></button>`).join('')}</div>`}
+ return `<div class="hero2"><i class="au a1"></i><i class="au a2"></i><div class="hr-in"><img class="hl" src="${LG()}" alt=""><div class="hr-t"><span class="hr-tag"><i></i>LIVE · ${(S.online||[]).length} online</span><h1>${BRAND()}</h1><p>Welcome back, <b>${m.name}</b></p></div><div class="hb2"><small>Your balance</small><b class="tok">${fmt(m.tokens)} ${CI()}</b><div class="hb2b"><button onclick="go('deposit')">＋ Deposit</button><button class="s" onclick="go('withdraw')">Withdraw</button></div></div></div></div>
+<div class="hst"><div><em>👥</em><small>Online</small><b>${(S.online||[]).length}</b></div><div><em>🎮</em><small>Games today</small><b>${d.n.toLocaleString()}</b></div><div><em>💰</em><small>Wagered today</small><b>${fmt(d.wag)}</b></div></div>
+<div class="sec">Games</div><div class="hgames">${G.map((x,i)=>`<button class="hg" style="--i:${i}" onclick="go('${x[0]}')"><span class="hgi">${ICO(x[1])}</span><b>${x[2]}</b><span>${x[3]}</span><u>Play →</u></button>`).join('')}</div>`}
 function rHome(v){const on=S.online||[],am=S.activeMines||[],j=S.jp;
  v.innerHTML=`${hero()}<div class="box"><h3>🟢 Online now <span class="muted">(${on.length})</span></h3><div class="grid">${on.map(u=>`<div class="card"><div class="ic"><img class="av" style="width:40px;height:40px" src="${u.avatar}" alt=""></div><b>${u.name}</b><button class="s" style="margin-top:6px;padding:4px 10px;font-size:12px" onclick="openP('${u.id}')">Profile</button>${u.id!==S.me.id?`<button class="s" style="margin:6px 0 0 4px;padding:4px 10px;font-size:12px" onclick="tipTo='${u.name}';go('tip')">Tip</button>`:''}</div>`).join('')||'<p class="muted">Just you.</p>'}</div></div>
 <div class="box"><h3>🎲 Active games</h3><div class="stat"><span>🎰 Jackpot</span><b>${j.players.length?fmt(j.total)+' value · '+j.players.length+' players':'No one playing'}</b></div>
