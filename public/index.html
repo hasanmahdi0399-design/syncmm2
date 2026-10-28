@@ -498,9 +498,9 @@ const toast=(m,ok)=>{const t=$('#toast');t.textContent=m;t.style.background=ok?'
 const api=async(a,b={})=>{try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...b,gm:MODE})});let j;try{j=await r.json()}catch{j={error:`Server returned an invalid response (${r.status})`}}if(!r.ok&&!j.error)j.error=`Request failed (${r.status})`;if(j.error)toast(j.error);return j}catch(e){const j={error:'Network error: '+(e&&e.message?e.message:'request failed')};toast(j.error);return j}};
 // Splash: logo + title, then fades out. Used on site entry and when opening a game.
 const GAMES=['mines','jackpot','coinflip','blackjack','towers'];
-function splash(text,ms=700){const old=$('#splash');if(old)old.remove();if(!cfg.anim)return;
+function splash(text,ms=1200){const old=$('#splash');if(old)old.remove();if(!cfg.anim)return;
  const d=document.createElement('div');d.id='splash';d.innerHTML=`<img src="${LG()}" alt=""><b>${text}</b><i></i>`;document.body.appendChild(d);setTimeout(()=>d.remove(),ms)}
-{const s=document.querySelector('#splash');if(s){if(!cfg.anim)s.remove();else setTimeout(()=>s.remove(),750)}}
+{const s=document.querySelector('#splash');if(s){if(!cfg.anim)s.remove();else setTimeout(()=>s.remove(),1300)}}
 const emojiSpan=e=>{const s=document.createElement('span');s.textContent=e;return s};
 // Icon chain: /icons/<id>.png (your own file) -> MM2 wiki image by item name -> emoji
 const wikiImg=n=>'https://murder-mystery-2.fandom.com/wiki/Special:FilePath/'+encodeURIComponent(n.replace(/ /g,'_'))+'.png';
@@ -551,7 +551,7 @@ async function impBack(){const r=await api('admreturn');if(r.ok)location.reload(
 function head(){const ib=$('#impbar');if(S.me.imp&&!ib){const d=document.createElement('div');d.id='impbar';d.innerHTML='<span>🔑 Admin: you are logged in as <b>'+esc(S.me.name)+'</b></span><button onclick="impBack()">Return to admin</button>';document.body.appendChild(d)}else if(!S.me.imp&&ib)ib.remove();const t=(cfg.hide?'••••':fmt(S.me.tokens))+' '+CI();if($('#hd'))$('#hd').innerHTML=t;if($('#sbt'))$('#sbt').innerHTML=t}
 function go(t,np){if(!NAV.some(x=>x[0]===t)||(t==='admin'&&!(S&&S.me&&S.me.admin)))t='home';const was=tab;tab=t;if(!np){try{const u=t==='home'?'/':'/'+t;if(location.pathname!==u)history.pushState(null,'',u)}catch(e){}}sel={};q='';sb(0);const n=NAV.find(x=>x[0]===t);if(GAMES.includes(t)&&was!==t)splash(n[2]);document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.id==='t_'+t));$('#tt').textContent=n[2];const my=++nav;
  $('#view').innerHTML=`<div class="ld"><div class="sp"></div><span class="muted">Loading ${n[2]}…</span></div>`;
- setTimeout(async()=>{if(my!==nav)return;await load();if(my===nav)render()},cfg.anim?120:0)}
+ setTimeout(async()=>{if(my!==nav)return;await load();if(my===nav)render()},cfg.anim?350:0)}
 const render=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,coinflip:rCf,blackjack:rBj,mines:rMines,towers:rTw,tip:rTip,withdraw:rWd,deposit:rDep,leaderboard:rLb,players:rPl,settings:rSet,admin:rAdm})[tab]($('#view'))};
 function srch(f){return`<input placeholder="Search items…" value="${q}" oninput="q=this.value;${f}()" style="width:100%;margin-bottom:12px">`}
 const filt=l=>l.filter(i=>i.name.toLowerCase().includes(q.toLowerCase()));
@@ -611,8 +611,8 @@ function jpUpdate(){const j=S.jp,w=$('#wheel');if(!w)return;const sig=j.players.
 function spin(l){const w=$('#wheel');if(!w)return;spinning=true;let a=0,c=0;const t=l.snap.reduce((s,p)=>s+p.value,0);
  const st=l.snap.map(p=>{const pc=p.value/t*100;if(p.id===l.winner)c=(a+pc/2)*3.6;const s=`${hue(p.id)} ${a}% ${a+pc}%`;a+=pc;return s});
  w.style.transition='none';w.style.transform='rotate(0)';w.style.background=`conic-gradient(${st.join(',')})`;w.offsetWidth;
- w.style.transition=cfg.anim?'transform 2.1s cubic-bezier(.12,.7,.1,1)':'none';w.style.transform=`rotate(${360*6-c}deg)`;
- setTimeout(()=>{const r=$('#jr');if(r)r.innerHTML=`🏆 ${l.name} won ${fmt(l.total-l.taxed)} value! <span class="muted">(tax ${fmt(l.taxed)})</span>`;spinning=false;wheelSig='';load()},cfg.anim?2200:0)}
+ w.style.transition=cfg.anim?'transform 3.8s cubic-bezier(.12,.7,.1,1)':'none';w.style.transform=`rotate(${360*6-c}deg)`;
+ setTimeout(()=>{const r=$('#jr');if(r)r.innerHTML=`🏆 ${l.name} won ${fmt(l.total-l.taxed)} value! <span class="muted">(tax ${fmt(l.taxed)})</span>`;spinning=false;wheelSig='';load()},cfg.anim?4000:0)}
 const rr=()=>{if(tab==='mines')rMines($('#view'))};
 const GEM='<svg viewBox="0 0 64 64"><path d="M32 6 54 24 32 58 10 24z" fill="#b8ffd9" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><path d="M10 24h44M22 24 32 6l10 18M22 24l10 34 10-34" fill="none" stroke="#2fb36e" stroke-width="2"/></svg>';
 const BOMB='<svg viewBox="0 0 64 64"><circle cx="30" cy="38" r="20" fill="#1b1b22" stroke="#fff" stroke-width="2.5"/><path d="M43 22l7-7M52 8l2 6 6 2" fill="none" stroke="#ffd166" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="23" cy="31" r="5" fill="#fff" opacity=".5"/></svg>';
@@ -633,7 +633,7 @@ function rMines(v){const g=S.mines,r=mres,n=g?g.open.length:0,m=g?g.m:mmn,cur=g?
  const msg=!g&&r?(r.boom?`<div class="mres lose">💥 Boom!<small>You lost your bet</small></div>`:`<div class="mres win">Cashed out +${fmt(r.cashed)} ${CI()}<small>${(r.open||[]).length} gems collected</small></div>`):'';
  v.innerHTML=`<div class="mw"><div class="box mctl"><h3>💣 Mines <span class="muted">— 5×5 · ${CN()} only</span></h3>${setup}</div><div class="mstage"><div class="mchips">${chips}</div><div class="mgrid ${mbusy?'pls':''}">${tiles}</div>${msg}</div></div>`}
 function mset(x){mbet=x?Math.max(MINB(),Math.floor(mbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));rr()}
-async function mst(){if(mbusy)return;if(!(mbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}mres=null;mbusy=true;rr();await new Promise(r=>setTimeout(r,cfg.anim?180:0));await api('minesstart',{bet:mbet,m:mmn});mbusy=false;await load();rr()}
+async function mst(){if(mbusy)return;if(!(mbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}mres=null;mbusy=true;rr();await new Promise(r=>setTimeout(r,cfg.anim?450:0));await api('minesstart',{bet:mbet,m:mmn});mbusy=false;await load();rr()}
 async function mp(i){mlast=i;const r=await api('minespick',{i});if(r.boom)mres=r;else if(r.cashed!=null)mres=r;await load();rr()}
 async function mca(){const r=await api('minescash');if(r.cashed!=null)mres=r;await load();rr()}
 let WF='all',WS='',WQ={},WC={},DP_LIMIT=40;const BOT_NAME='cr33pyz0mbi3',BOT_URL='https://www.roblox.com/users/650893251/profile?friendshipSourceType=PlayerSearch',DISCORD_URL='https://discord.gg/AFyru7hAnn';
@@ -964,7 +964,7 @@ function rTw(v){if(!twinit){twinit=1;twbet=PS()?1e6:10}const fr=twfresh;twfresh=
  v.innerHTML=`<div class="mw"><div class="box mctl"><h3>🗼 Towers <span class="muted">— ${TWR} floors · up to ${twm(d,TWR).toFixed(0)}x</span></h3>${setup}</div><div class="mstage"><div class="mchips">${chips}</div><div class="twhead">${g?`<div class="twbig"><small>Current multiplier</small><b>${cur.toFixed(2)}x</b></div>`:''}<div class="twprog"><i style="width:${(cl/TWR*100).toFixed(0)}%"></i><span>${cl} / ${TWR} floors</span></div></div><div class="twt${fr?' fresh':''}"><div class="twgrid">${rows.join('')}</div></div>${msg}</div></div>`}
 const twr=()=>{if(tab==='towers')rTw($('#view'))};
 function twset(x){twbet=x?Math.max(MINB(),Math.floor(twbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));twr()}
-async function twst(){if(twbusy)return;if(!(twbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}twres=null;twbusy=true;twr();await new Promise(r=>setTimeout(r,cfg.anim?180:0));const sr=await api('twstart',{bet:twbet,diff:twd});twbusy=false;if(sr&&sr.ok)twfresh=true;await load();twr()}
+async function twst(){if(twbusy)return;if(!(twbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}twres=null;twbusy=true;twr();await new Promise(r=>setTimeout(r,cfg.anim?450:0));const sr=await api('twstart',{bet:twbet,diff:twd});twbusy=false;if(sr&&sr.ok)twfresh=true;await load();twr()}
 async function twp(i){const r=await api('twpick',{i});if(r.boom||r.cashed!=null)twres=r;await load();twr()}
 async function twca(){const r=await api('twcash');if(r.cashed!=null)twres=r;await load();twr()}
 
