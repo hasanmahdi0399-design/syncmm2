@@ -431,25 +431,21 @@ button.tiny{padding:3px 9px;font-size:11px;border-radius:8px;margin-left:4px}
 .wbot button.pop{animation:dpchk .3s both;background:#5ee6a022;color:var(--g)}.wlink,.wlink2{transition:transform .15s,border-color .2s}.wlink:hover,.wlink2:hover{transform:translateY(-2px)}
 @media(prefers-reduced-motion:reduce){.dph::before,.dph s,.dpr,.dpo,.dpt h2,.dps div::after,.dpst i,.wmd::before,.dpi{animation:none!important}}
 
-/* Coinflip redesign: premium toss arena, without changing site-wide timing */
-#cfov{background:radial-gradient(ellipse at 50% 45%,#191c39eF 0%,#090b15f7 58%,#03040bf9 100%);backdrop-filter:blur(5px)}
-#cfov .cfa{width:min(820px,94vw);gap:clamp(10px,3vw,26px);padding:clamp(14px,3vw,28px);border:1px solid #9b8cff66;border-radius:28px;background:linear-gradient(145deg,#181a30f5,#0b0d18f7);box-shadow:0 28px 90px #000a,0 0 55px #7864ff20}
-#cfov .cfp{min-width:0;padding:18px 12px;border-radius:20px;background:linear-gradient(155deg,#1c2034,#0c0e18);border:1px solid #a7a9d833;box-shadow:inset 0 1px #ffffff12;transition:transform .35s,border-color .35s,box-shadow .35s,opacity .35s}
-#cfov .cfp.heads{border-color:#60a5fa77}#cfov .cfp.tails{border-color:#f5c46b77}
-#cfov .cfp img{width:54px;height:54px;border:2px solid #ffffff22;box-shadow:0 4px 18px #0008}
-#cfov .cfp.win{box-shadow:0 0 34px #4ade8055;border-color:#4ade80;transform:translateY(-4px) scale(1.025)}
-#cfov .cfc{gap:12px;min-width:clamp(120px,23vw,190px);perspective:1100px}
-#cfov #c3w{height:190px;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d}
-#cfov .c3{width:clamp(118px,22vw,150px);height:clamp(118px,22vw,150px);margin:0;transform-style:preserve-3d;filter:drop-shadow(0 12px 18px #0008)}
-#cfov .c3 div{border-radius:50%;font-size:clamp(42px,8vw,60px);backface-visibility:hidden;-webkit-backface-visibility:hidden}
-#cfov .c3 .h{background:radial-gradient(circle at 30% 24%,#e4f5ff 0%,#70b9ff 22%,#2869d7 58%,#102653 100%);border:6px solid #dbeeff;box-shadow:inset 0 0 0 5px #ffffff22,inset 0 -12px 22px #061a49aa,0 0 28px #438dff55}
-#cfov .c3 .t{background:radial-gradient(circle at 30% 24%,#fff4d8 0%,#ffd37b 23%,#c37b2d 59%,#593516 100%);border:6px solid #ffebc4;box-shadow:inset 0 0 0 5px #ffffff22,inset 0 -12px 22px #512a0daa,0 0 28px #f7bd5c55}
-#cfov .csh{width:100px;height:12px;background:#000b;filter:blur(8px);transition:width .25s}
-#cfov .pips{gap:12px;margin-top:2px}#cfov .pips i{width:34px;height:34px;border:1px solid #ffffff24;background:#ffffff08;transition:transform .25s,background .25s}
-#cfov .pips i.h{background:#2869d7;border-color:#93c5fd;box-shadow:0 0 14px #3b82f655}#cfov .pips i.t{background:#a76625;border-color:#fcd48c;box-shadow:0 0 14px #f59e0b55}
-#cfov .cfres{margin-top:20px;border-radius:22px;border:1px solid #9181ff66;background:linear-gradient(145deg,#1b1930,#0b0d18);box-shadow:0 0 36px #7258ff20}
-#cfov .cfres .big{letter-spacing:.08em}
-@media(max-width:620px){#cfov .cfa{width:calc(100vw - 18px);gap:7px;padding:12px;border-radius:22px}#cfov .cfp{padding:12px 6px;font-size:12px}#cfov .cfp img{width:42px;height:42px}#cfov #c3w{height:158px}#cfov .cfc{min-width:112px}#cfov .pips{gap:7px}#cfov .pips i{width:29px;height:29px}}
+/* Three coins flip together; new SYNC-style coin emblems */
+#cfov .cfcoins{display:flex;align-items:flex-start;justify-content:center;gap:clamp(6px,1.5vw,14px);width:100%;padding:8px 0 2px}
+#cfov .cfcoinunit{display:flex;flex:1;min-width:0;flex-direction:column;align-items:center;gap:7px}
+#cfov .cfcoinunit small{font-size:9px;letter-spacing:.16em;color:#9ba2bb;font-weight:800}
+#cfov .cfcoinwrap{height:clamp(95px,17vw,132px);width:100%;display:flex;align-items:center;justify-content:center;perspective:900px;transform-style:preserve-3d}
+#cfov .cfcoin{width:clamp(76px,13vw,112px);height:clamp(76px,13vw,112px);margin:0;transform-style:preserve-3d;filter:drop-shadow(0 8px 12px #0008)}
+#cfov .cfcoin>div{display:flex;align-items:center;justify-content:center;padding:13%;box-sizing:border-box}
+#cfov .cfcoin svg{width:100%;height:100%;filter:drop-shadow(0 1px 1px #0005)}
+#cfov .cfcoin .h{background:radial-gradient(circle at 30% 22%,#fff4b8,#e6ae30 45%,#86550b 100%);border:5px solid #ffe9a1;box-shadow:inset 0 0 0 3px #ffffff32,inset 0 -8px 15px #6c400a88,0 0 22px #eab54344}
+#cfov .cfcoin .t{background:radial-gradient(circle at 30% 22%,#e3f5ff,#6eafff 45%,#173d89 100%);border:5px solid #d4edff;box-shadow:inset 0 0 0 3px #ffffff32,inset 0 -8px 15px #102c6b88,0 0 22px #60a5fa44}
+#cfov .cfcoin .h svg g{fill:#714b0b!important}#cfov .cfcoin .t svg g{fill:#173d89!important}
+#cfov .cfcoinunit .csh{width:62%;height:8px;flex:none}
+#cfov .pips i{display:flex;align-items:center;justify-content:center;overflow:hidden}
+#cfov .pips i svg{width:23px;height:23px}
+@media(max-width:620px){#cfov .cfa{width:calc(100vw - 18px);gap:5px;padding:10px}#cfov .cfc{min-width:0;flex:1}#cfov .cfcoinwrap{height:92px}#cfov .cfcoin{width:clamp(66px,21vw,88px);height:clamp(66px,21vw,88px)}#cfov .cfcoin .h,#cfov .cfcoin .t{border-width:4px}#cfov .cfcoinunit small{font-size:8px}#cfov .cfp{padding:10px 5px;font-size:11px}#cfov .cfp img{width:36px;height:36px}}
 </style></head><body><svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="goldRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0ae"/><stop offset=".5" stop-color="#c98d14"/><stop offset="1" stop-color="#6e4506"/></linearGradient>
 <radialGradient id="goldFace" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#ffe58f"/><stop offset=".55" stop-color="#e0a921"/><stop offset="1" stop-color="#a8700c"/></radialGradient>
@@ -865,9 +861,9 @@ function tipWatch(){const t=S.tips||[],l=t.length?t[t.length-1]:null;if(tipSeen=
 let cfSeen=null,cfSide='heads',cfTok=0,cfSig='',jid=0,jsel={},jtok=0,cfBusy=0,cfQ=[];
 const cfRange=v=>[Math.ceil(v*.9),Math.floor(v*1.1)];
 const cfItems=(its,tk)=>(tk?`<div class="it tk" title="${fmt(tk)} ${CN()}"><div class="ic">${CI()}</div><span>${fmt(tk)}</span></div>`:'')+Object.entries(its||{}).map(([k,q])=>{const i=byId(k);return i?`<div class="it" title="${i.name} · ${fmt(i.value)}"><div class="ic">${ic(i)}</div><span>x${q}</span></div>`:''}).join('');
-const COIN=s=>{const g=s==='heads',f=g?'gold':'silver',ink=g?'#7a4f0a':'#3f4756',hi=g?'#fff0b8':'#ffffff';
- const em=g?'<path d="M50 20C52.5 42 58 47.5 80 50 58 52.5 52.5 58 50 80 47.5 58 42 52.5 20 50 42 47.5 47.5 42 50 20Z"/><path d="M72 24c.8 3.5 2 4.7 5.5 5.5-3.5.8-4.7 2-5.5 5.5-.8-3.5-2-4.7-5.5-5.5 3.5-.8 4.7-2 5.5-5.5Z"/><path d="M28 65c.7 3 1.7 4 4.7 4.7-3 .7-4 1.7-4.7 4.7-.7-3-1.7-4-4.7-4.7 3-.7 4-1.7 4.7-4.7Z"/>':'<path d="M27 63 22 33l16 14 12-20 12 20 16-14-5 30z"/><rect x="27" y="67" width="46" height="6" rx="2"/>';
- return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="49" fill="url(#${f}Rim)"/><circle cx="50" cy="50" r="46.2" fill="none" stroke="#0000002e" stroke-width="3.6" stroke-dasharray="1.6 1.6"/><circle cx="50" cy="50" r="42" fill="url(#${f}Face)" stroke="#00000030"/><circle cx="50" cy="50" r="37" fill="none" stroke="${hi}" stroke-opacity=".55" stroke-width="1.2"/><g fill="${hi}" opacity=".75" transform="translate(.9 1)">${em}</g><g fill="${ink}">${em}</g><ellipse cx="38" cy="25" rx="22" ry="8" fill="#fff" opacity=".14" transform="rotate(-25 38 25)"/></svg>`};
+const COIN=s=>{const g=s==='heads',f=g?'gold':'silver',ink=g?'#7a4f0a':'#173d89',hi=g?'#fff0b8':'#e7f5ff';
+ const em=g?'<path d="M50 12 57 43 88 50 57 57 50 88 43 57 12 50 43 43Z"/><circle cx="50" cy="50" r="27" fill="none" stroke="'+hi+'" stroke-width="3"/><circle cx="50" cy="50" r="5" fill="'+hi+'"/><path d="M50 18v9M50 73v9M18 50h9M73 50h9" stroke="'+hi+'" stroke-width="3" stroke-linecap="round"/>':'<path d="M69 25H43c-11 0-18 7-18 16s7 14 18 14h14c5 0 8 2 8 6s-3 6-8 6H27v9h30c12 0 20-6 20-16S69 45 57 45H43c-5 0-8-2-8-5s3-6 8-6h26Z"/><path d="M76 22v56" stroke="'+hi+'" stroke-width="3" stroke-linecap="round"/>';
+ return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="49" fill="url(#${f}Rim)"/><circle cx="50" cy="50" r="46.2" fill="none" stroke="#0000002e" stroke-width="3.6" stroke-dasharray="1.6 1.6"/><circle cx="50" cy="50" r="42" fill="url(#${f}Face)" stroke="#00000030"/><circle cx="50" cy="50" r="37" fill="none" stroke="${hi}" stroke-opacity=".55" stroke-width="1.2"/><g fill="${hi}" opacity=".75" transform="translate(.9 1)">${em}</g><g fill="${ink}">${em}</g><ellipse cx="38" cy="25" rx="22" ry="8" fill="#fff" opacity=".14" transform="rotate(-25 38 25)"/></svg>`};
 const coinM=s=>`<span class="mc ${s==='heads'?'h':'t'}">${COIN(s)}</span>`;
 const cfOffer=()=>selVal()+cfTok;
 function cfGameRow(g){const mine=g.c.id===S.me.id,[lo,hi]=cfRange(g.value),oppo=g.side==='heads'?'Tails':'Heads';
@@ -925,20 +921,21 @@ function cfWatch(){const cf=S.cf;if(!cf)return;const rec=cf.recent,mx=rec.reduce
 function cfNext(){const g=cfQ.shift();if(!g)return;cfBusy=1;
  if(g.j&&g.j.bot){const o=$('#cfov');if(!(o&&o.dataset.intro))cfBotIntro(g.cValue);setTimeout(()=>cfPlayCore(g),Math.max(0,500-(Date.now()-cfBotAt)))}else cfPlayCore(g)}
 function cfPlayCore(g){const old=$('#cfov');if(old)old.remove();const d=document.createElement('div');d.id='cfov';let fin=0;const done=()=>{if(fin)return;fin=1;d.remove();cfBusy=0;cfNext()};
- const me=S.me.id,won=g.winner.id===me,fl=g.flips||[g.result,g.result,g.result],P=(p,s)=>`<div class="cfp ${s}" id="cp_${p.id}"><img src="${p.avatar||LG()}" alt=""><b>${p.name}</b>${coinM(s)}</div>`;
- d.innerHTML=`<div class="cfa">${P(g.c,g.cSide)}<div class="cfc"><div id="c3w"><div class="c3" id="c3"><div class="h">${COIN('heads')}</div><div class="t">${COIN('tails')}</div></div></div><div class="csh" id="csh"></div><div class="pips"><i></i><i></i><i></i></div><div class="tally" id="cft">Best of 3</div></div>${P(g.j,g.jSide)}</div><div class="cfres ${won?'win':'lose'}" id="cfres"><div class="big">${won?'YOU WON':'YOU LOST'}</div><small>${won?`+${fmt(g.won)} ${CI()}`:`${g.winner.name} took the pot`}</small></div>`;
- d.onclick=done;document.body.appendChild(d);const c3=$('#c3'),sh=$('#csh'),pips=d.querySelectorAll('.pips i'),dur=cfg.anim?2050:1;let rot=0,h=0,t=0;
+ const me=S.me.id,won=g.winner.id===me,fl=(g.flips||[g.result,g.result,g.result]).slice(0,3),P=(p,s)=>`<div class="cfp ${s}" id="cp_${p.id}"><img src="${p.avatar||LG()}" alt=""><b>${p.name}</b>${coinM(s)}</div>`;
+ d.innerHTML=`<div class="cfa">${P(g.c,g.cSide)}<div class="cfc"><div class="cfcoins" id="cfcoins">${fl.map((x,i)=>`<div class="cfcoinunit"><div class="cfcoinwrap" id="cfw${i}"><div class="c3 cfcoin" id="c3${i}"><div class="h">${COIN('heads')}</div><div class="t">${COIN('tails')}</div></div></div><div class="csh"></div><small>FLIP ${i+1}</small></div>`).join('')}</div><div class="pips" id="cfpips">${fl.map(()=>'<i></i>').join('')}</div><div class="tally" id="cft">All 3 coins flipping…</div></div>${P(g.j,g.jSide)}</div><div class="cfres ${won?'win':'lose'}" id="cfres"><div class="big">${won?'YOU WON':'YOU LOST'}</div><small>${won?`+${fmt(g.won)} ${CI()}`:`${g.winner.name} took the pot`}</small></div>`;
+ d.onclick=done;document.body.appendChild(d);
+ const pips=d.querySelectorAll('.pips i'),units=[0,1,2].map(i=>({w:$('#cfw'+i),coin:$('#c3'+i),sh:$('#cfcoins').children[i].querySelector('.csh')})),D=cfg.anim?2100:1;
  const end=()=>{$('#cft').innerHTML=`<b>${g.result.toUpperCase()}</b> wins`;const w=$('#cp_'+g.winner.id);if(w)w.classList.add('win');const l=d.querySelector('.cfp:not(.win)');if(l)l.classList.add('lose');$('#cfres').classList.add('show');setTimeout(done,cfg.anim?1100:500)};
- const ring=(col,w,sy,dy)=>{const r=c3.getBoundingClientRect(),e=document.createElement('i');e.style.cssText=`position:fixed;left:${r.left+r.width/2}px;top:${r.top+r.height/2+dy}px;width:${w}px;height:${w}px;margin:${-w/2}px 0 0 ${-w/2}px;border-radius:50%;border:2px solid ${col};pointer-events:none;z-index:99999`;d.appendChild(e);e.animate([{transform:`scale(.4,${.4*sy})`,opacity:.8},{transform:`scale(2.4,${2.4*sy})`,opacity:0}],{duration:350,easing:'ease-out'}).onfinish=()=>e.remove()};
- const flip=i=>{const s=fl[i];let to=rot-rot%360+1440+(s==='tails'?180:0);if(to<rot+1260)to+=360;const D=cfg.anim?2050:1,col=s==='heads'?'#f2c14e':'#c9d1dc',w=document.getElementById('c3w');
-  const F=(ty,rx,rz,sc,o,e)=>({transform:`translateY(${ty}px) rotateX(${rx}deg) rotateZ(${rz}deg) scale(${sc})`,offset:o,...(e?{easing:e}:{})});
-  const a=w.animate([F(0,0,0,.94,0,'ease-out'),F(-48,20,0,1.02,.12,'cubic-bezier(.2,.7,.2,1)'),F(-88,0,0,1.06,.28,'ease-out'),F(-72,0,0,1.04,.42),F(-38,0,0,1.02,.58),F(-12,0,0,1,.72,'ease-in'),F(4,0,0,.96,.84,'ease-in'),F(-5,0,0,1.02,.91,'cubic-bezier(.2,1.5,.4,1)'),F(0,0,0,1,1)],{duration:D,fill:'forwards'});
-  c3.animate([{transform:`rotateY(${rot}deg)`,offset:0},{transform:`rotateY(${rot}deg)`,offset:.24,easing:'cubic-bezier(.12,.55,.3,1)'},{transform:`rotateY(${to}deg)`,offset:.88},{transform:`rotateY(${to}deg)`,offset:1}],{duration:D,fill:'forwards'});
-  sh.animate([{transform:'scale(.3)',opacity:.2,offset:0,easing:'cubic-bezier(.5,0,.9,.5)'},{transform:'scale(1)',opacity:1,offset:.13},{transform:'scale(.6)',opacity:.7,offset:.34},{transform:'scale(.95)',opacity:1,offset:.88},{transform:'scale(1.1)',opacity:1,offset:1}],{duration:D,fill:'forwards'});
-  if(cfg.anim){setTimeout(()=>ring('#ffffffaa',110,.45,8),D*.18);setTimeout(()=>ring(col,150,.4,8),D*.9)}rot=to;
-  a.onfinish=()=>{s==='heads'?h++:t++;pips[i].className=s==='heads'?'h':'t';pips[i].innerHTML=COIN(s);$('#cft').innerHTML=`<b style="color:#f2c14e">${h} H</b> · <b style="color:#c9d1dc">${t} T</b>`;
-   if(h<2&&t<2&&i<2)setTimeout(()=>flip(i+1),cfg.anim?260:0);else setTimeout(end,cfg.anim?350:0)}};
- setTimeout(()=>flip(0),cfg.anim?350:0)}
+ const ring=(coin,col)=>{const r=coin.getBoundingClientRect(),e=document.createElement('i');e.style.cssText=`position:fixed;left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;border:2px solid ${col};pointer-events:none;z-index:99999`;d.appendChild(e);e.animate([{transform:'scale(.5)',opacity:.75},{transform:'scale(1.8)',opacity:0}],{duration:420,easing:'ease-out'}).onfinish=()=>e.remove()};
+ const flipOne=(i)=>new Promise(resolve=>{const side=fl[i],coin=units[i].coin,w=units[i].w,sh=units[i].sh,start=i*360+Math.random()*90,target=start+1800+(side==='tails'?180:0),col=side==='heads'?'#f2c14e':'#60a5fa';
+ if(!cfg.anim){coin.style.transform=`rotateY(${target}deg)`;pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);resolve();return}
+ const lift=w.animate([{transform:'translateY(0) scale(.96)'},{transform:'translateY(-46px) scale(1.05)',offset:.35},{transform:'translateY(-28px) scale(1.03)',offset:.62},{transform:'translateY(0) scale(1)'}],{duration:D,easing:'cubic-bezier(.2,.65,.25,1)',fill:'forwards'});
+ coin.animate([{transform:`rotateY(${start}deg) rotateZ(-5deg)`,offset:0},{transform:`rotateY(${start+720}deg) rotateZ(4deg)`,offset:.34},{transform:`rotateY(${start+1260}deg) rotateZ(-3deg)`,offset:.66},{transform:`rotateY(${target}deg) rotateZ(0deg)`,offset:1}],{duration:D,easing:'cubic-bezier(.16,.7,.16,1)',fill:'forwards'});
+ sh.animate([{transform:'scaleX(.7)',opacity:.35},{transform:'scaleX(1.2)',opacity:.85,offset:.35},{transform:'scaleX(.8)',opacity:.5,offset:.7},{transform:'scaleX(1)',opacity:.8}],{duration:D,fill:'forwards'});
+ lift.onfinish=()=>{pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);ring(coin,col);resolve()};
+ });
+ setTimeout(()=>Promise.all([0,1,2].map(flipOne)).then(()=>{const h=fl.filter(x=>x==='heads').length,t=fl.length-h;$('#cft').innerHTML=`<b style="color:#f2c14e">${h} Heads</b> · <b style="color:#60a5fa">${t} Tails</b>`;setTimeout(end,cfg.anim?400:0)}),cfg.anim?250:0)
+}
 
 // ---- Towers (PS99) ----
 const TWD={easy:[4,1],medium:[3,1],hard:[2,1],expert:[3,2]},TWR=8,TWN={easy:'Easy',medium:'Medium',hard:'Hard',expert:'Expert'};
