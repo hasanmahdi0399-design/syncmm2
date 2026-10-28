@@ -479,6 +479,59 @@ button.tiny{padding:3px 9px;font-size:11px;border-radius:8px;margin-left:4px}
 @keyframes cfReveal{0%{opacity:0;transform:translateY(20px) scale(.84);filter:blur(8px)}65%{opacity:1;transform:translateY(-4px) scale(1.03);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes cfImpact{0%{transform:scaleX(1.8);opacity:1}100%{transform:scaleX(.7);opacity:.35}}
 @media(max-width:620px){#cfov .cf-cinema{padding-top:18px}#cfov .cf-cine-title{font-size:18px}#cfov .cf-cine-sub{font-size:8px}#cfov .cfcoins{gap:5px;padding-top:8px}#cfov .pips i{width:29px;height:29px}#cfov .cfa{margin-top:6vh}}
+
+/* New synchronized cinematic Coinflip */
+#cfov{position:fixed;inset:0;z-index:99990;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2vh,22px);padding:20px 12px;box-sizing:border-box;overflow:hidden;background:radial-gradient(ellipse at 50% 43%,#24213f 0%,#0b0c16 46%,#030408 100%)!important;isolation:isolate}
+#cfov:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 22%,#0008 75%,#000e 100%);z-index:-1}
+#cfov .cf-cinema{position:absolute;inset:0;pointer-events:none;overflow:hidden;display:flex;align-items:center;flex-direction:column;padding-top:clamp(25px,7vh,75px);box-sizing:border-box}
+#cfov .cf-cine-grid{position:absolute;left:-35%;right:-35%;height:43%;bottom:0;opacity:.19;transform:perspective(260px) rotateX(62deg);transform-origin:bottom;background-image:linear-gradient(#8b83ff55 1px,transparent 1px),linear-gradient(90deg,#8b83ff55 1px,transparent 1px);background-size:36px 36px;mask-image:linear-gradient(transparent,#000)}
+#cfov .cf-cine-light{position:absolute;top:24%;left:50%;width:min(90vw,600px);aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,#c4b5fd24 0%,#8b5cf616 35%,transparent 70%);animation:cfLightPulse 4s ease-in-out infinite}
+#cfov .cf-cine-title{font-size:clamp(21px,4vw,32px);font-weight:950;letter-spacing:.32em;color:#fff;text-shadow:0 0 24px #a99bff66}
+#cfov .cf-cine-title span{color:#b9a7ff}
+#cfov .cf-cine-sub{margin-top:8px;font-size:9px;letter-spacing:.32em;font-weight:800;color:#9d9ab8}
+#cfov .cf-cine-line{margin-top:15px;width:110px;height:2px;background:linear-gradient(90deg,transparent,#c4b5fd,transparent);box-shadow:0 0 18px #a99bff99}
+#cfov .cf-orbit{position:absolute;top:30%;left:50%;width:min(90vw,620px);aspect-ratio:1;border:1px solid #b8a8ff12;border-radius:50%;transform:translateX(-50%);box-shadow:0 0 80px #8b5cf60b}
+#cfov .cfa{position:relative;z-index:2;width:min(650px,100%);box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:clamp(14px,2.5vh,24px);padding:clamp(14px,3vw,26px);border:1px solid #b8a8ff42!important;border-radius:26px;background:linear-gradient(145deg,#191a2beF,#080a14f5)!important;box-shadow:0 30px 100px #000b,0 0 70px #8b5cf61c,inset 0 1px #ffffff14!important;backdrop-filter:blur(12px);animation:cfArenaIn .55s cubic-bezier(.16,.8,.25,1) both}
+#cfov .cf-versus{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#cfov .cf-versus .cfp{min-width:0;flex:1;display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid #ffffff13;border-radius:14px;background:#ffffff06}
+#cfov .cf-versus .cfp img{width:30px;height:30px;border-radius:50%}
+#cfov .cf-versus .cfp b{font-size:clamp(10px,2.5vw,13px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cfov .cf-versus .cfp>svg,#cfov .cf-versus .cfp .mc{display:none}
+#cfov .cf-vs{font-size:10px;font-weight:900;letter-spacing:.18em;color:#8d89aa}
+#cfov .cfc{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0}
+#cfov .cf-round-label{font-size:9px;letter-spacing:.34em;font-weight:900;color:#9995b9;margin-bottom:2px}
+#cfov .cfcoins{display:flex;align-items:flex-start;justify-content:center;gap:clamp(8px,3vw,24px);width:100%;padding:12px 0 0}
+#cfov .cfcoinunit{display:flex;flex:1;min-width:0;flex-direction:column;align-items:center;gap:8px}
+#cfov .cfcoinwrap{height:clamp(100px,22vw,145px);width:100%;display:flex;align-items:center;justify-content:center;perspective:1200px;overflow:visible;transform-style:preserve-3d}
+#cfov .cfcoin{width:clamp(76px,18vw,118px);height:clamp(76px,18vw,118px);margin:0;transform-style:preserve-3d;filter:drop-shadow(0 14px 14px #000b)!important}
+#cfov .cfcoin>div{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:10%;box-sizing:border-box;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+#cfov .cfcoin .h{transform:rotateY(0deg);background:linear-gradient(145deg,#fff0b5,#d99b27 54%,#65400a);border:5px solid #ffebaa;box-shadow:inset 0 0 0 3px #ffffff36,inset 0 -8px 15px #6c400a88,0 0 24px #eab54344}
+#cfov .cfcoin .t{transform:rotateY(180deg);background:linear-gradient(145deg,#e9f7ff,#6eafff 54%,#173d89);border:5px solid #d4edff;box-shadow:inset 0 0 0 3px #ffffff36,inset 0 -8px 15px #102c6b88,0 0 24px #60a5fa44}
+#cfov .cfcoin svg{width:100%;height:100%;display:block}
+#cfov .cfcoinunit small{font-size:9px;letter-spacing:.18em;font-weight:900;color:#8f8ba9}
+#cfov .cfcoinunit .csh{width:60%;height:9px;flex:none;border-radius:50%;background:radial-gradient(ellipse,#b6a7ff70,transparent 72%);filter:blur(3px)}
+#cfov .cf-flight-status{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:13px;color:#b8b4d2;font-size:10px;letter-spacing:.16em;text-align:center}
+#cfov .cf-flight-status>span{height:1px;width:24px;background:linear-gradient(90deg,transparent,#a99bff)}
+#cfov .cf-flight-status>span:last-child{transform:rotate(180deg)}
+#cfov .cf-flight-status em{font-style:normal;color:#f2c14e}
+#cfov .cf-flight-status i{font-style:normal;color:#60a5fa}
+#cfov .pips{display:flex;justify-content:center;gap:12px;margin-top:12px}
+#cfov .pips i{width:38px;height:38px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;border:1px solid #a99bff28;background:#ffffff05;font-style:normal;transition:background .3s,box-shadow .3s}
+#cfov .pips i.h{border-color:#e7b33b99;box-shadow:0 0 22px #e7b33b28}
+#cfov .pips i.t{border-color:#60a5fa99;box-shadow:0 0 22px #60a5fa28}
+#cfov .pips i svg{width:100%;height:100%;display:block}
+#cfov .cfres{position:relative;z-index:3;opacity:0;display:flex;flex-direction:column;align-items:center;gap:7px;padding:0;height:0;overflow:hidden;border:0 solid #a99bff55!important;border-radius:18px;background:#0b0c18eF;text-align:center}
+#cfov .cfres.show{height:auto;opacity:1;padding:18px;border-width:1px!important;animation:cfReveal .65s cubic-bezier(.15,.85,.2,1) both}
+#cfov .cf-result-kicker{font-size:9px;font-weight:900;letter-spacing:.3em;color:#a6a0c8}
+#cfov .cfres .big{font-size:clamp(24px,6vw,36px);font-weight:950;letter-spacing:.12em;text-shadow:0 0 28px currentColor}
+#cfov .cfres.win .big{color:#71efb4}#cfov .cfres.lose .big{color:#ff879c}
+#cfov .cfres small{font-size:13px;color:#d4d1e8}
+#cfov .cfp.win{box-shadow:0 0 24px #57e6a22b;border-color:#57e6a266!important}
+#cfov .cf-impact-ring{position:fixed;width:70px;height:70px;border-radius:50%;border:2px solid var(--impact);pointer-events:none;z-index:99999;box-shadow:0 0 18px var(--impact)}
+@keyframes cfLightPulse{0%,100%{opacity:.55;filter:blur(0)}50%{opacity:1;filter:blur(3px)}}
+@keyframes cfArenaIn{from{opacity:0;transform:translateY(20px) scale(.96);filter:blur(8px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes cfReveal{0%{opacity:0;transform:translateY(20px) scale(.82);filter:blur(8px)}65%{opacity:1;transform:translateY(-3px) scale(1.03);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:620px){#cfov{padding:14px 8px}#cfov .cfa{padding:12px;gap:14px;border-radius:20px}#cfov .cfcoins{gap:4px}#cfov .cfcoinwrap{height:92px}#cfov .cfcoin{width:clamp(65px,21vw,88px);height:clamp(65px,21vw,88px)}#cfov .cfcoin .h,#cfov .cfcoin .t{border-width:4px}#cfov .pips i{width:31px;height:31px}#cfov .cf-versus .cfp{padding:7px 5px}#cfov .cf-versus .cfp img{width:25px;height:25px}}
 </style></head><body><svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="goldRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0ae"/><stop offset=".5" stop-color="#c98d14"/><stop offset="1" stop-color="#6e4506"/></linearGradient>
 <radialGradient id="goldFace" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#ffe58f"/><stop offset=".55" stop-color="#e0a921"/><stop offset="1" stop-color="#a8700c"/></radialGradient>
@@ -953,21 +1006,28 @@ function cfWatch(){const cf=S.cf;if(!cf)return;const rec=cf.recent,mx=rec.reduce
  cfSeen=Math.max(cfSeen,mx);if(!cfBusy)cfNext()}
 function cfNext(){const g=cfQ.shift();if(!g)return;cfBusy=1;
  if(g.j&&g.j.bot){const o=$('#cfov');if(!(o&&o.dataset.intro))cfBotIntro(g.cValue);setTimeout(()=>cfPlayCore(g),Math.max(0,500-(Date.now()-cfBotAt)))}else cfPlayCore(g)}
-function cfPlayCore(g){const old=$('#cfov');if(old)old.remove();const d=document.createElement('div');d.id='cfov';let fin=0;const done=()=>{if(fin)return;fin=1;d.remove();cfBusy=0;cfNext()};
- const me=S.me.id,won=g.winner.id===me,fl=(g.flips||[g.result,g.result,g.result]).slice(0,3),P=(p,s)=>`<div class="cfp ${s}" id="cp_${p.id}"><img src="${p.avatar||LG()}" alt=""><b>${p.name}</b>${coinM(s)}</div>`;
- d.innerHTML=`<div class="cf-cinema"><div class="cf-cine-grid"></div><div class="cf-cine-light"></div><div class="cf-cine-title">SYNC <span>FLIP</span></div><div class="cf-cine-sub">FATE IN THREE TOSSES</div><div class="cf-cine-line"></div></div><div class="cfa">${P(g.c,g.cSide)}<div class="cfc"><div class="cfcoins" id="cfcoins">${fl.map((x,i)=>`<div class="cfcoinunit"><div class="cfcoinwrap" id="cfw${i}"><div class="c3 cfcoin" id="c3${i}"><div class="h">${COIN('heads')}</div><div class="t">${COIN('tails')}</div></div></div><div class="csh"></div><small>FLIP ${i+1}</small></div>`).join('')}</div><div class="pips" id="cfpips">${fl.map(()=>'<i></i>').join('')}</div><div class="tally" id="cft">All 3 coins flipping…</div></div>${P(g.j,g.jSide)}</div><div class="cfres ${won?'win':'lose'}" id="cfres"><div class="big">${won?'YOU WON':'YOU LOST'}</div><small>${won?`+${fmt(g.won)} ${CI()}`:`${g.winner.name} took the pot`}</small></div>`;
+function cfPlayCore(g){
+ const old=$('#cfov');if(old)old.remove();const d=document.createElement('div');d.id='cfov';
+ let fin=0;const done=()=>{if(fin)return;fin=1;d.remove();cfBusy=0;cfNext()};
+ const me=S.me.id,won=g.winner.id===me,fl=(g.flips||[g.result,g.result,g.result]).slice(0,3);
+ const P=(p,side)=>`<div class="cfp ${side}" id="cp_${p.id}"><img src="${p.avatar||LG()}" alt=""><b>${p.name}</b>${coinM(side)}</div>`;
+ d.innerHTML=`<div class="cf-cinema"><div class="cf-cine-grid"></div><div class="cf-cine-light"></div><div class="cf-cine-title">SYNC <span>FLIP</span></div><div class="cf-cine-sub">THREE COINS. ONE MOMENT.</div><div class="cf-cine-line"></div><div class="cf-orbit"></div></div><div class="cfa"><div class="cf-versus">${P(g.c,g.cSide)}<div class="cf-vs">VS</div>${P(g.j,g.jSide)}</div><div class="cfc"><div class="cf-round-label">THE TOSS</div><div class="cfcoins" id="cfcoins">${fl.map((x,i)=>`<div class="cfcoinunit"><div class="cfcoinwrap" id="cfw${i}"><div class="c3 cfcoin" id="c3${i}"><div class="h">${COIN('heads')}</div><div class="t">${COIN('tails')}</div></div></div><div class="csh"></div><small>COIN 0${i+1}</small></div>`).join('')}</div><div class="cf-flight-status" id="cft"><span></span><b>READY TO FLIP</b><span></span></div><div class="pips" id="cfpips">${fl.map(()=>'<i></i>').join('')}</div></div><div class="cfres ${won?'win':'lose'}" id="cfres"><div class="cf-result-kicker">FINAL RESULT</div><div class="big">${won?'YOU WON':'YOU LOST'}</div><small>${won?`+${fmt(g.won)} ${CI()}`:`${g.winner.name} took the pot`}</small></div></div>`;
  d.onclick=done;document.body.appendChild(d);
- const pips=d.querySelectorAll('.pips i'),units=[0,1,2].map(i=>({w:$('#cfw'+i),coin:$('#c3'+i),sh:$('#cfcoins').children[i].querySelector('.csh')})),D=cfg.anim?3300:1;
- const end=()=>{$('#cft').innerHTML=`<b>${g.result.toUpperCase()}</b> wins`;const w=$('#cp_'+g.winner.id);if(w)w.classList.add('win');const l=d.querySelector('.cfp:not(.win)');if(l)l.classList.add('lose');$('#cfres').classList.add('show');setTimeout(done,cfg.anim?1100:500)};
- const ring=(coin,col)=>{const r=coin.getBoundingClientRect(),e=document.createElement('i');e.style.cssText=`position:fixed;left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;border:2px solid ${col};pointer-events:none;z-index:99999`;d.appendChild(e);e.animate([{transform:'scale(.5)',opacity:.75},{transform:'scale(1.8)',opacity:0}],{duration:420,easing:'ease-out'}).onfinish=()=>e.remove()};
- const flipOne=(i)=>new Promise(resolve=>{const side=fl[i],coin=units[i].coin,w=units[i].w,sh=units[i].sh,start=i*360+Math.random()*90,target=start+1800+(side==='tails'?180:0),col=side==='heads'?'#f2c14e':'#60a5fa';
- if(!cfg.anim){coin.style.transform=`rotateY(${target}deg)`;pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);resolve();return}
- const lift=w.animate([{transform:'translateY(18px) scale(.82) rotateZ(-8deg)',filter:'brightness(.65)',offset:0},{transform:'translateY(-42px) scale(1.02) rotateZ(3deg)',filter:'brightness(1.12)',offset:.22},{transform:'translateY(-82px) scale(1.12) rotateZ(-2deg)',filter:'brightness(1.3)',offset:.43},{transform:'translateY(-62px) scale(1.08) rotateZ(1deg)',filter:'brightness(1.18)',offset:.62},{transform:'translateY(-22px) scale(1.03) rotateZ(0deg)',filter:'brightness(1.05)',offset:.84},{transform:'translateY(0) scale(1) rotateZ(0deg)',filter:'brightness(1)',offset:1}],{duration:D,easing:'cubic-bezier(.16,.72,.18,1)',fill:'forwards'});
- coin.animate([{transform:`rotateY(${start}deg) rotateZ(-14deg) scale(.82)`,offset:0},{transform:`rotateY(${start+1080}deg) rotateZ(12deg) scale(1.02)`,offset:.28},{transform:`rotateY(${start+1980}deg) rotateZ(-8deg) scale(1.13)`,offset:.52},{transform:`rotateY(${start+2520}deg) rotateZ(5deg) scale(1.08)`,offset:.73},{transform:`rotateY(${target-180}deg) rotateZ(-2deg) scale(1.02)`,offset:.9},{transform:`rotateY(${target}deg) rotateZ(0deg) scale(1)`,offset:1}],{duration:D,easing:'cubic-bezier(.12,.68,.12,1)',fill:'forwards'});
- sh.animate([{transform:'scaleX(.35)',opacity:.15},{transform:'scaleX(1.5)',opacity:.8,offset:.3},{transform:'scaleX(1.8)',opacity:1,offset:.5},{transform:'scaleX(1.2)',opacity:.8,offset:.76},{transform:'scaleX(.9)',opacity:.55}],{duration:D,fill:'forwards'});
- lift.onfinish=()=>{pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);ring(coin,col);w.classList.add('cf-landed');resolve()};
+ const pips=d.querySelectorAll('.pips i'),units=[0,1,2].map(i=>({w:$('#cfw'+i),coin:$('#c3'+i),sh:$('#cfcoins').children[i].querySelector('.csh')}));
+ const D=cfg.anim?3800:1;
+ const end=()=>{$('#cft').innerHTML='<span></span><b>THE TOSS IS COMPLETE</b><span></span>';const w=$('#cp_'+g.winner.id);if(w)w.classList.add('win');const ps=d.querySelectorAll('.cfp');ps.forEach(p=>{if(!p.classList.contains('win'))p.classList.add('lose')});$('#cfres').classList.add('show');setTimeout(done,cfg.anim?1700:500)};
+ const ring=(coin,col)=>{const r=coin.getBoundingClientRect(),e=document.createElement('i');e.className='cf-impact-ring';e.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;--impact:${col}`;d.appendChild(e);e.animate([{transform:'translate(-50%,-50%) scale(.45)',opacity:.9},{transform:'translate(-50%,-50%) scale(2.2)',opacity:0}],{duration:620,easing:'cubic-bezier(.1,.7,.2,1)'}).onfinish=()=>e.remove()};
+ const flipOne=i=>new Promise(resolve=>{
+  const side=fl[i]==='tails'?'tails':'heads',coin=units[i].coin,w=units[i].w,sh=units[i].sh;
+  const target=360*10+(side==='tails'?180:0),col=side==='heads'?'#f2c14e':'#60a5fa';
+  coin.style.transform='rotateY(0deg) rotateZ(0deg)';
+  if(!cfg.anim){coin.style.transform=`rotateY(${target}deg)`;pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);resolve();return}
+  w.animate([{transform:'translateY(0) scale(.9)'},{transform:'translateY(-18px) scale(1.04)',offset:.12},{transform:'translateY(-72px) scale(1.1)',offset:.34},{transform:'translateY(-86px) scale(1.12)',offset:.48},{transform:'translateY(-52px) scale(1.07)',offset:.72},{transform:'translateY(0) scale(1)',offset:1}],{duration:D,easing:'cubic-bezier(.18,.72,.18,1)',fill:'forwards'});
+  coin.animate([{transform:'rotateY(0deg) rotateZ(-5deg) scale(.88)',offset:0},{transform:'rotateY(1440deg) rotateZ(9deg) scale(1.04)',offset:.38},{transform:'rotateY(2880deg) rotateZ(-7deg) scale(1.12)',offset:.66},{transform:`rotateY(${target-360}deg) rotateZ(3deg) scale(1.06)`,offset:.84},{transform:`rotateY(${target}deg) rotateZ(0deg) scale(1)`,offset:1}],{duration:D,easing:'cubic-bezier(.12,.76,.16,1)',fill:'forwards'});
+  sh.animate([{transform:'scaleX(.7)',opacity:.22},{transform:'scaleX(1.45)',opacity:.8,offset:.42},{transform:'scaleX(1.7)',opacity:.95,offset:.56},{transform:'scaleX(.85)',opacity:.35}],{duration:D,easing:'ease-in-out',fill:'forwards'});
+  setTimeout(()=>{pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);ring(coin,col);w.classList.add('cf-landed');resolve()},D);
  });
- setTimeout(()=>Promise.all([0,1,2].map(flipOne)).then(()=>{const h=fl.filter(x=>x==='heads').length,t=fl.length-h;$('#cft').innerHTML=`<b style="color:#f2c14e">${h} Heads</b> · <b style="color:#60a5fa">${t} Tails</b>`;setTimeout(end,cfg.anim?400:0)}),cfg.anim?380:0)
+ setTimeout(()=>Promise.all([0,1,2].map(flipOne)).then(()=>{const heads=fl.filter(x=>x==='heads').length,tails=fl.length-heads;$('#cft').innerHTML=`<span></span><b><em>${heads} HEADS</em> &nbsp;·&nbsp; <i>${tails} TAILS</i></b><span></span>`;setTimeout(end,cfg.anim?520:0)}),cfg.anim?300:0)
 }
 
 // ---- Towers (PS99) ----
