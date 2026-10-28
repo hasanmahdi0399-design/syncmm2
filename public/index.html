@@ -446,6 +446,39 @@ button.tiny{padding:3px 9px;font-size:11px;border-radius:8px;margin-left:4px}
 #cfov .pips i{display:flex;align-items:center;justify-content:center;overflow:hidden}
 #cfov .pips i svg{width:23px;height:23px}
 @media(max-width:620px){#cfov .cfa{width:calc(100vw - 18px);gap:5px;padding:10px}#cfov .cfc{min-width:0;flex:1}#cfov .cfcoinwrap{height:92px}#cfov .cfcoin{width:clamp(66px,21vw,88px);height:clamp(66px,21vw,88px)}#cfov .cfcoin .h,#cfov .cfcoin .t{border-width:4px}#cfov .cfcoinunit small{font-size:8px}#cfov .cfp{padding:10px 5px;font-size:11px}#cfov .cfp img{width:36px;height:36px}}
+
+/* CINEMATIC COINFLIP ARENA */
+#cfov{isolation:isolate;background:radial-gradient(ellipse at 50% 42%,#24213c 0%,#0b0c15 48%,#030407 100%)!important;overflow:hidden}
+#cfov:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 15%,#0009 72%,#000e 100%);z-index:0}
+#cfov .cf-cinema{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:clamp(20px,6vh,62px);pointer-events:none;z-index:0;overflow:hidden}
+#cfov .cf-cine-grid{position:absolute;left:-35%;right:-35%;height:48%;bottom:7%;opacity:.18;transform:perspective(260px) rotateX(64deg);transform-origin:bottom center;background-image:linear-gradient(#8b83ff44 1px,transparent 1px),linear-gradient(90deg,#8b83ff44 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(transparent,#000)}
+#cfov .cf-cine-light{position:absolute;top:18%;left:50%;width:min(80vw,620px);height:min(80vw,620px);transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,#b5a5ff18 0%,#8b5cf618 26%,#8b5cf604 58%,transparent 72%);animation:cfLightPulse 3.3s ease-in-out infinite}
+#cfov .cf-cine-title{position:relative;font-size:clamp(20px,4vw,32px);font-weight:950;letter-spacing:.32em;color:#f8f7ff;text-shadow:0 0 22px #a99bff55}
+#cfov .cf-cine-title span{color:#b7a7ff}
+#cfov .cf-cine-sub{position:relative;margin-top:7px;font-size:9px;letter-spacing:.35em;font-weight:800;color:#8886a5}
+#cfov .cf-cine-line{position:relative;margin-top:15px;width:90px;height:2px;background:linear-gradient(90deg,transparent,#a99bff,transparent);box-shadow:0 0 18px #a99bff88}
+#cfov .cfa{position:relative;z-index:2;backdrop-filter:blur(4px);background:linear-gradient(145deg,#171827dd,#090a13e8)!important;border:1px solid #aaa0ff3d!important;box-shadow:0 25px 90px #000b,0 0 55px #8b5cf61c,inset 0 1px #ffffff10!important;animation:cfArenaIn .65s cubic-bezier(.16,.8,.25,1) both}
+#cfov .cfc{position:relative}
+#cfov .cfcoins{perspective:1200px;gap:clamp(8px,2.5vw,22px);padding-top:18px}
+#cfov .cfcoinwrap{perspective:1200px;overflow:visible}
+#cfov .cfcoin{filter:drop-shadow(0 18px 16px #000b) drop-shadow(0 0 16px #9b8cff22)}
+#cfov .cfcoinunit .csh{border-radius:50%;background:radial-gradient(ellipse,#a9a0ff80 0%,#7a71c433 42%,transparent 74%);filter:blur(2px)}
+#cfov .cfcoinunit .csh.cf-impact{animation:cfImpact .42s ease-out}
+#cfov .cfcoinunit small{color:#a8a5c2}
+#cfov .pips{gap:9px;margin-top:12px}
+#cfov .pips i{width:36px;height:36px;border-radius:50%;background:#ffffff08;border:1px solid #aaa0ff33;box-shadow:inset 0 0 12px #0005}
+#cfov .pips i.h{background:radial-gradient(circle,#f5d68125,#e7b33b12);border-color:#e7b33b88;box-shadow:0 0 20px #e7b33b22}
+#cfov .pips i.t{background:radial-gradient(circle,#8acaff25,#60a5fa12);border-color:#60a5fa88;box-shadow:0 0 20px #60a5fa22}
+#cfov .tally{font-size:clamp(13px,2.6vw,17px);letter-spacing:.06em;color:#d9d8eb;margin-top:14px}
+#cfov .cfres{position:relative;z-index:3;backdrop-filter:blur(14px);border:1px solid #a99bff55!important;box-shadow:0 0 60px #8b5cf622,0 18px 55px #0009!important}
+#cfov .cfres.show{animation:cfReveal .65s cubic-bezier(.15,.85,.2,1) both}
+#cfov .cfres .big{text-shadow:0 0 28px currentColor;letter-spacing:.13em}
+#cfov .cfp.win{box-shadow:0 0 24px #57e6a22b;border-color:#57e6a266!important}
+@keyframes cfLightPulse{0%,100%{opacity:.55;transform:translateX(-50%) scale(.92)}50%{opacity:1;transform:translateX(-50%) scale(1.08)}}
+@keyframes cfArenaIn{from{opacity:0;transform:translateY(24px) scale(.94);filter:blur(8px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes cfReveal{0%{opacity:0;transform:translateY(20px) scale(.84);filter:blur(8px)}65%{opacity:1;transform:translateY(-4px) scale(1.03);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes cfImpact{0%{transform:scaleX(1.8);opacity:1}100%{transform:scaleX(.7);opacity:.35}}
+@media(max-width:620px){#cfov .cf-cinema{padding-top:18px}#cfov .cf-cine-title{font-size:18px}#cfov .cf-cine-sub{font-size:8px}#cfov .cfcoins{gap:5px;padding-top:8px}#cfov .pips i{width:29px;height:29px}#cfov .cfa{margin-top:6vh}}
 </style></head><body><svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="goldRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0ae"/><stop offset=".5" stop-color="#c98d14"/><stop offset="1" stop-color="#6e4506"/></linearGradient>
 <radialGradient id="goldFace" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#ffe58f"/><stop offset=".55" stop-color="#e0a921"/><stop offset="1" stop-color="#a8700c"/></radialGradient>
@@ -922,19 +955,19 @@ function cfNext(){const g=cfQ.shift();if(!g)return;cfBusy=1;
  if(g.j&&g.j.bot){const o=$('#cfov');if(!(o&&o.dataset.intro))cfBotIntro(g.cValue);setTimeout(()=>cfPlayCore(g),Math.max(0,500-(Date.now()-cfBotAt)))}else cfPlayCore(g)}
 function cfPlayCore(g){const old=$('#cfov');if(old)old.remove();const d=document.createElement('div');d.id='cfov';let fin=0;const done=()=>{if(fin)return;fin=1;d.remove();cfBusy=0;cfNext()};
  const me=S.me.id,won=g.winner.id===me,fl=(g.flips||[g.result,g.result,g.result]).slice(0,3),P=(p,s)=>`<div class="cfp ${s}" id="cp_${p.id}"><img src="${p.avatar||LG()}" alt=""><b>${p.name}</b>${coinM(s)}</div>`;
- d.innerHTML=`<div class="cfa">${P(g.c,g.cSide)}<div class="cfc"><div class="cfcoins" id="cfcoins">${fl.map((x,i)=>`<div class="cfcoinunit"><div class="cfcoinwrap" id="cfw${i}"><div class="c3 cfcoin" id="c3${i}"><div class="h">${COIN('heads')}</div><div class="t">${COIN('tails')}</div></div></div><div class="csh"></div><small>FLIP ${i+1}</small></div>`).join('')}</div><div class="pips" id="cfpips">${fl.map(()=>'<i></i>').join('')}</div><div class="tally" id="cft">All 3 coins flipping…</div></div>${P(g.j,g.jSide)}</div><div class="cfres ${won?'win':'lose'}" id="cfres"><div class="big">${won?'YOU WON':'YOU LOST'}</div><small>${won?`+${fmt(g.won)} ${CI()}`:`${g.winner.name} took the pot`}</small></div>`;
+ d.innerHTML=`<div class="cf-cinema"><div class="cf-cine-grid"></div><div class="cf-cine-light"></div><div class="cf-cine-title">SYNC <span>FLIP</span></div><div class="cf-cine-sub">FATE IN THREE TOSSES</div><div class="cf-cine-line"></div></div><div class="cfa">${P(g.c,g.cSide)}<div class="cfc"><div class="cfcoins" id="cfcoins">${fl.map((x,i)=>`<div class="cfcoinunit"><div class="cfcoinwrap" id="cfw${i}"><div class="c3 cfcoin" id="c3${i}"><div class="h">${COIN('heads')}</div><div class="t">${COIN('tails')}</div></div></div><div class="csh"></div><small>FLIP ${i+1}</small></div>`).join('')}</div><div class="pips" id="cfpips">${fl.map(()=>'<i></i>').join('')}</div><div class="tally" id="cft">All 3 coins flipping…</div></div>${P(g.j,g.jSide)}</div><div class="cfres ${won?'win':'lose'}" id="cfres"><div class="big">${won?'YOU WON':'YOU LOST'}</div><small>${won?`+${fmt(g.won)} ${CI()}`:`${g.winner.name} took the pot`}</small></div>`;
  d.onclick=done;document.body.appendChild(d);
- const pips=d.querySelectorAll('.pips i'),units=[0,1,2].map(i=>({w:$('#cfw'+i),coin:$('#c3'+i),sh:$('#cfcoins').children[i].querySelector('.csh')})),D=cfg.anim?2100:1;
+ const pips=d.querySelectorAll('.pips i'),units=[0,1,2].map(i=>({w:$('#cfw'+i),coin:$('#c3'+i),sh:$('#cfcoins').children[i].querySelector('.csh')})),D=cfg.anim?3300:1;
  const end=()=>{$('#cft').innerHTML=`<b>${g.result.toUpperCase()}</b> wins`;const w=$('#cp_'+g.winner.id);if(w)w.classList.add('win');const l=d.querySelector('.cfp:not(.win)');if(l)l.classList.add('lose');$('#cfres').classList.add('show');setTimeout(done,cfg.anim?1100:500)};
  const ring=(coin,col)=>{const r=coin.getBoundingClientRect(),e=document.createElement('i');e.style.cssText=`position:fixed;left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:74px;height:74px;margin:-37px 0 0 -37px;border-radius:50%;border:2px solid ${col};pointer-events:none;z-index:99999`;d.appendChild(e);e.animate([{transform:'scale(.5)',opacity:.75},{transform:'scale(1.8)',opacity:0}],{duration:420,easing:'ease-out'}).onfinish=()=>e.remove()};
  const flipOne=(i)=>new Promise(resolve=>{const side=fl[i],coin=units[i].coin,w=units[i].w,sh=units[i].sh,start=i*360+Math.random()*90,target=start+1800+(side==='tails'?180:0),col=side==='heads'?'#f2c14e':'#60a5fa';
  if(!cfg.anim){coin.style.transform=`rotateY(${target}deg)`;pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);resolve();return}
- const lift=w.animate([{transform:'translateY(0) scale(.96)'},{transform:'translateY(-46px) scale(1.05)',offset:.35},{transform:'translateY(-28px) scale(1.03)',offset:.62},{transform:'translateY(0) scale(1)'}],{duration:D,easing:'cubic-bezier(.2,.65,.25,1)',fill:'forwards'});
- coin.animate([{transform:`rotateY(${start}deg) rotateZ(-5deg)`,offset:0},{transform:`rotateY(${start+720}deg) rotateZ(4deg)`,offset:.34},{transform:`rotateY(${start+1260}deg) rotateZ(-3deg)`,offset:.66},{transform:`rotateY(${target}deg) rotateZ(0deg)`,offset:1}],{duration:D,easing:'cubic-bezier(.16,.7,.16,1)',fill:'forwards'});
- sh.animate([{transform:'scaleX(.7)',opacity:.35},{transform:'scaleX(1.2)',opacity:.85,offset:.35},{transform:'scaleX(.8)',opacity:.5,offset:.7},{transform:'scaleX(1)',opacity:.8}],{duration:D,fill:'forwards'});
- lift.onfinish=()=>{pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);ring(coin,col);resolve()};
+ const lift=w.animate([{transform:'translateY(18px) scale(.82) rotateZ(-8deg)',filter:'brightness(.65)',offset:0},{transform:'translateY(-42px) scale(1.02) rotateZ(3deg)',filter:'brightness(1.12)',offset:.22},{transform:'translateY(-82px) scale(1.12) rotateZ(-2deg)',filter:'brightness(1.3)',offset:.43},{transform:'translateY(-62px) scale(1.08) rotateZ(1deg)',filter:'brightness(1.18)',offset:.62},{transform:'translateY(-22px) scale(1.03) rotateZ(0deg)',filter:'brightness(1.05)',offset:.84},{transform:'translateY(0) scale(1) rotateZ(0deg)',filter:'brightness(1)',offset:1}],{duration:D,easing:'cubic-bezier(.16,.72,.18,1)',fill:'forwards'});
+ coin.animate([{transform:`rotateY(${start}deg) rotateZ(-14deg) scale(.82)`,offset:0},{transform:`rotateY(${start+1080}deg) rotateZ(12deg) scale(1.02)`,offset:.28},{transform:`rotateY(${start+1980}deg) rotateZ(-8deg) scale(1.13)`,offset:.52},{transform:`rotateY(${start+2520}deg) rotateZ(5deg) scale(1.08)`,offset:.73},{transform:`rotateY(${target-180}deg) rotateZ(-2deg) scale(1.02)`,offset:.9},{transform:`rotateY(${target}deg) rotateZ(0deg) scale(1)`,offset:1}],{duration:D,easing:'cubic-bezier(.12,.68,.12,1)',fill:'forwards'});
+ sh.animate([{transform:'scaleX(.35)',opacity:.15},{transform:'scaleX(1.5)',opacity:.8,offset:.3},{transform:'scaleX(1.8)',opacity:1,offset:.5},{transform:'scaleX(1.2)',opacity:.8,offset:.76},{transform:'scaleX(.9)',opacity:.55}],{duration:D,fill:'forwards'});
+ lift.onfinish=()=>{pips[i].className=side==='heads'?'h':'t';pips[i].innerHTML=COIN(side);ring(coin,col);w.classList.add('cf-landed');resolve()};
  });
- setTimeout(()=>Promise.all([0,1,2].map(flipOne)).then(()=>{const h=fl.filter(x=>x==='heads').length,t=fl.length-h;$('#cft').innerHTML=`<b style="color:#f2c14e">${h} Heads</b> · <b style="color:#60a5fa">${t} Tails</b>`;setTimeout(end,cfg.anim?400:0)}),cfg.anim?250:0)
+ setTimeout(()=>Promise.all([0,1,2].map(flipOne)).then(()=>{const h=fl.filter(x=>x==='heads').length,t=fl.length-h;$('#cft').innerHTML=`<b style="color:#f2c14e">${h} Heads</b> · <b style="color:#60a5fa">${t} Tails</b>`;setTimeout(end,cfg.anim?400:0)}),cfg.anim?380:0)
 }
 
 // ---- Towers (PS99) ----
