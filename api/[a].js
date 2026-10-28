@@ -333,7 +333,7 @@ async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0
  finally{if(await R('GET','lock')===t)await R('DEL','lock')}}
 // ---- daily stats (UTC day) for the Home page ----
 const dayKey=()=>new Date().toISOString().slice(0,10);
-const rec=(u,bet,pay)=>{const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
+const rec=(u,bet,pay,game,info)=>{if(game){(u.hist=u.hist||[]).push({g:game,bet,pay,t:Date.now(),i:info||''});if(u.hist.length>150)u.hist=u.hist.slice(-150)}const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
  s.w[u.id]=(s.w[u.id]||0)+bet;s.p[u.id]=(s.p[u.id]||0)+(pay-bet);s.n++;s.names[u.id]=[u.name,u.avatar];
  if(pay-bet>0&&(!s.best||pay-bet>s.best.amt))s.best={name:u.name,avatar:u.avatar,amt:pay-bet,bet}};
 const dayPub=()=>{const s=db.day&&db.day.d===dayKey()?db.day:null;if(!s)return{n:0,wag:0,top:[],most:[],best:null};
@@ -390,7 +390,7 @@ const bjDeck=()=>{const d=[];for(const s of BJS)for(const r of BJR)d.push(r+s);f
 const bjTot=h=>{let t=0,a=0;for(const c of h){const r=c.slice(0,-1);if(r==='A'){a++;t+=11}else t+=('JQK'.includes(r)||r==='10')?10:+r}while(t>21&&a){t-=10;a--}return t};
 const bjView=g=>({id:g.id,bet:g.bet,player:g.p,dealer:g.done?g.d:[g.d[0],null],pv:bjTot(g.p),dv:g.done?bjTot(g.d):bjTot([g.d[0]]),done:g.done,result:g.result||null,payout:g.payout||0,doubled:!!g.dbl,canDouble:!g.done&&g.p.length===2&&!g.dbl});
 function bjEnd(u,g,res){g.done=true;g.result=res;g.payout=res==='bj'?Math.floor(g.bet*2.5):res==='win'?g.bet*2:res==='push'?g.bet:0;
- u.tokens+=g.payout;u.wagered+=g.bet;u.profit+=g.payout-g.bet;rec(u,g.bet,g.payout);log(`🃏 ${u.name} blackjack ${res} (bet ${g.bet}, paid ${g.payout})`);HR('blackjack',u,'Blackjack',g.bet,g.payout,[['Result',res,1],['Hands',`You ${bjTot(g.p)} · Dealer ${bjTot(g.d)}`,1]])}
+ u.tokens+=g.payout;u.wagered+=g.bet;u.profit+=g.payout-g.bet;rec(u,g.bet,g.payout,'blackjack',`${res} · You ${bjTot(g.p)} vs Dealer ${bjTot(g.d)}`);log(`🃏 ${u.name} blackjack ${res} (bet ${g.bet}, paid ${g.payout})`);HR('blackjack',u,'Blackjack',g.bet,g.payout,[['Result',res,1],['Hands',`You ${bjTot(g.p)} · Dealer ${bjTot(g.d)}`,1]])}
 function bjDealer(u,g){while(bjTot(g.d)<17)g.d.push(g.k.pop());const p=bjTot(g.p),d=bjTot(g.d);bjEnd(u,g,d>21||p>d?'win':p===d?'push':'lose')}
 // ---- Coinflip (item vs item, resolved instantly when someone joins) ----
 const cfClean=items=>{const o={};for(const[k,q]of Object.entries(items||{})){if(!I[k])E('Bad item');o[k]=needInt(q)}return o};
@@ -404,7 +404,7 @@ function cfResolve(g,J){const cu=db.users[g.c.id],bot=!J.user,jSide=g.side==='he
  for(const k of units){if(tx+val(k)<=cap){tx+=val(k);add(pot,k,-1);add(db.shop,k,1)}else break}
  const wu=winC?cu:J.user;
  if(wu){Object.entries(pot).forEach(([k,q])=>add(wu.inv,k,q));wu.tokens+=ptok}else Object.entries(pot).forEach(([k,q])=>add(db.shop,k,q));
- cu.wagered+=g.value;cu.profit+=(winC?total-tx:0)-g.value;rec(cu,g.value,winC?total-tx:0);if(J.user){J.user.wagered+=J.value;J.user.profit+=(winC?0:total-tx)-J.value;rec(J.user,J.value,winC?0:total-tx)}
+ cu.wagered+=g.value;cu.profit+=(winC?total-tx:0)-g.value;rec(cu,g.value,winC?total-tx:0,'coinflip',`#${g.id} vs ${bot?'SyncBot':J.user.name} · ${flips.join('/')} → ${res} · ${winC?'Won':'Lost'}`);if(J.user){J.user.wagered+=J.value;J.user.profit+=(winC?0:total-tx)-J.value;rec(J.user,J.value,winC?0:total-tx,'coinflip',`#${g.id} vs ${g.c.name} · ${flips.join('/')} → ${res} · ${winC?'Lost':'Won'}`)}
  const jn=bot?{id:'bot',name:'SyncBot',avatar:'/logo.png',bot:1}:{id:J.user.id,name:J.user.name,avatar:J.user.avatar},w=winC?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:jn;
  db.cf.open=db.cf.open.filter(x=>x!==g);
  db.cf.recent.push({rid:db.cf.rid=(db.cf.rid||0)+1,id:g.id,c:g.c,j:jn,cSide:g.side,jSide,result:res,flips,winner:w,cItems:g.items,jItems:J.items,cTokens:g.tokens||0,jTokens:J.tokens,cValue:g.value,jValue:J.value,taxed:tx,won:total-tx,t:Date.now()});
@@ -427,7 +427,7 @@ function jpResolve(){
  tax.forEach(k=>{add(pot,k,-1);add(db.shop,k,1)});
  const wu=db.users[w[0]];Object.entries(pot).forEach(([k,q])=>add(wu.inv,k,q));
  const got=total-s;
- P.forEach(([id,p])=>{const u=db.users[id];u.wagered+=p.value;u.profit+=(id===w[0]?got:0)-p.value;rec(u,p.value,id===w[0]?got:0)});
+ P.forEach(([id,p])=>{const u=db.users[id];u.wagered+=p.value;u.profit+=(id===w[0]?got:0)-p.value;rec(u,p.value,id===w[0]?got:0,'jackpot',id===w[0]?'Won the pot':'Lost')});
  jp.last={rid:++jp.id,t:Date.now(),winner:w[0],name:w[1].name,total,taxed:s,snap:P.map(([id,p])=>({id,name:p.name,value:p.value}))};
  jp.players={};jp.end=0;log(`🎰 Jackpot #${jp.id}: ${w[1].name} won ${got} value (pot ${total}, tax ${s})`);
  hk('jackpot',{title:`Jackpot #${jp.id} · ${w[1].name} won`,color:0x22c55e,user:{avatar:w[1].avatar},desc:`${ulink({id:w[0],name:w[1].name})} took the pot`,fields:[['Pot',fm(total)+' '+cur(),1],['Tax',fm(s)+' '+cur(),1],['Winner gets',fm(got)+' '+cur(),1],['Players',P.map(([,p])=>`${md(p.name)} — ${fm(p.value)} (${(p.value/total*100).toFixed(1)}%)`).join('\n')]]})}
@@ -436,7 +436,7 @@ const mult=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 // ---- Towers (PS99 only): climb 8 floors, one safe tile per floor. Bomb layout is hidden server-side until the game ends. ----
 const TWD={easy:[4,1],medium:[3,1],hard:[2,1],expert:[3,2]},TWR=8; // [tiles per floor, bombs per floor]
 const twMult=(d,n)=>.97*Math.pow(TWD[d][0]/(TWD[d][0]-TWD[d][1]),n);
-function twCash(u){const g=u.tw,pay=Math.floor(g.bet*twMult(g.d,g.picks.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay);u.tw=null;HR('towers',u,'Towers',g.bet,pay,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Multiplier',twMult(g.d,g.picks.length).toFixed(2)+'x',1]]);
+function twCash(u){const g=u.tw,pay=Math.floor(g.bet*twMult(g.d,g.picks.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay,'towers',`${g.d} · ${g.picks.length}/${TWR} floors · ${twMult(g.d,g.picks.length).toFixed(2)}x`);u.tw=null;HR('towers',u,'Towers',g.bet,pay,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Multiplier',twMult(g.d,g.picks.length).toFixed(2)+'x',1]]);
  log(`🗼 ${u.name} cashed out towers for ${pay} (bet ${g.bet}, ${g.picks.length} floors, ${g.d})`);return{cashed:pay,bombs:g.bombs,picks:g.picks,d:g.d}}
 
 async function start(b){
@@ -505,6 +505,7 @@ async function handle(a,b,sid,H){
  const take=(items,types)=>{let v=0;for(const[k,q]of Object.entries(items||{})){const n=needInt(q);if(!I[k])E('Bad item');if(types&&!types.includes(I[k].type))E('Item not allowed here');if((u.inv[k]||0)<n)E('You do not own that');v+=val(k)*n}
   for(const[k,q]of Object.entries(items))add(u.inv,k,-q);return v};
  // ---- Player search / profiles. Only public stats are returned: never the device hash, session, active game state or lastChat. Alts are shown to admins only. ----
+ if(a==='history'){const gm=String(b.game||'');return{h:(u.hist||[]).filter(x=>!gm||x.g===gm).slice(-50).reverse()}}
  if(a==='psearch'){const s=String(b.q||'').trim().toLowerCase().slice(0,40);if(!s)return{list:[]};
   const seen={},out=[];for(const x of Object.values(db.users).concat(MODE==='ps99'?Object.values(MAIN.users||{}):[])){if(seen[x.id])continue;seen[x.id]=1;
    if(x.name.toLowerCase().includes(s)||String(x.id)===s)out.push({id:x.id,name:x.name,avatar:x.avatar,w:db.users[x.id]?Math.floor(db.users[x.id].wagered||0):0})}
@@ -550,7 +551,7 @@ async function handle(a,b,sid,H){
   u.tokens-=bet;const mines=[];while(mines.length<m){const x=crypto.randomInt(25);if(!mines.includes(x))mines.push(x)}
   u.mines={bet,m,mines,open:[]};return{ok:1}}
  if(a==='minespick'){const g=u.mines;if(!g)E('No game');const i=needInt(b.i,0);if(i>24||g.open.includes(i))E('Invalid tile');
-  if(g.mines.includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0);u.mines=null;HR('mines',u,'Mines',g.bet,0,[['Mines',g.m,1],['Gems found',g.open.length,1],['Result','Hit a mine',1]]);return{boom:true,mines:g.mines,open:g.open}}
+  if(g.mines.includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0,'mines',`${g.m} mines · hit a mine after ${g.open.length} gems`);u.mines=null;HR('mines',u,'Mines',g.bet,0,[['Mines',g.m,1],['Gems found',g.open.length,1],['Result','Hit a mine',1]]);return{boom:true,mines:g.mines,open:g.open}}
   g.open.push(i);if(g.open.length===25-g.m)return minesCash(u);return{safe:true}}
  if(a==='minescash'){if(!u.mines||!u.mines.open.length)E('Pick a tile first');return minesCash(u)}
  if(a==='withdraw'){const n=needInt(b.qty);take({[b.item]:n},MODE==='ps99'?['pet']:['gun','knife','pet']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
@@ -575,7 +576,7 @@ async function handle(a,b,sid,H){
   u.tokens-=bet;const bombs=[];for(let r=0;r<TWR;r++){const row=[];while(row.length<k){const x=crypto.randomInt(c);if(!row.includes(x))row.push(x)}bombs.push(row)}
   u.tw={bet,d,bombs,picks:[]};return{ok:1}}
  if(a==='twpick'){const g=u.tw;if(!g)E('No game');const i=needInt(b.i,0);if(i>=TWD[g.d][0])E('Invalid tile');
-  if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0);u.tw=null;HR('towers',u,'Towers',g.bet,0,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Result','Hit a bomb on floor '+(g.picks.length+1),1]]);log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
+  if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0,'towers',`${g.d} · bomb on floor ${g.picks.length+1}`);u.tw=null;HR('towers',u,'Towers',g.bet,0,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Result','Hit a bomb on floor '+(g.picks.length+1),1]]);log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
   g.picks.push(i);if(g.picks.length===TWR)return twCash(u);return{safe:true}}
  if(a==='twcash'){if(!u.tw||!u.tw.picks.length)E('Climb a floor first');return twCash(u)}
  if(a==='admreturn'){const o=b.asid&&db.sessions[b.asid];if(!o||!ADMINS.includes(o))E('Not impersonating');
@@ -641,7 +642,7 @@ async function handle(a,b,sid,H){
    logA(`🛠️ ${u.name} ran data repair (${purged} foreign entries removed, ${sus.length} suspicious players)`);return{ok:1,purged,sus}}
   else E('Unknown');return{ok:1}}
  E('Unknown action')}
-function minesCash(u){const g=u.mines,pay=Math.floor(g.bet*mult(g.m,g.open.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay);u.mines=null;
+function minesCash(u){const g=u.mines,pay=Math.floor(g.bet*mult(g.m,g.open.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay,'mines',`${g.m} mines · ${g.open.length} gems · ${mult(g.m,g.open.length).toFixed(2)}x`);u.mines=null;
  log(`💣 ${u.name} cashed out mines for ${pay} (bet ${g.bet})`);HR('mines',u,'Mines',g.bet,pay,[['Mines',g.m,1],['Gems found',g.open.length,1],['Multiplier',mult(g.m,g.open.length).toFixed(2)+'x',1]]);return{cashed:pay,mines:g.mines,open:g.open}}
 
 // Module-level state (MODE, KEY, db, ITEMS, jp...) is shared by every request this instance serves, so requests run one at a time.
