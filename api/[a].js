@@ -1,8 +1,27 @@
 // Sync MM2 — Vercel port (Milestone 1). State lives in Upstash Redis; a Redis lock serialises every write.
 const crypto=require('crypto');
-const ADMINS=(process.env.ADMIN_IDS||'').split(',').map(s=>s.trim()).filter(Boolean);
+// ---- Roles ----
+// OWNER: full control (logs, same-IP alt accounts, admin passwords, webhooks, login-as, data repair).
+// ADMIN: items, shop, values, codes, leaderboards, withdrawals/deposits, player balances. Nothing else.
+// Add owner Roblox IDs in Vercel > Settings > Environment Variables as OWNER_IDS (comma separated, e.g. 123,456),
+// or paste them into OWNER_IDS_HARDCODED below. Owners are automatically admins. ADMIN_IDS = normal admins.
+const OWNER_IDS_HARDCODED=[]; // e.g. ['1234567890']
+const idList=v=>String(v||'').split(/[,\s]+/).map(x=>x.trim()).filter(Boolean);
+const OWNERS=[...new Set([...idList(process.env.OWNER_IDS),...idList(process.env.OWNER_ID),...OWNER_IDS_HARDCODED.map(String)])];
+const ADMINS=[...new Set([...idList(process.env.ADMIN_IDS),...OWNERS])];
+const isOwner=id=>OWNERS.includes(String(id));
+// Actions only an Owner may run (everything else starting with "adm" is open to admins).
+const OWNER_ONLY=new Set(['admpwset','admpwdel','admwh','admwhtest','admrepair','admlogin','admkick']);
+// ---- IP bans: Redis key 'ipbans' (shared by MM2 and PS99) = {playerId:{uid,name,avatar,dev,reason,by,byName,t,adm}}.
+// A ban blocks that account AND every non-staff account/visitor on the same IP. Owners can never be banned.
+// Admins can only be banned/unbanned by an Owner. Staff are exempt from IP matching, so sharing an IP with a banned player never locks them out.
+let BANC=null,BANT=0,CURDEV='';
 const URL_=process.env.UPSTASH_REDIS_REST_URL||process.env.KV_REST_API_URL,TOK=process.env.UPSTASH_REDIS_REST_TOKEN||process.env.KV_REST_API_TOKEN;
 const R=async(...c)=>{const r=await fetch(URL_,{method:'POST',headers:{Authorization:'Bearer '+TOK},body:JSON.stringify(c)});const j=await r.json();if(j.error)throw Error('DB: '+j.error);return j.result};
+const getBans=async()=>{if(BANC&&Date.now()-BANT<8000)return BANC;let m={};try{const r=await R('GET','ipbans');m=r?JSON.parse(r):{}}catch{}BANC=m;BANT=Date.now();return m};
+const putBans=async m=>{await R('SET','ipbans',JSON.stringify(m));BANC=m;BANT=Date.now()};
+const banHit=(bans,uid,dev)=>{uid=uid?String(uid):'';if(uid&&isOwner(uid))return null;return(uid&&bans[uid])||(dev&&!(uid&&ADMINS.includes(uid))&&Object.values(bans).find(x=>x.dev&&x.dev===dev))||null};
+const banMsg=b=>'You are banned from this site'+(b&&b.reason?' — '+b.reason:'');
 const MM2_ITEMS=[
 ['nikscythe','Nik\'s Scythe','knife','ancient',150000,'☠️'],
 ['elderwood','Elderwood Scythe','knife','ancient',130,'🌿'],
@@ -384,6 +403,42 @@ const findUser=s=>{s=String(s??'').trim();const l=s.toLowerCase();let t=db.users
  if(!t&&MODE==='ps99'&&MAIN){const mu=(MAIN.users||{})[s]||Object.values(MAIN.users||{}).find(x=>x.name.toLowerCase()===l);if(mu)t=db.users[mu.id]={id:mu.id,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,mines:null,lastSeen:0}}
  return t||E('User not found')};
 
+// ---- Admin passwords: scrypt-hashed in Redis ('admpw'), set/removed ONLY by the Owner. Admins can sign in with the Roblox bio code OR their password. ----
+const scr=(p,s)=>new Promise((ok,no)=>crypto.scrypt(p,s,32,{N:16384,r:8,p:1},(e,k)=>e?no(e):ok(k)));
+const pwMap=async()=>{try{const r=await R('GET','admpw');return r?JSON.parse(r):{}}catch{return{}}};
+const pwOk=async(rec,p)=>{const k=await scr(String(p),Buffer.from(rec?rec.s:'00'.repeat(16),'hex'));return!!rec&&crypto.timingSafeEqual(k,Buffer.from(rec.h,'hex'))}; // always hashes, so timing doesn't reveal whether the account exists
+const pwThrottle=async ks=>{for(const k of ks)if(+(await R('GET','pwf:'+k)||0)>=5)E('Too many attempts. Try again in 15 minutes.')};
+const pwFail=async ks=>{for(const k of ks){const n=await R('INCR','pwf:'+k);if(n===1)await R('EXPIRE','pwf:'+k,900)}};
+async function pwLogin(b,H,req){
+ const un=String(b.username||'').trim().toLowerCase().slice(0,40),pw=String(b.password||'').slice(0,200);
+ if(!un||!pw)E('Enter your username and password');
+ const dev=hashDev(getIp(req)),ks=['i'+dev,'u'+un.replace(/[^a-z0-9_]/g,'')];
+ await pwThrottle(ks);await load();
+ const t=Object.values(db.users).find(x=>x.name.toLowerCase()===un||x.id===un),rec=t&&ADMINS.includes(t.id)?(await pwMap())[t.id]:null;
+ if(!(await pwOk(rec,pw))){await pwFail(ks);E('Wrong username or password')}
+ await R('DEL','pwf:'+ks[1]);
+ {const bn=banHit(await getBans(),t.id,dev);if(bn)E(banMsg(bn))}
+ return mutate(async()=>{const u=db.users[t.id]||E('Wrong username or password');u.lastSeen=Date.now();if(dev)u.dev=dev;
+  const s=crypto.randomBytes(24).toString('hex');db.sessions[s]=u.id;
+  H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=604800; SameSite=Lax`;log(`🔑 ${u.name} logged in with admin password`);
+  hk('logins',{title:'Admin password login',color:0xf59e0b,user:{avatar:u.avatar},desc:`${ulink(u)} signed in with a password`,fields:[['Roblox ID',u.id,1],['Location',flag(dd(req.headers['x-vercel-ip-country']))+geoOf(req),1],['IP address','`'+(getIp(req)||'unknown')+'`',1],['Browser',cut(req.headers['user-agent']||'',180)]]});
+  return{ok:true}})}
+const admList=PW=>ADMINS.map(id=>{const u=db.users[id]||(MAIN&&MAIN.users&&MAIN.users[id]);return{id,name:u?u.name:id,avatar:u?u.avatar:'',owner:isOwner(id),pw:!!PW[id],t:PW[id]?PW[id].t:0,known:!!db.users[id]}});
+
+// ---- Leaderboard: live stats + admin overrides (db.lbx = {over:{wagered:{key:{id?,name,avatar,v}},profit:{...}}, hide:{id:1}}). Overrides replace a player's value or add a custom entry; hidden players vanish from every board. ----
+const LBN=25;
+function lbRows(k){const x=db.lbx||{},hide=x.hide||{},ov=(x.over||{})[k]||{},rows=[];
+ for(const u of Object.values(db.users)){if(hide[u.id]||ov[u.id])continue;const v=Math.floor(u[k]||0);if(v>0)rows.push({id:u.id,name:u.name,avatar:u.avatar,v})}
+ for(const o of Object.values(ov)){const u=o.id&&db.users[o.id];if(o.id&&hide[o.id])continue;rows.push(u?{id:u.id,name:u.name,avatar:u.avatar,v:Math.floor(o.v)}:{id:'',name:o.name,avatar:o.avatar||'',v:Math.floor(o.v),custom:1})}
+ return rows.sort((a,b)=>b.v-a.v)}
+function lbToday(){const s=db.day&&db.day.d===dayKey()?db.day:null,hide=(db.lbx&&db.lbx.hide)||{};if(!s)return[];
+ return Object.entries(s.p).filter(([id,v])=>v>0&&!hide[id]&&s.names[id]).map(([id,v])=>({id,name:s.names[id][0],avatar:s.names[id][1],v:Math.floor(v)})).sort((a,b)=>b.v-a.v)}
+function lbView(sid){const uid=db.sessions[sid],all={wagered:lbRows('wagered'),profit:lbRows('profit'),today:lbToday()},boards={},me={};
+ for(const[k,l]of Object.entries(all)){boards[k]=l.slice(0,LBN);const i=uid?l.findIndex(r=>r.id===uid):-1;me[k]=i>=0?{rank:i+1,v:l[i].v}:null}
+ return{boards,me,total:Object.keys(db.users).length}}
+const lbAdm=()=>{const x=db.lbx||{},ov=k=>Object.entries((x.over||{})[k]||{}).map(([key,o])=>{const u=o.id&&db.users[o.id];return{key,id:o.id||'',name:u?u.name:o.name,avatar:u?u.avatar:(o.avatar||''),v:Math.floor(o.v),custom:!o.id}});
+ return{wagered:ov('wagered'),profit:ov('profit'),hide:Object.keys(x.hide||{}).map(id=>{const u=db.users[id];return{id,name:u?u.name:id,avatar:u?u.avatar:''}})}};
+
 // ---- Blackjack (server-side deck; dealer hole card is never sent until the hand ends) ----
 const BJR=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],BJS=['♠','♥','♦','♣'];
 const bjDeck=()=>{const d=[];for(const s of BJS)for(const r of BJR)d.push(r+s);for(let i=d.length-1;i>0;i--){const j=crypto.randomInt(i+1);[d[i],d[j]]=[d[j],d[i]]}return d};
@@ -450,37 +505,38 @@ async function check(b,H,req){
  const d=await rj(`https://users.roblox.com/v1/users/${p.id}`);if(!(d.description||'').includes(p.code))return{waiting:true};
  let av='';try{av=(await rj(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${p.id}&size=150x150&format=Png`)).data[0].imageUrl}catch{}
  const dev=hashDev(getIp(req));
+ {const bn=banHit(await getBans(),p.id,dev);if(bn)E(banMsg(bn))}
  return mutate(async()=>{const isNew=!db.users[p.id];const same=Object.values(db.users).filter(x=>dev&&x.id!==p.id&&x.dev===dev).map(x=>x.name);const u=db.users[p.id]||(db.users[p.id]={id:p.id,name:p.name,avatar:'',tokens:0,inv:{},wagered:0,profit:0,mines:null});
   u.name=p.name;u.avatar=av;if(dev)u.dev=dev;u.lastSeen=Date.now();const s=crypto.randomBytes(24).toString('hex');db.sessions[s]=p.id;await R('DEL','p:'+b.tok);
   H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);hk('logins',{title:isNew?'New account':'Login',color:same.length?0xef4444:isNew?0x22c55e:undefined,user:{avatar:av},desc:`${ulink(p)} signed in`,fields:[['Roblox ID',p.id,1],['Location',flag(dd(req.headers['x-vercel-ip-country']))+geoOf(req),1],['IP address','`'+(getIp(req)||'unknown')+'`',1],['Device ID',dev?'`'+dev.slice(0,10)+'`':'',1],['⚠️ Shares a device with',same.map(md).join(', ')],['Browser',cut(req.headers['user-agent']||'',180)]]});return{ok:true}})}
 
-const admData=WC=>{const us=Object.values(db.users),tk=us.reduce((s,x)=>s+(x.tokens||0),0),iv=us.reduce((s,x)=>s+invVal(x),0),sv=Object.entries(db.shop).reduce((s,[k,q])=>s+val(k)*q,0),now=Date.now();
- return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),dp:db.dp.filter(w=>w.status==='pending'),dpDone:db.dp.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:whView(WC),logs:db.logs.slice(-100).reverse(),alts:altGroups(),codes:codeList(),
+const admData=(WC,own)=>{const us=Object.values(db.users),tk=us.reduce((s,x)=>s+(x.tokens||0),0),iv=us.reduce((s,x)=>s+invVal(x),0),sv=Object.entries(db.shop).reduce((s,[k,q])=>s+val(k)*q,0),now=Date.now();
+ return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),dp:db.dp.filter(w=>w.status==='pending'),dpDone:db.dp.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:own?whView(WC):undefined,logs:own?db.logs.slice(-100).reverse():undefined,alts:own?altGroups():undefined,codes:codeList(),
   stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<45000).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length+db.dp.filter(w=>w.status==='pending').length,
    cfOpen:db.cf.open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
-  cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]}))}};
-const admPlayer=t=>({id:t.id,name:t.name,avatar:t.avatar,tokens:Math.floor(t.tokens||0),invValue:Math.floor(invVal(t)),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),lastSeen:t.lastSeen||0,
+  cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]})),lb:lbAdm()}};
+const admPlayer=(t,own)=>({id:t.id,name:t.name,avatar:t.avatar,tokens:Math.floor(t.tokens||0),invValue:Math.floor(invVal(t)),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),lastSeen:t.lastSeen||0,
  inv:Object.entries(t.inv||{}).filter(([k])=>I[k]).map(([k,q])=>({id:k,q})),games:{mines:!!t.mines,tw:!!t.tw,bj:!!(t.bj&&!t.bj.done),jp:!!jp.players[t.id],cf:db.cf.open.filter(g=>g.c.id===t.id).length},
- alts:t.dev?Object.values(db.users).filter(x=>x.id!==t.id&&x.dev===t.dev).map(x=>x.name):[]});
+ alts:own&&t.dev?Object.values(db.users).filter(x=>x.id!==t.id&&x.dev===t.dev).map(x=>x.name):[]});
 async function handle(a,b,sid,H){
- if(a==='lb'){const us=Object.values(db.users),f=k=>us.slice().sort((x,y)=>y[k]-x[k]).slice(0,20).map(u=>({id:u.id,name:u.name,avatar:u.avatar,v:Math.floor(u[k])}));
-  return{wagered:f('wagered'),profit:f('profit')}}
+ if(a==='lb')return lbView(sid);
  const uid0=db.sessions[sid];let u=db.users[uid0];
  if(MODE==='ps99'&&uid0&&MAIN.users[uid0]){const mu=MAIN.users[uid0];
   u=db.users[uid0]||(db.users[uid0]={id:uid0,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,mines:null,lastSeen:Date.now()});
   u.name=mu.name;u.avatar=mu.avatar;if(mu.dev)u.dev=mu.dev}
+ if(u&&a!=='logout'&&a!=='admreturn'&&!(b.asid&&ADMINS.includes(db.sessions[b.asid]))){const bh=banHit(await getBans(),u.id,CURDEV);if(bh){if(a==='state')return{banned:{reason:bh.reason||''}};E('You are banned from this site')}}
  if(a==='state'){
-  if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now(),WC=admin?await whCfg():{};
+  if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now(),WC=isOwner(u.id)?await whCfg():{};
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
-  return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
+  return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,owner:isOwner(u.id),imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
    day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
    bj:u.bj?bjView(u.bj):null,
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),dp:db.dp.filter(w=>w.uid===u.id).slice(-10),tips:(db.tips||[]).filter(x=>x.from.id===u.id||x.to.id===u.id).slice(-15),
    online,activeMines,chat:(db.chat||[]).slice(-50),
-   admin:admin?admData(WC):undefined}}
+   admin:admin?Object.assign(admData(WC,isOwner(u.id)),isOwner(u.id)?{admins:admList(await pwMap())}:{}):undefined}}
  if(!u)E('Please log in');
  if(a==='logout'){delete db.sessions[sid];H['Set-Cookie']='asid=; HttpOnly; Secure; Path=/; Max-Age=0; SameSite=Lax';return{ok:1}}
  if(a==='chatsend'){const msg=String(b.msg||'').trim().slice(0,300);if(!msg)E('Empty message');
@@ -514,7 +570,7 @@ async function handle(a,b,sid,H){
   if(!t&&MODE==='ps99'){const mu=(MAIN.users||{})[k]||Object.values(MAIN.users||{}).find(x=>x.name.toLowerCase()===k.toLowerCase());if(mu){t={id:mu.id,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,lastSeen:0};fresh=1}}
   if(!t)E('Player not found');
   const us=Object.values(db.users),rank=fresh?null:us.filter(x=>(x.wagered||0)>(t.wagered||0)).length+1,inv=Object.entries(t.inv||{}).filter(([k2])=>I[k2]).map(([k2,q])=>({id:k2,q,v:val(k2)})).sort((x,y)=>y.v*y.q-x.v*x.q),
-   dy=db.day&&db.day.d===dayKey()?db.day:null,admin=ADMINS.includes(u.id);
+   dy=db.day&&db.day.d===dayKey()?db.day:null,admin=isOwner(u.id);
   return{p:{id:t.id,name:t.name,avatar:t.avatar,balance:Math.floor(t.tokens||0),invValue:invVal(t),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),
    rank,players:us.length,pieces:inv.reduce((n,x)=>n+x.q,0),kinds:inv.length,top:inv.slice(0,10),online:Date.now()-(t.lastSeen||0)<45000,lastSeen:t.lastSeen||0,
    todayWag:dy?Math.floor(dy.w[t.id]||0):0,todayProfit:dy?Math.floor(dy.p[t.id]||0):0,
@@ -582,7 +638,7 @@ async function handle(a,b,sid,H){
  if(a==='admreturn'){const o=b.asid&&db.sessions[b.asid];if(!o||!ADMINS.includes(o))E('Not impersonating');
   const tn=u.name;delete db.sessions[sid];H['Set-Cookie']=[`sid=${b.asid}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`,'asid=; HttpOnly; Secure; Path=/; Max-Age=0; SameSite=Lax'];
   const ad=db.users[o]||(MAIN&&MAIN.users[o])||{id:o,name:o,avatar:''};log(`🛠️ ${ad.name} returned from ${tn}'s account`);hk('admin',{title:'Admin action',user:ad,desc:`${ulink(ad)}\nreturned from **${md(tn)}**'s account`});return{ok:1}}
- if(a.startsWith('adm')){if(!ADMINS.includes(u.id))E('Not admin');
+ if(a.startsWith('adm')){if(!ADMINS.includes(u.id))E('Not admin');if(OWNER_ONLY.has(a)&&!isOwner(u.id))E('Only the Owner can do that');
   const logA=m=>{log(m);if(a!=='admwhtest')hk('admin',{title:'Admin action',user:u,desc:`${ulink(u)}\n${m.replace(/^\S+\s/,'')}`})};
   const iname=k=>(I[k]||{name:k}).name,cn=cur();
   if(a==='admgive'){const t=findUser(b.user),src=b.items&&typeof b.items==='object'?b.items:{[b.item]:b.qty},ls=[];
@@ -612,7 +668,7 @@ async function handle(a,b,sid,H){
    H['Set-Cookie']=[`sid=${s2}; HttpOnly; Secure; Path=/; Max-Age=43200; SameSite=Lax`,`asid=${sid}; HttpOnly; Secure; Path=/; Max-Age=43200; SameSite=Lax`];
    logA(`🛠️ ${u.name} logged in as ${t.name} (admin login-as)`)}
   else if(a==='admlist'){return{list:Object.values(db.users).map(x=>({id:x.id,name:x.name,avatar:x.avatar,tokens:Math.floor(x.tokens||0),invValue:Math.floor(invVal(x)),wagered:Math.floor(x.wagered||0),lastSeen:x.lastSeen||0})).sort((x,y)=>y.lastSeen-x.lastSeen).slice(0,500)}}
-  else if(a==='admplayer'){return{p:admPlayer(findUser(b.user))}}
+  else if(a==='admplayer'){const t=findUser(b.user),p=admPlayer(t,isOwner(u.id)),bn=(await getBans())[t.id];p.owner=isOwner(t.id);p.admin=ADMINS.includes(t.id);p.noip=!t.dev;p.ban=bn?{reason:bn.reason||'',adm:!!bn.adm}:null;return{p}}
   else if(a==='admcancelbj'){const t=findUser(b.user);if(t.bj&&!t.bj.done){t.tokens+=t.bj.bet;t.bj=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s blackjack hand (refunded)`)}
   else if(a==='admcancelcf'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Coinflip not found');const o=db.users[g.c.id];if(o){for(const[k,q]of Object.entries(g.items))add(o.inv,k,q);o.tokens+=g.tokens||0}db.cf.open=db.cf.open.filter(x=>x!==g);logA(`🛠️ ${u.name} cancelled coinflip #${g.id} (refunded)`)}
   else if(a==='admkick'){const t=findUser(b.user);let n=0;if(MODE==='mm2')for(const k of Object.keys(db.sessions))if(db.sessions[k]===t.id){delete db.sessions[k];n++}logA(`🛠️ ${u.name} force-logged-out ${t.name} (${n} sessions)`)}
@@ -640,6 +696,33 @@ async function handle(a,b,sid,H){
    if(jp.last&&lim&&jp.last.total>lim)jp.last=null;
    const wn=db.wd.length;db.wd=db.wd.filter(w=>I[w.item]);db.dp=db.dp.filter(w=>I[w.item]);purged+=wn-db.wd.length+co-db.cf.open.length;db.day=null;
    logA(`🛠️ ${u.name} ran data repair (${purged} foreign entries removed, ${sus.length} suspicious players)`);return{ok:1,purged,sus}}
+  else if(a==='admlbset'){const k=b.board;if(k!=='wagered'&&k!=='profit')E('Pick a board');const v=amt(b.value);if(!Number.isFinite(v))E('Invalid amount');
+   const q=String(b.user??'').trim().slice(0,32);if(!q)E('Enter a player or a name');const x=db.lbx=db.lbx||{over:{},hide:{}};x.over=x.over||{};x.hide=x.hide||{};const ov=x.over[k]=x.over[k]||{};
+   let t=null;try{t=findUser(q)}catch{}
+   if(t){ov[t.id]={id:t.id,v};logA(`🏆 ${u.name} set ${t.name}'s ${k} leaderboard value to ${fm(v)}`)}
+   else{const l=q.toLowerCase(),ex=Object.keys(ov).find(i=>!ov[i].id&&ov[i].name.toLowerCase()===l);if(!ex&&Object.keys(ov).length>=100)E('Too many custom entries');ov[ex||'c'+crypto.randomBytes(4).toString('hex')]={name:q,avatar:'',v};logA(`🏆 ${u.name} set custom leaderboard entry ${q} (${k}) to ${fm(v)}`)}}
+  else if(a==='admlbdel'){const k=b.board,o=db.lbx&&db.lbx.over&&db.lbx.over[k]&&db.lbx.over[k][b.key];if(!o)E('Entry not found');delete db.lbx.over[k][b.key];logA(`🏆 ${u.name} removed leaderboard override for ${o.name||o.id} (${k})`)}
+  else if(a==='admlbclear'){const k=b.board;if(k!=='wagered'&&k!=='profit')E('Pick a board');const n=Object.keys((db.lbx&&db.lbx.over&&db.lbx.over[k])||{}).length;if(db.lbx&&db.lbx.over)db.lbx.over[k]={};logA(`🏆 ${u.name} cleared ${n} ${k} leaderboard overrides`)}
+  else if(a==='admlbhide'){const t=findUser(b.user),x=db.lbx=db.lbx||{over:{},hide:{}};x.hide=x.hide||{};if(b.hide===false)delete x.hide[t.id];else x.hide[t.id]=1;logA(`🏆 ${u.name} ${b.hide===false?'unhid':'hid'} ${t.name} ${b.hide===false?'on':'from'} the leaderboards`)}
+  else if(a==='admban'){const t=findUser(b.user);
+   if(isOwner(t.id))E('Owners cannot be banned');
+   if(t.id===u.id)E('You cannot ban yourself');
+   const tAdm=ADMINS.includes(t.id);if(tAdm&&!isOwner(u.id))E('Only the Owner can ban admins');
+   const bans=await getBans();if(bans[t.id])E(t.name+' is already banned');
+   const reason=String(b.reason||'').trim().slice(0,120);
+   bans[t.id]={uid:t.id,name:t.name,avatar:t.avatar||'',dev:t.dev||'',reason,by:u.id,byName:u.name,t:Date.now(),adm:tAdm};
+   await putBans(bans);
+   logA(`🔨 ${u.name} IP-banned ${t.name}${reason?' ('+reason+')':''}${t.dev?'':' — account only, no IP on record yet'}`);return{ok:1,noip:!t.dev}}
+  else if(a==='admunban'){const bans=await getBans(),k=String(b.uid||'').trim(),e=bans[k]||E('Ban not found');
+   if(e.adm&&!isOwner(u.id))E('Only the Owner can unban admins');
+   delete bans[k];await putBans(bans);logA(`✅ ${u.name} unbanned ${e.name}`)}
+  else if(a==='admbans'){const bans=await getBans();return{list:Object.values(bans).sort((x,y)=>y.t-x.t).map(e=>({uid:e.uid,name:e.name,avatar:e.avatar,reason:e.reason,byName:e.byName,t:e.t,adm:!!e.adm,ip:!!e.dev}))}}
+  else if(a==='admpwset'||a==='admpwdel'){if(!isOwner(u.id))E('Only the Owner can manage admin passwords');
+   const q=String(b.user??'').trim(),t=db.users[q]||Object.values(db.users).find(w=>w.name.toLowerCase()===q.toLowerCase()),tid=t?t.id:q;if(!ADMINS.includes(tid))E('That player is not an admin');
+   const M=await pwMap(),tn=t?t.name:tid;
+   if(a==='admpwset'){const pw=String(b.password??'');if(pw.length<8)E('Password must be at least 8 characters');if(pw.length>128)E('Password is too long');const sl=crypto.randomBytes(16);M[tid]={s:sl.toString('hex'),h:(await scr(pw,sl)).toString('hex'),t:Date.now()};logA(`🔒 ${u.name} set an admin password for ${tn}`)}
+   else{delete M[tid];logA(`🔒 ${u.name} removed the admin password of ${tn}`)}
+   await R('SET','admpw',JSON.stringify(M))}
   else E('Unknown');return{ok:1}}
  E('Unknown action')}
 function minesCash(u){const g=u.mines,pay=Math.floor(g.bet*mult(g.m,g.open.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay,'mines',`${g.m} mines · ${g.open.length} gems · ${mult(g.m,g.open.length).toFixed(2)}x`);u.mines=null;
@@ -652,13 +735,15 @@ const exclusive=fn=>{const r=QUEUE.then(fn,fn);QUEUE=r.then(()=>{},()=>{});retur
 module.exports=(req,res)=>exclusive(()=>run(req,res));
 const run=async(req,res)=>{
  const a=req.query.a,b=(req.body&&typeof req.body==='object')?req.body:{},H={};HQ.length=0;{const h=req.headers['x-forwarded-host']||req.headers.host;SITE=h?'https://'+h:''}
- setMode(['start','check','logout','admlogin','admreturn','admkick'].includes(a)?'mm2':b.gm);
+ CURDEV=hashDev(getIp(req));
+ setMode(['start','check','pwlogin','logout','admlogin','admreturn','admkick'].includes(a)?'mm2':b.gm);
  const ck=Object.fromEntries((req.headers.cookie||'').split('; ').map(c=>c.split('='))),sid=ck.sid;b.asid=ck.asid||'';let out;
  try{
   if(!URL_||!TOK)E('Database not configured (Upstash env vars missing)');
   if(a==='start')out=await start(b);
   else if(a==='check')out=await check(b,H,req);
-  else if(a==='admlist'||a==='admplayer'){await load();out=await handle(a,b,sid,H)}
+  else if(a==='pwlogin')out=await pwLogin(b,H,req);
+  else if(a==='admlist'||a==='admplayer'||a==='admbans'){await load();out=await handle(a,b,sid,H)}
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
    const needResolve=(jp.end&&Date.now()>=jp.end)||false,known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
