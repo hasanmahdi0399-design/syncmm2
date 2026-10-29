@@ -42,6 +42,7 @@ const dcAvatar=u=>u.avatar?`https://cdn.discordapp.com/avatars/${u.id}/${u.avata
 // ---- Wager lock (PS99): gems from redeemed codes must be wagered at 90% before ANY withdrawal. u.wl={base:wagered at redeem,req:total still required}.
 // Remaining = req - (wagered - base). Stacks if the player redeems several codes. Counts every game via u.wagered, so no game code needs touching.
 const WAGER_LOCK=0.9;
+const wlAdd=(u,n)=>{u.wl={base:u.wagered||0,req:wlLeft(u)+Math.ceil(n*WAGER_LOCK)}}; // adds n to the lock at 90%, stacks with whatever is already locked
 const wlLeft=u=>{const l=u&&u.wl;if(!l)return 0;return Math.max(0,Math.ceil(l.req-Math.max(0,(u.wagered||0)-l.base)))};
 // Chat/profile tag: owner > admin > streamer
 const roleOf=(id,STR)=>isOwner(id)?'owner':ADMINS.includes(String(id))?'admin':(STR&&STR[id])?'streamer':'';
@@ -380,11 +381,11 @@ async function psLoad(){
  psSet(c)}
 let db,jp;
 let DBKEY=KEY; // the Redis key the CURRENT db was loaded from; persist() always writes back to this, never to whatever KEY is now
-const load=async()=>{DBKEY=KEY;const s=await R('GET',DBKEY);db={users:{},sessions:{},shop:{},wd:[],dp:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},...(s?JSON.parse(s):{})};
+const load=async fresh=>{DBKEY=KEY;const s=await R('GET',DBKEY);db={users:{},sessions:{},shop:{},wd:[],dp:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},...(s?JSON.parse(s):{})};
  if(db._m&&db._m!==MODE)throw Error('Data mismatch ('+db._m+' data under '+MODE+'), refusing to continue');
  if(MODE==='ps99'){const mm=await R('GET','db');MAIN=mm?JSON.parse(mm):{users:{},sessions:{}};db.sessions=MAIN.sessions||{};await psLoad()}
  if(db.cb){for(const g of db.cb.open||[])for(const p of g.players)if(!p.bot&&db.users[p.id])db.users[p.id].tokens+=g.cost;delete db.cb} // case battles were removed: refund anything still open
- jp=db.jp||(db.jp={players:{},end:0,id:0,last:null})};
+ jp=db.jp||(db.jp={players:{},end:0,id:0,last:null});await wgLoad(fresh)};
 // Device fingerprint: a salted, one-way hash of the request IP, stored per user so admins can see
 // which accounts share a device (likely alts/ban evasion). Never the raw IP, never sent anywhere else.
 const DEVSALT=process.env.DEVICE_SALT||'syncmm2-default-salt-change-me';
@@ -392,17 +393,66 @@ const getIp=req=>String(req.headers['x-forwarded-for']||req.socket?.remoteAddres
 const hashDev=ip=>ip?crypto.createHash('sha256').update(DEVSALT+ip).digest('hex').slice(0,20):'';
 function altGroups(){const by={};for(const u of Object.values(db.users)){if(!u.dev)continue;(by[u.dev]=by[u.dev]||[]).push(u.name)}
  return Object.values(by).filter(g=>g.length>1)}
-const persist=()=>R('SET',DBKEY,JSON.stringify(MODE==='ps99'?{...db,sessions:undefined,_m:MODE}:{...db,_m:MODE}));
+const persist=async()=>{await R('SET',DBKEY,JSON.stringify(MODE==='ps99'?{...db,sessions:undefined,_m:MODE}:{...db,_m:MODE}));try{await wgFlush()}catch{}};
 const save=()=>{};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0;
  for(let i=0;i<60&&!ok;i++){if(await R('SET','lock',t,'NX','PX',9000)==='OK')ok=1;else await sleep(100)}
  if(!ok)throw Error('Server busy, try again');
- try{await load();if(jp.end&&Date.now()>=jp.end)jpResolve();const out=await fn();await persist();return out}
+ try{await load(1);if(jp.end&&Date.now()>=jp.end)jpResolve();const out=await fn();await persist();return out}
  finally{if(await R('GET','lock')===t)await R('DEL','lock')}}
 // ---- daily stats (UTC day) for the Home page ----
 const dayKey=()=>new Date().toISOString().slice(0,10);
-const rec=(u,bet,pay,game,info)=>{if(game){(u.hist=u.hist||[]).push({g:game,bet,pay,t:Date.now(),i:info||''});if(u.hist.length>150)u.hist=u.hist.slice(-150)}const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
+// ---- Ranks (Beginner / Rich / High Roller / King): ONE rank per Roblox player, shared by the MM2 and PS99 sites. ----
+// Redis hash 'wgr' = {'m:<id>': lifetime tokens wagered on MM2, 'p:<id>': lifetime gems wagered on PS99, '_i': backfill flag}. persist() keeps your own site's field up to date,
+// and the other site's field is read from here, so both sites always agree. A rank unlocks when EITHER side reaches its target (g = PS99 gems, t = MM2 tokens).
+// rb = TOTAL rakeback % on your own bets at that rank (replaces the base rate). rfx = extra referral % added to the base REF_PCT, with the total capped at REF_CAP (1.5% of the bet).
+const REF_CAP=0.015;
+const RANKS=[
+ {k:'beginner',n:'Beginner',g:250e6,t:100,rb:0.007,rfx:0.002},
+ {k:'rich',n:'Rich',g:2.5e9,t:500,rb:0.01,rfx:0.005},
+ {k:'highroller',n:'High Roller',g:10e9,t:2500,rb:0.01,rfx:0.01},
+ {k:'king',n:'King',g:50e9,t:25000,rb:0.03,rfx:0.03}];
+const rkRb=id=>{const r=rankInfo(id);return r.lvl?r.rb:RB_PCT};
+const rkRf=id=>rankInfo(id).rf;
+let WG={},WGT=0;
+async function wgLoad(fresh){
+ if(!fresh&&WGT&&Date.now()-WGT<8000)return;
+ let a=await R('HGETALL','wgr');const m={};
+ if(Array.isArray(a)){for(let i=0;i+1<a.length;i+=2)m[a[i]]=a[i+1]}else if(a&&typeof a==='object')Object.assign(m,a);
+ if(!m._i){ // first run: copy everyone's existing lifetime wagered from both databases
+  const args=[];
+  for(const[key,pre]of[['db','m:'],['dbps','p:']]){const raw=await R('GET',key);if(!raw)continue;let d;try{d=JSON.parse(raw)}catch{continue}
+   for(const u of Object.values(d.users||{})){const v=Math.floor(u.wagered||0);if(v>0){m[pre+u.id]=v;args.push(pre+u.id,String(v))}}}
+  for(let i=0;i<args.length;i+=400)await R('HSET','wgr',...args.slice(i,i+400));
+  await R('HSET','wgr','_i','1');m._i=1}
+ for(const k of Object.keys(m))m[k]=Number(m[k])||0;
+ WG=m;WGT=Date.now()}
+async function wgFlush(){const pre=MODE==='ps99'?'p:':'m:',args=[];
+ for(const u of Object.values(db.users)){const v=Math.floor(u.wagered||0),k=pre+u.id;if(WG[k]!==v&&(v>0||WG[k])){WG[k]=v;args.push(k,String(v))}}
+ for(let i=0;i<args.length;i+=400)await R('HSET','wgr',...args.slice(i,i+400))}
+// Everything about one player's rank: both wager totals, current rank, bonus, and progress to the next one.
+function rankInfo(id,full){
+ id=String(id);const u=db.users[id],own=u?Math.floor(u.wagered||0):(WG[(MODE==='ps99'?'p:':'m:')+id]||0),oth=WG[(MODE==='ps99'?'m:':'p:')+id]||0;
+ const p=MODE==='ps99'?own:oth,m=MODE==='ps99'?oth:own;
+ let lvl=0;RANKS.forEach((r,i)=>{if(p>=r.g||m>=r.t)lvl=i+1});
+ const cur=lvl?RANKS[lvl-1]:null,nx=RANKS[lvl]||null;
+ const o={lvl,k:cur?cur.k:'',n:cur?cur.n:'',rb:cur?cur.rb:RB_PCT,rf:Math.min(REF_CAP,REF_PCT+(cur?cur.rfx:0)),p:Math.floor(p),m:Math.floor(m)};
+ if(full){o.next=nx?{k:nx.k,n:nx.n,g:nx.g,t:nx.t,needG:Math.max(0,Math.ceil(nx.g-p)),needT:Math.max(0,Math.ceil(nx.t-m)),pct:Math.min(1,Math.max(p/nx.g,m/nx.t)),rb:nx.rb,rf:Math.min(REF_CAP,REF_PCT+nx.rfx)}:null;
+  o.tiers=RANKS.map(r=>({k:r.k,n:r.n,g:r.g,t:r.t,rb:r.rb,rf:Math.min(REF_CAP,REF_PCT+r.rfx)}))}
+ return o}
+// ---- Rewards: referrals + rakeback. Every bet in every game goes through rec(), so both accrue there.
+// Referral: the referrer earns REF_PCT of every bet their referred players make (u.ref={by,t,w:wagered via referral,e:earned for referrer}); referrer's pending balance = r.refP (lifetime r.refT).
+// Rakeback: every player earns RB_PCT of their own wagers back (u.rb pending, u.rbT lifetime). Both are claimed into the balance. Override with env REFERRAL_PCT / RAKEBACK_PCT (decimals: 0.01 = 1%).
+const REF_PCT=Number(process.env.REFERRAL_PCT)>0?Number(process.env.REFERRAL_PCT):0.01,RB_PCT=process.env.RAKEBACK_PCT?Math.max(0,Number(process.env.RAKEBACK_PCT)||0):0.005;
+// Referral milestone bonus: each referred player who wagered at least REF_MIN_W pays the referrer a one-time bonus (150M gems on PS99 / 35 tokens on MM2).
+// The referrer must have a linked Discord to claim, and the bonus goes into the wager lock. Env: REF_BONUS_GEMS, REF_BONUS_TOKENS, REF_BONUS_MIN_WAGER.
+const refBonus=()=>MODE==='ps99'?(Number(process.env.REF_BONUS_GEMS)||150000000):(Number(process.env.REF_BONUS_TOKENS)||35);
+const refMinW=()=>process.env.REF_BONUS_MIN_WAGER?Number(process.env.REF_BONUS_MIN_WAGER)||0:MINB*10;
+const refQual=u=>{const m=refMinW();let n=0;for(const x of Object.values(db.users))if(x.ref&&x.ref.by===u.id&&(x.ref.w||0)>=m)n++;return n};
+const accrue=(u,bet)=>{if(!(bet>0))return;const rb=bet*(rkRb(u.id));u.rb=(u.rb||0)+rb;u.rbT=(u.rbT||0)+rb;
+ if(u.ref&&u.ref.by){const r=db.users[u.ref.by];if(r&&r.id!==u.id){const e=bet*rkRf(r.id);u.ref.w=(u.ref.w||0)+bet;u.ref.e=(u.ref.e||0)+e;r.refP=(r.refP||0)+e;r.refT=(r.refT||0)+e}}};
+const rec=(u,bet,pay,game,info)=>{accrue(u,bet);if(game){(u.hist=u.hist||[]).push({g:game,bet,pay,t:Date.now(),i:info||''});if(u.hist.length>150)u.hist=u.hist.slice(-150)}const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
  s.w[u.id]=(s.w[u.id]||0)+bet;s.p[u.id]=(s.p[u.id]||0)+(pay-bet);s.n++;s.names[u.id]=[u.name,u.avatar];
  if(pay-bet>0&&(!s.best||pay-bet>s.best.amt))s.best={name:u.name,avatar:u.avatar,amt:pay-bet,bet}};
 const dayPub=()=>{const s=db.day&&db.day.d===dayKey()?db.day:null;if(!s)return{n:0,wag:0,top:[],most:[],best:null};
@@ -580,13 +630,13 @@ async function handle(a,b,sid,H){
   if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now(),WC=isOwner(u.id)?await whCfg():{},STR=await getStreamers(),DC=await dcGet(u.id);
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
-  return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,owner:isOwner(u.id),streamer:!!STR[u.id],wlock:MODE==='ps99'?wlLeft(u):0,role:roleOf(u.id,STR),discord:DC,dcOn:dcOn(),imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
+  return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,owner:isOwner(u.id),streamer:!!STR[u.id],wlock:wlLeft(u),rw:{rb:Math.floor(u.rb||0),rbT:Math.floor(u.rbT||0),ref:Math.floor(u.refP||0),refT:Math.floor(u.refT||0),by:u.ref&&u.ref.by&&db.users[u.ref.by]?{id:u.ref.by,name:db.users[u.ref.by].name}:null,pr:rkRf(u.id),pb:rkRb(u.id),pr0:REF_PCT,pb0:RB_PCT,bonus:{amt:refBonus(),minw:refMinW(),q:refQual(u),paid:u.refBC||0,dc:!!DC,dcOn:dcOn()}},role:roleOf(u.id,STR),rk:rankInfo(u.id,1),discord:DC,dcOn:dcOn(),imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
    day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
    bj:u.bj?bjView(u.bj):null,
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),dp:db.dp.filter(w=>w.uid===u.id).slice(-10),tips:(db.tips||[]).filter(x=>x.from.id===u.id||x.to.id===u.id).slice(-15),
-   online,activeMines,chat:(db.chat||[]).slice(-50).map(m=>m.sys?m:{...m,r:roleOf(m.uid,STR)}),
+   online,activeMines,chat:(db.chat||[]).slice(-50).map(m=>m.sys?m:{...m,r:roleOf(m.uid,STR),k:rankInfo(m.uid).k}),
    streamer:STR[u.id]?{codes:strCodes(u.id)}:undefined,
    admin:admin?Object.assign(admData(WC,isOwner(u.id)),isOwner(u.id)?{admins:admList(await pwMap(),await getAdminStore()),streamers:Object.values(STR)}:{}):undefined}}
  if(!u)E('Please log in');
@@ -599,6 +649,18 @@ async function handle(a,b,sid,H){
   if(last&&last.uid===u.id&&Date.now()-last.t<1500)E('Slow down');
   db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,avatar:u.avatar,msg,t:Date.now()});u.lastChat=Date.now();
   db.chat=db.chat.slice(-50);return{ok:1}}
+ if(a==='reflist'){const rows=Object.values(db.users).filter(x=>x.ref&&x.ref.by===u.id).map(x=>({id:x.id,name:x.name,avatar:x.avatar,w:Math.floor(x.ref.w||0),e:Math.round((x.ref.e||0)*100)/100,t:x.ref.t||0,q:(x.ref.w||0)>=refMinW()})).sort((x,y)=>y.w-x.w);
+  return{list:rows.slice(0,200),n:rows.length,w:rows.reduce((q,x)=>q+x.w,0),e:Math.floor(u.refT||0),pend:Math.floor(u.refP||0)}}
+ if(a==='refset'){if(u.ref&&u.ref.by)E('You already have a referrer');const k=String(b.code||'').trim().replace(/^@/,'');if(!k)E('Enter a username or Roblox ID');
+  let t=null;try{t=findUser(k)}catch{}if(!t)E('Player not found');
+  if(t.id===u.id)E('You cannot refer yourself');
+  if(u.dev&&t.dev&&u.dev===t.dev)E('You cannot use a referrer on the same device');
+  if(t.ref&&t.ref.by===u.id)E('That player was referred by you');
+  u.ref={by:t.id,t:Date.now(),w:0,e:0};log(`🤝 ${u.name} was referred by ${t.name}`);return{ok:1,msg:'Referrer set: '+t.name}}
+ if(a==='rwclaim'){const k=b.k==='ref'?'ref':'rb',key=k==='ref'?'refP':'rb',n=Math.floor(u[key]||0);if(n<1)E('Nothing to claim yet — keep playing');
+  u[key]=(u[key]||0)-n;u.tokens=(u.tokens||0)+n;wlAdd(u,n);log(`🎁 ${u.name} claimed ${fm(n)} ${cur()} ${k==='ref'?'referral earnings':'rakeback'}`);return{ok:1,n,msg:`Claimed ${fm(n)} ${cur()} (wager-locked: play 90% of it before withdrawing)`}}
+ if(a==='refbonus'){if(!(await dcGet(u.id)))E('Link your Discord account in Settings to claim this bonus');const q=refQual(u),c=q-(u.refBC||0);if(c<1)E(`No bonus ready — each referral must wager ${fm(refMinW())} ${cur()} first`);
+  const pay=c*refBonus();u.refBC=(u.refBC||0)+c;u.tokens=(u.tokens||0)+pay;wlAdd(u,pay);log(`🎁 ${u.name} claimed referral bonus: ${c} referral(s) = ${fm(pay)} ${cur()}`);return{ok:1,msg:`Claimed ${fm(pay)} ${cur()} for ${c} referral${c>1?'s':''} (wager-locked)`}}
  if(a==='redeem'){const code=String(b.code||'').trim().toUpperCase().replace(/\s+/g,'');if(!code)E('Enter a code');
   const now=Date.now(),L=(RF.get(u.id)||[]).filter(t=>now-t<60000);if(L.length>=8)E('Too many tries, wait a minute');
   db.codes=db.codes||{};const c=db.codes[code];
@@ -641,7 +703,7 @@ async function handle(a,b,sid,H){
   const us=Object.values(db.users),rank=fresh?null:us.filter(x=>(x.wagered||0)>(t.wagered||0)).length+1,inv=Object.entries(t.inv||{}).filter(([k2])=>I[k2]).map(([k2,q])=>({id:k2,q,v:val(k2)})).sort((x,y)=>y.v*y.q-x.v*x.q),
    dy=db.day&&db.day.d===dayKey()?db.day:null,admin=isOwner(u.id);
   const PSTR=await getStreamers(),PDC=await dcGet(t.id);
-  return{p:{role:roleOf(t.id,PSTR),discord:PDC?{id:PDC.id,name:PDC.name,user:PDC.user,avatar:PDC.avatar}:null,id:t.id,name:t.name,avatar:t.avatar,balance:Math.floor(t.tokens||0),invValue:invVal(t),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),
+  return{p:{role:roleOf(t.id,PSTR),rk:rankInfo(t.id,1),discord:PDC?{id:PDC.id,name:PDC.name,user:PDC.user,avatar:PDC.avatar}:null,id:t.id,name:t.name,avatar:t.avatar,balance:Math.floor(t.tokens||0),invValue:invVal(t),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),
    rank,players:us.length,pieces:inv.reduce((n,x)=>n+x.q,0),kinds:inv.length,top:inv.slice(0,10),online:Date.now()-(t.lastSeen||0)<45000,lastSeen:t.lastSeen||0,
    todayWag:dy?Math.floor(dy.w[t.id]||0):0,todayProfit:dy?Math.floor(dy.p[t.id]||0):0,
    alts:admin&&t.dev?us.filter(x=>x.id!==t.id&&x.dev===t.dev).map(x=>x.name):undefined}}}
@@ -680,7 +742,7 @@ async function handle(a,b,sid,H){
   if(g.mines.includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0,'mines',`${g.m} mines · hit a mine after ${g.open.length} gems`);u.mines=null;HR('mines',u,'Mines',g.bet,0,[['Mines',g.m,1],['Gems found',g.open.length,1],['Result','Hit a mine',1]]);return{boom:true,mines:g.mines,open:g.open}}
   g.open.push(i);if(g.open.length===25-g.m)return minesCash(u);return{safe:true}}
  if(a==='minescash'){if(!u.mines||!u.mines.open.length)E('Pick a tile first');return minesCash(u)}
- if(a==='withdraw'){if(MODE==='ps99'&&wlLeft(u)>0)E(`Wager ${fm(wlLeft(u))} more gems to unlock withdrawals (90% of your code gems)`);const n=needInt(b.qty);take({[b.item]:n},MODE==='ps99'?['pet']:['gun','knife','pet']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
+ if(a==='withdraw'){if(wlLeft(u)>0)E(`Wager ${fm(wlLeft(u))} more ${cur()} to unlock withdrawals (90% of claimed rewards/code ${cur()})`);const n=needInt(b.qty);take({[b.item]:n},MODE==='ps99'?['pet']:['gun','knife','pet']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
   log(`📤 Withdraw request: ${u.name} ${n}x ${b.item}`);hk('withdrawals',{title:'Withdrawal requested',user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Value',fm(val(b.item)*n)+' '+cur(),1],['Roblox ID',u.id,1]]});return{ok:1}}
  if(a==='depositgems'){if(MODE!=='ps99')E('Gem deposits are PS99 only');const n=needInt(b.gems,MINB);
   if(db.dp.filter(x=>x.uid===u.id&&x.status==='pending').length>=25)E('Too many pending deposits — wait for them to be reviewed');
@@ -696,7 +758,7 @@ async function handle(a,b,sid,H){
   if(!t&&MODE==='ps99'){const mu=MAIN.users[k]||Object.values(MAIN.users).find(x=>x.name.toLowerCase()===k.toLowerCase());if(mu)t=db.users[mu.id]={id:mu.id,name:mu.name,avatar:mu.avatar,tokens:0,inv:{},wagered:0,profit:0,mines:null,lastSeen:0}}
   if(!t)E('Player not found. They need to have logged in once.');if(t.id===u.id)E('You cannot tip yourself');
   const items=cfClean(b.items),tk=cfTok(b.tokens);if(!tk&&!Object.keys(items).length)E('Pick '+(MODE==='ps99'?'gems or pets':'tokens or items')+' to tip');if(u.tokens<tk)E('Not enough '+cur());
-  if(MODE==='ps99'&&wlLeft(u)>0)E(`Wager ${fm(wlLeft(u))} more gems before you can tip (code wager lock)`);
+  if(wlLeft(u)>0)E(`Wager ${fm(wlLeft(u))} more ${cur()} before you can tip (wager lock)`);
   const iv=take(items);u.tokens-=tk;t.tokens+=tk;for(const[x,q]of Object.entries(items))add(t.inv,x,q);
   (db.tips=db.tips||[]).push({id:crypto.randomBytes(4).toString('hex'),from:{id:u.id,name:u.name,avatar:u.avatar},to:{id:t.id,name:t.name,avatar:t.avatar},items,tokens:tk,value:iv+tk,t:Date.now()});db.tips=db.tips.slice(-200);
   log(`🎁 ${u.name} tipped ${t.name} (${iv+tk} value)`);
@@ -830,7 +892,7 @@ const run=async(req,res)=>{
   if(a==='start')out=await start(b);
   else if(a==='check')out=await check(b,H,req);
   else if(a==='pwlogin')out=await pwLogin(b,H,req);
-  else if(a==='admlist'||a==='admplayer'||a==='admbans'){await load();out=await handle(a,b,sid,H)}
+  else if(a==='admlist'||a==='admplayer'||a==='admbans'||a==='reflist'){await load();out=await handle(a,b,sid,H)}
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
    const needResolve=(jp.end&&Date.now()>=jp.end)||false,known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
