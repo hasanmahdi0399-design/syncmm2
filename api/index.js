@@ -590,8 +590,9 @@ function jpResolve(){
 const mult=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 
 // ---- Colour Dice (token bet, red vs blue, each rolls a d6, higher wins, ties reroll; vs player or SyncBot) ----
+const CDL=['red','blue','green','yellow','purple','orange','pink','cyan'],cdc=c=>CDL.includes(c)?c:'red';
 const CDT=.05,cdDb=()=>db.cd||(db.cd={open:[],recent:[],id:0});
-function cdResolve(g,J){const D=cdDb(),cu=db.users[g.c.id],bot=!J.user,jc=g.col==='red'?'blue':'red',rounds=[];let a,b;do{a=crypto.randomInt(1,7);b=crypto.randomInt(1,7);rounds.push([a,b])}while(a===b&&rounds.length<20);
+function cdResolve(g,J,jcol){const D=cdDb(),cu=db.users[g.c.id],bot=!J.user,jc=CDL.includes(jcol)&&jcol!==g.col?jcol:CDL.filter(x=>x!==g.col)[crypto.randomInt(CDL.length-1)],rounds=[];let a,b;do{a=crypto.randomInt(1,7);b=crypto.randomInt(1,7);rounds.push([a,b])}while(a===b&&rounds.length<20);
  const winC=a>b,pot=g.bet*2,tx=Math.floor(pot*CDT),got=pot-tx;
  if(winC)cu.tokens+=got;else if(J.user)J.user.tokens+=got;
  cu.wagered+=g.bet;cu.profit+=(winC?got:0)-g.bet;rec(cu,g.bet,winC?got:0,'colordice',`#${g.id} vs ${bot?'SyncBot':J.user.name} · ${g.col} ${a} - ${b} ${jc} · ${winC?'Won':'Lost'}`);
@@ -788,13 +789,13 @@ async function handle(a,b,sid,H){
   const ch=.97/mu,roll=crypto.randomInt(1e6)/1e6,win=roll<ch,pay=win?Math.floor(bet*mu):0;u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'upgrader',`${mu.toFixed(2)}x · ${(ch*100).toFixed(2)}% · ${win?'Upgraded':'Failed'}`);
   HR('upgrader',u,'Upgrader',bet,pay,[['Multiplier',mu.toFixed(2)+'x',1],['Chance',(ch*100).toFixed(2)+'%',1],['Result',win?'Upgraded':'Failed',1]]);log(`⬆️ ${u.name} upgrade ${mu.toFixed(2)}x ${win?'won':'lost'} (bet ${bet})`);
   return{win,roll,chance:ch,mult:mu,pay}}
- if(a==='cdcreate'){const D=cdDb(),bet=needInt(b.bet),col=b.col==='blue'?'blue':'red';if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());if(D.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open dice games');
+ if(a==='cdcreate'){const D=cdDb(),bet=needInt(b.bet),col=cdc(b.col);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());if(D.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open dice games');
   u.tokens-=bet;D.open.push({id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},col,bet,t:Date.now()});log(`🎲 ${u.name} created colour dice #${D.id} (${bet}, ${col})`);
   hk('colordice',{title:`Colour Dice #${D.id} posted`,color:0x94a3b8,user:u,desc:`${ulink(u)} picked **${col}**`,fields:[['Bet',fm(bet)+' '+cur(),1]]});return{ok:1,id:D.id}}
  if(a==='cdcancel'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game not found');if(g.c.id!==u.id)E('Not your game');u.tokens+=g.bet;D.open=D.open.filter(x=>x!==g);return{ok:1}}
- if(a==='cdjoin'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');if(u.tokens<g.bet)E('Not enough '+cur());u.tokens-=g.bet;return{ok:1,r:cdResolve(g,{user:u})}}
- if(a==='cdbot'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');return{ok:1,r:cdResolve(g,{user:null})}}
- if(a==='cdbotplay'){const D=cdDb(),bet=needInt(b.bet),col=b.col==='blue'?'blue':'red';if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;const g={id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},col,bet,t:Date.now()};D.open.push(g);return{ok:1,r:cdResolve(g,{user:null})}}
+ if(a==='cdjoin'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');if(u.tokens<g.bet)E('Not enough '+cur());u.tokens-=g.bet;return{ok:1,r:cdResolve(g,{user:u},b.jcol)}}
+ if(a==='cdbot'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');return{ok:1,r:cdResolve(g,{user:null},b.jcol)}}
+ if(a==='cdbotplay'){const D=cdDb(),bet=needInt(b.bet),col=cdc(b.col);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;const g={id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},col,bet,t:Date.now()};D.open.push(g);return{ok:1,r:cdResolve(g,{user:null},b.jcol)}}
  if(a==='rlspin'){const bet=needInt(b.bet),k=String(b.kind||''),t=RT[k]||E('Bad bet'),pk=k==='num'?needInt(b.pick,0):0;if(k==='num'&&pk>36)E('Pick 0-36');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
   const n=crypto.randomInt(37),col=n===0?'green':RRED.includes(n)?'red':'black',win=t[1](n,pk),pay=win?bet*t[0]:0;u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'roulette',`${k==='num'?'#'+pk:k} · landed ${n} ${col} · ${win?'Won':'Lost'}`);
   HR('roulette',u,'Roulette',bet,pay,[['Bet',k==='num'?'Number '+pk:k,1],['Landed',n+' '+col,1]]);log(`🎡 ${u.name} roulette ${k} ${win?'won':'lost'} (bet ${bet}, landed ${n})`);return{ok:1,n,col,win,pay,bet}}
