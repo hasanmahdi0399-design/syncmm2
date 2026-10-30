@@ -464,7 +464,7 @@ const invVal=u=>Object.entries(u.inv).reduce((s,[k,q])=>s+val(k)*q,0);
 const add=(o,k,q)=>{o[k]=(o[k]||0)+q;if(o[k]<=0)delete o[k]};
 const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100)};
 // ---- Discord webhooks: one channel per category, each with its own embed. URLs live in Redis ('whcfg', set in Admin > Webhooks) or env WEBHOOK_<CHANNEL>. A channel with no URL is skipped, never rerouted. ----
-const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
+const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],upgrader:['⬆️ Upgrader',0xa855f7],colordice:['🎲 Colour Dice',0xf43f5e],roulette:['🎡 Roulette',0x10b981],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
 const WHRE=/^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 let SITE='',HQ=[];
 const md=s=>String(s??'').replace(/([\\*_`~|>\[\]])/g,'\\$1'),cut=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
@@ -589,6 +589,19 @@ function jpResolve(){
  hk('jackpot',{title:`Jackpot #${jp.id} · ${w[1].name} won`,color:0x22c55e,user:{avatar:w[1].avatar},desc:`${ulink({id:w[0],name:w[1].name})} took the pot`,fields:[['Pot',fm(total)+' '+cur(),1],['Tax',fm(s)+' '+cur(),1],['Winner gets',fm(got)+' '+cur(),1],['Players',P.map(([,p])=>`${md(p.name)} — ${fm(p.value)} (${(p.value/total*100).toFixed(1)}%)`).join('\n')]]})}
 const mult=(m,n)=>{let x=.97;for(let k=0;k<n;k++)x*=(25-k)/(25-m-k);return x};
 
+// ---- Colour Dice (token bet, red vs blue, each rolls a d6, higher wins, ties reroll; vs player or SyncBot) ----
+const CDT=.05,cdDb=()=>db.cd||(db.cd={open:[],recent:[],id:0});
+function cdResolve(g,J){const D=cdDb(),cu=db.users[g.c.id],bot=!J.user,jc=g.col==='red'?'blue':'red',rounds=[];let a,b;do{a=crypto.randomInt(1,7);b=crypto.randomInt(1,7);rounds.push([a,b])}while(a===b&&rounds.length<20);
+ const winC=a>b,pot=g.bet*2,tx=Math.floor(pot*CDT),got=pot-tx;
+ if(winC)cu.tokens+=got;else if(J.user)J.user.tokens+=got;
+ cu.wagered+=g.bet;cu.profit+=(winC?got:0)-g.bet;rec(cu,g.bet,winC?got:0,'colordice',`#${g.id} vs ${bot?'SyncBot':J.user.name} · ${g.col} ${a} - ${b} ${jc} · ${winC?'Won':'Lost'}`);
+ if(J.user){J.user.wagered+=g.bet;J.user.profit+=(winC?0:got)-g.bet;rec(J.user,g.bet,winC?0:got,'colordice',`#${g.id} vs ${g.c.name} · ${jc} ${b} - ${a} ${g.col} · ${winC?'Lost':'Won'}`)}
+ const jn=bot?{id:'bot',name:'SyncBot',avatar:'/logo.png',bot:1}:{id:J.user.id,name:J.user.name,avatar:J.user.avatar},w=winC?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:jn;
+ D.open=D.open.filter(x=>x!==g);const rc={id:g.id,c:g.c,j:jn,cCol:g.col,jCol:jc,rounds,a,b,winner:w,bet:g.bet,won:got,t:Date.now()};D.recent.push(rc);D.recent=D.recent.slice(-20);
+ log(`🎲 Colour Dice #${g.id}: ${w.name} won ${got} (${g.c.name} ${a} vs ${b} ${jn.name})`);
+ hk('colordice',{title:`Colour Dice #${g.id} · ${w.name} won`,color:0x22c55e,user:w,desc:`${md(g.c.name)} (${g.col}) vs ${md(jn.name)}${bot?' 🤖':''} (${jc})\\nRolls: ${rounds.map(r=>r.join('-')).join(' · ')}`,fields:[['Pot',fm(pot)+' '+cur(),1],['Tax',fm(tx)+' '+cur(),1],['Winner gets',fm(got)+' '+cur(),1]]});return rc}
+// ---- Roulette (European, single zero, one bet per spin) ----
+const RRED=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36],RT={red:[2,n=>RRED.includes(n)],black:[2,n=>n>0&&!RRED.includes(n)],odd:[2,n=>n>0&&n%2===1],even:[2,n=>n>0&&n%2===0],low:[2,n=>n>=1&&n<=18],high:[2,n=>n>=19],d1:[3,n=>n>=1&&n<=12],d2:[3,n=>n>=13&&n<=24],d3:[3,n=>n>=25],num:[36,(n,p)=>n===p]};
 // ---- Towers (PS99 only): climb 8 floors, one safe tile per floor. Bomb layout is hidden server-side until the game ends. ----
 const TWD={easy:[4,1],medium:[3,1],hard:[2,1],expert:[3,2]},TWR=8; // [tiles per floor, bombs per floor]
 const twMult=(d,n)=>.97*Math.pow(TWD[d][0]/(TWD[d][0]-TWD[d][1]),n);
@@ -631,7 +644,7 @@ async function handle(a,b,sid,H){
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,owner:isOwner(u.id),streamer:!!STR[u.id],wlock:wlLeft(u),rw:{rb:Math.floor(u.rb||0),rbT:Math.floor(u.rbT||0),ref:Math.floor(u.refP||0),refT:Math.floor(u.refT||0),by:u.ref&&u.ref.by&&db.users[u.ref.by]?{id:u.ref.by,name:db.users[u.ref.by].name}:null,pr:rkRf(u.id),pb:rkRb(u.id),pr0:REF_PCT,pb0:RB_PCT,bonus:{amt:refBonus(),minw:refMinW(),q:refQual(u),paid:u.refBC||0,dc:!!DC,dcOn:dcOn()}},role:roleOf(u.id,STR),rk:rankInfo(u.id,1),discord:DC,dcOn:dcOn(),imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
-   day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},
+   day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},cd:{open:cdDb().open,recent:cdDb().recent.slice(-10)},
    bj:u.bj?bjView(u.bj):null,
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
@@ -771,6 +784,20 @@ async function handle(a,b,sid,H){
  if(a==='twpick'){const g=u.tw;if(!g)E('No game');const i=needInt(b.i,0);if(i>=TWD[g.d][0])E('Invalid tile');
   if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0,'towers',`${g.d} · bomb on floor ${g.picks.length+1}`);u.tw=null;HR('towers',u,'Towers',g.bet,0,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Result','Hit a bomb on floor '+(g.picks.length+1),1]]);log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
   g.picks.push(i);if(g.picks.length===TWR)return twCash(u);return{safe:true}}
+ if(a==='upgrade'){const bet=needInt(b.bet),mu=Math.round(+b.mult*100)/100;if(!(mu>=1.1&&mu<=100))E('Pick a multiplier between 1.1x and 100x');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
+  const ch=.97/mu,roll=crypto.randomInt(1e6)/1e6,win=roll<ch,pay=win?Math.floor(bet*mu):0;u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'upgrader',`${mu.toFixed(2)}x · ${(ch*100).toFixed(2)}% · ${win?'Upgraded':'Failed'}`);
+  HR('upgrader',u,'Upgrader',bet,pay,[['Multiplier',mu.toFixed(2)+'x',1],['Chance',(ch*100).toFixed(2)+'%',1],['Result',win?'Upgraded':'Failed',1]]);log(`⬆️ ${u.name} upgrade ${mu.toFixed(2)}x ${win?'won':'lost'} (bet ${bet})`);
+  return{win,roll,chance:ch,mult:mu,pay}}
+ if(a==='cdcreate'){const D=cdDb(),bet=needInt(b.bet),col=b.col==='blue'?'blue':'red';if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());if(D.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open dice games');
+  u.tokens-=bet;D.open.push({id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},col,bet,t:Date.now()});log(`🎲 ${u.name} created colour dice #${D.id} (${bet}, ${col})`);
+  hk('colordice',{title:`Colour Dice #${D.id} posted`,color:0x94a3b8,user:u,desc:`${ulink(u)} picked **${col}**`,fields:[['Bet',fm(bet)+' '+cur(),1]]});return{ok:1,id:D.id}}
+ if(a==='cdcancel'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game not found');if(g.c.id!==u.id)E('Not your game');u.tokens+=g.bet;D.open=D.open.filter(x=>x!==g);return{ok:1}}
+ if(a==='cdjoin'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');if(u.tokens<g.bet)E('Not enough '+cur());u.tokens-=g.bet;return{ok:1,r:cdResolve(g,{user:u})}}
+ if(a==='cdbot'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');return{ok:1,r:cdResolve(g,{user:null})}}
+ if(a==='cdbotplay'){const D=cdDb(),bet=needInt(b.bet),col=b.col==='blue'?'blue':'red';if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;const g={id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},col,bet,t:Date.now()};D.open.push(g);return{ok:1,r:cdResolve(g,{user:null})}}
+ if(a==='rlspin'){const bet=needInt(b.bet),k=String(b.kind||''),t=RT[k]||E('Bad bet'),pk=k==='num'?needInt(b.pick,0):0;if(k==='num'&&pk>36)E('Pick 0-36');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
+  const n=crypto.randomInt(37),col=n===0?'green':RRED.includes(n)?'red':'black',win=t[1](n,pk),pay=win?bet*t[0]:0;u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'roulette',`${k==='num'?'#'+pk:k} · landed ${n} ${col} · ${win?'Won':'Lost'}`);
+  HR('roulette',u,'Roulette',bet,pay,[['Bet',k==='num'?'Number '+pk:k,1],['Landed',n+' '+col,1]]);log(`🎡 ${u.name} roulette ${k} ${win?'won':'lost'} (bet ${bet}, landed ${n})`);return{ok:1,n,col,win,pay,bet}}
  if(a==='twcash'){if(!u.tw||!u.tw.picks.length)E('Climb a floor first');return twCash(u)}
  if(a==='admreturn'){const o=b.asid&&db.sessions[b.asid];if(!o||!ADMINS.includes(o))E('Not impersonating');
   const tn=u.name;delete db.sessions[sid];H['Set-Cookie']=[`sid=${b.asid}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`,'asid=; HttpOnly; Secure; Path=/; Max-Age=0; SameSite=Lax'];
