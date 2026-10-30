@@ -399,7 +399,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0;
  for(let i=0;i<60&&!ok;i++){if(await R('SET','lock',t,'NX','PX',9000)==='OK')ok=1;else await sleep(100)}
  if(!ok)throw Error('Server busy, try again');
- try{await load(1);if(jp.end&&Date.now()>=jp.end)jpResolve();const out=await fn();await persist();return out}
+ try{await load(1);if(jp.end&&Date.now()>=jp.end)jpResolve();cxSync();const out=await fn();await persist();return out}
  finally{if(await R('GET','lock')===t)await R('DEL','lock')}}
 // ---- daily stats (UTC day) for the Home page ----
 const dayKey=()=>new Date().toISOString().slice(0,10);
@@ -450,9 +450,11 @@ const REF_PCT=Number(process.env.REFERRAL_PCT)>0?Number(process.env.REFERRAL_PCT
 const refBonus=()=>MODE==='ps99'?(Number(process.env.REF_BONUS_GEMS)||150000000):(Number(process.env.REF_BONUS_TOKENS)||35);
 const refMinW=()=>process.env.REF_BONUS_MIN_WAGER?Number(process.env.REF_BONUS_MIN_WAGER)||0:MINB*10;
 const refQual=u=>{const m=refMinW();let n=0;for(const x of Object.values(db.users))if(x.ref&&x.ref.by===u.id&&(x.ref.w||0)>=m)n++;return n};
-const accrue=(u,bet)=>{if(!(bet>0))return;const rb=bet*(rkRb(u.id));u.rb=(u.rb||0)+rb;u.rbT=(u.rbT||0)+rb;
- if(u.ref&&u.ref.by){const r=db.users[u.ref.by];if(r&&r.id!==u.id){const e=bet*rkRf(r.id);u.ref.w=(u.ref.w||0)+bet;u.ref.e=(u.ref.e||0)+e;r.refP=(r.refP||0)+e;r.refT=(r.refT||0)+e}}};
-const rec=(u,bet,pay,game,info)=>{accrue(u,bet);if(game){(u.hist=u.hist||[]).push({g:game,bet,pay,t:Date.now(),i:info||''});if(u.hist.length>150)u.hist=u.hist.slice(-150)}const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
+// Upgrader exception: bets there earn only UPG_RB (0.1%) rakeback regardless of rank, and pay the referrer nothing (no % and it doesn't count toward the referral bonus either).
+const UPG_RB=0.001;
+const accrue=(u,bet,game)=>{if(!(bet>0))return;const up=game==='upgrader',rb=bet*(up?UPG_RB:rkRb(u.id));u.rb=(u.rb||0)+rb;u.rbT=(u.rbT||0)+rb;
+ if(!up&&u.ref&&u.ref.by){const r=db.users[u.ref.by];if(r&&r.id!==u.id){const e=bet*rkRf(r.id);u.ref.w=(u.ref.w||0)+bet;u.ref.e=(u.ref.e||0)+e;r.refP=(r.refP||0)+e;r.refT=(r.refT||0)+e}}};
+const rec=(u,bet,pay,game,info)=>{accrue(u,bet,game);if(game){(u.hist=u.hist||[]).push({g:game,bet,pay,t:Date.now(),i:info||''});if(u.hist.length>150)u.hist=u.hist.slice(-150)}const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
  s.w[u.id]=(s.w[u.id]||0)+bet;s.p[u.id]=(s.p[u.id]||0)+(pay-bet);s.n++;s.names[u.id]=[u.name,u.avatar];
  if(pay-bet>0&&(!s.best||pay-bet>s.best.amt))s.best={name:u.name,avatar:u.avatar,amt:pay-bet,bet}};
 const dayPub=()=>{const s=db.day&&db.day.d===dayKey()?db.day:null;if(!s)return{n:0,wag:0,top:[],most:[],best:null};
@@ -464,7 +466,7 @@ const invVal=u=>Object.entries(u.inv).reduce((s,[k,q])=>s+val(k)*q,0);
 const add=(o,k,q)=>{o[k]=(o[k]||0)+q;if(o[k]<=0)delete o[k]};
 const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100)};
 // ---- Discord webhooks: one channel per category, each with its own embed. URLs live in Redis ('whcfg', set in Admin > Webhooks) or env WEBHOOK_<CHANNEL>. A channel with no URL is skipped, never rerouted. ----
-const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],upgrader:['⬆️ Upgrader',0xa855f7],colordice:['🎲 Colour Dice',0xf43f5e],roulette:['🎡 Roulette',0x10b981],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
+const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],upgrader:['⬆️ Upgrader',0xa855f7],crash:['📈 Crash',0xf97316],duels:['⚔️ Duels',0xef4444],rps:['✊ Rock Paper Scissors',0x38bdf8],plinko:['🔻 Plinko',0xeab308],colordice:['🎲 Colour Dice',0xf43f5e],roulette:['🎡 Roulette',0x10b981],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
 const WHRE=/^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 let SITE='',HQ=[];
 const md=s=>String(s??'').replace(/([\\*_`~|>\[\]])/g,'\\$1'),cut=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
@@ -601,11 +603,65 @@ function cdResolve(g,J,jcol){const D=cdDb(),cu=db.users[g.c.id],bot=!J.user,jc=C
  D.open=D.open.filter(x=>x!==g);const rc={id:g.id,c:g.c,j:jn,cCol:g.col,jCol:jc,rounds,a,b,winner:w,bet:g.bet,won:got,t:Date.now()};D.recent.push(rc);D.recent=D.recent.slice(-20);
  log(`🎲 Colour Dice #${g.id}: ${w.name} won ${got} (${g.c.name} ${a} vs ${b} ${jn.name})`);
  hk('colordice',{title:`Colour Dice #${g.id} · ${w.name} won`,color:0x22c55e,user:w,desc:`${md(g.c.name)} (${g.col}) vs ${md(jn.name)}${bot?' 🤖':''} (${jc})\\nRolls: ${rounds.map(r=>r.join('-')).join(' · ')}`,fields:[['Pot',fm(pot)+' '+cur(),1],['Tax',fm(tx)+' '+cur(),1],['Winner gets',fm(got)+' '+cur(),1]]});return rc}
+// ---- Duels (HP fight, vs player or SyncBot): both start at 100 HP, a coin flip picks who strikes first, then hits alternate (10-30 dmg, 15% crits x1.5) until one hits 0. 5% tax on the pot. ----
+const DUT=.05,duDb=()=>db.du||(db.du={open:[],recent:[],id:0});
+function duFight(){const hp=[100,100],lg=[];let t=crypto.randomInt(2);
+ while(hp[0]>0&&hp[1]>0&&lg.length<80){const crit=crypto.randomInt(100)<15,dmg=Math.floor((10+crypto.randomInt(21))*(crit?1.5:1));hp[1-t]=Math.max(0,hp[1-t]-dmg);lg.push([t,dmg,crit?1:0,hp[0],hp[1]]);t=1-t}
+ return{log:lg,winner:hp[0]>0?1:0}} // winner 0 = creator
+function duResolve(g,J){const D=duDb(),cu=db.users[g.c.id],bot=!J.user,f=duFight(),winC=f.winner===0,pot=g.bet*2,tx=Math.floor(pot*DUT),got=pot-tx;
+ if(winC)cu.tokens+=got;else if(J.user)J.user.tokens+=got;
+ cu.wagered+=g.bet;cu.profit+=(winC?got:0)-g.bet;rec(cu,g.bet,winC?got:0,'duels',`#${g.id} vs ${bot?'SyncBot':J.user.name} · ${winC?'Won':'Lost'}`);
+ if(J.user){J.user.wagered+=g.bet;J.user.profit+=(winC?0:got)-g.bet;rec(J.user,g.bet,winC?0:got,'duels',`#${g.id} vs ${g.c.name} · ${winC?'Lost':'Won'}`)}
+ const jn=bot?{id:'bot',name:'SyncBot',avatar:'/logo.png',bot:1}:{id:J.user.id,name:J.user.name,avatar:J.user.avatar},w=winC?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:jn;
+ D.open=D.open.filter(x=>x!==g);const rc={id:g.id,c:g.c,j:jn,log:f.log,winner:w,bet:g.bet,won:got,t:Date.now()};D.recent.push(rc);D.recent=D.recent.slice(-20);
+ log(`⚔️ Duel #${g.id}: ${w.name} won ${got} (${g.c.name} vs ${jn.name})`);
+ hk('duels',{title:`Duel #${g.id} · ${w.name} won`,color:0x22c55e,user:w,desc:`${md(g.c.name)} vs ${md(jn.name)}${bot?' 🤖':''} · ${f.log.length} hits`,fields:[['Pot',fm(pot)+' '+cur(),1],['Tax',fm(tx)+' '+cur(),1],['Winner gets',fm(got)+' '+cur(),1]]});return rc}
+// ---- Rock Paper Scissors (vs player or SyncBot): the creator's move is stored server-side and never sent to clients until the game resolves. Ties refund both. 5% tax on decisive games. ----
+const RPM=['rock','paper','scissors'],RPT=.05,rpDb=()=>db.rp||(db.rp={open:[],recent:[],id:0});
+const rpWin=(a,b)=>a===b?0:(a+1)%3===b?2:1; // 0 tie, 1 first wins, 2 second wins
+function rpResolve(g,J,jm){const D=rpDb(),cu=db.users[g.c.id],bot=!J.user,cm=RPM.indexOf(g.m),jmi=bot?crypto.randomInt(3):RPM.indexOf(jm),res=rpWin(cm,jmi),pot=g.bet*2,tx=res?Math.floor(pot*RPT):0,got=pot-tx;
+ const cp=res===1?got:res===0?g.bet:0,jp_=res===2?got:res===0?g.bet:0;cu.tokens+=cp;cu.wagered+=g.bet;cu.profit+=cp-g.bet;
+ rec(cu,g.bet,cp,'rps',`#${g.id} vs ${bot?'SyncBot':J.user.name} · ${RPM[cm]} vs ${RPM[jmi]} · ${res===0?'Tie':res===1?'Won':'Lost'}`);
+ if(J.user){J.user.tokens+=jp_;J.user.wagered+=g.bet;J.user.profit+=jp_-g.bet;rec(J.user,g.bet,jp_,'rps',`#${g.id} vs ${g.c.name} · ${RPM[jmi]} vs ${RPM[cm]} · ${res===0?'Tie':res===2?'Won':'Lost'}`)}
+ const jn=bot?{id:'bot',name:'SyncBot',avatar:'/logo.png',bot:1}:{id:J.user.id,name:J.user.name,avatar:J.user.avatar},w=res===0?null:res===1?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:jn;
+ D.open=D.open.filter(x=>x!==g);const rc={id:g.id,c:g.c,j:jn,cm:RPM[cm],jm:RPM[jmi],res,winner:w,bet:g.bet,won:res?got:0,t:Date.now()};D.recent.push(rc);D.recent=D.recent.slice(-20);
+ log(`✊ RPS #${g.id}: ${w?w.name+' won '+got:'tie'} (${g.c.name} ${RPM[cm]} vs ${RPM[jmi]} ${jn.name})`);
+ hk('rps',{title:`RPS #${g.id} · ${w?w.name+' won':'Tie'}`,color:w?0x22c55e:0x94a3b8,user:w||g.c,desc:`${md(g.c.name)} (${RPM[cm]}) vs ${md(jn.name)}${bot?' 🤖':''} (${RPM[jmi]})`,fields:[['Pot',fm(pot)+' '+cur(),1],['Tax',fm(tx)+' '+cur(),1],['Winner gets',w?fm(got)+' '+cur():'Refunded',1]]});return rc}
+// ---- Plinko: the ball makes one left/right choice per row; the slot it lands in sets the multiplier. Tables are built so every row count / risk level returns ~97% (see plTable). ----
+const PLR=[8,12,16],PLK=['low','medium','high'],PLP={low:{fl:.45,p:2.4,sc:6},medium:{fl:.25,p:3.6,sc:12},high:{fl:.08,p:5.2,sc:40}};
+function plTable(rows,risk){const{fl,p,sc}=PLP[risk];let pr=[1];for(let i=0;i<rows;i++){const n=[1];for(let k=1;k<=i;k++)n.push(pr[k-1]+pr[k]);n.push(1);pr=n}
+ const pb=pr.map(x=>x/2**rows),raw=pb.map((_,k)=>fl+Math.pow(Math.abs(k-rows/2)/(rows/2),p)*sc),z=raw.reduce((t,r,k)=>t+r*pb[k],0);return raw.map(r=>Math.round(r*.97/z*100)/100)}
+const PLT=Object.fromEntries(PLR.map(r=>[r,Object.fromEntries(PLK.map(k=>[k,plTable(r,k)]))]));
 // ---- Roulette (European, single zero, one bet per spin) ----
 const RRED=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36],RT={red:[2,n=>RRED.includes(n)],black:[2,n=>n>0&&!RRED.includes(n)],odd:[2,n=>n>0&&n%2===1],even:[2,n=>n>0&&n%2===0],low:[2,n=>n>=1&&n<=18],high:[2,n=>n>=19],d1:[3,n=>n>=1&&n<=12],d2:[3,n=>n>=13&&n<=24],d3:[3,n=>n>=25],num:[36,(n,p)=>n===p]};
 // ---- Towers (PS99 only): climb 8 floors, one safe tile per floor. Bomb layout is hidden server-side until the game ends. ----
 const TWD={easy:[4,1],medium:[3,1],hard:[2,1],expert:[3,2]},TWR=8; // [tiles per floor, bombs per floor]
 const twMult=(d,n)=>.97*Math.pow(TWD[d][0]/(TWD[d][0]-TWD[d][1]),n);
+// ---- Crash (shared live round) ----
+// One round at a time for everyone. The first bet opens a round with an 8s betting window, then the multiplier climbs with time until it reaches the crash point,
+// which is rolled (3% house edge, max 100x) when the round opens and never sent to clients. Players cash out manually, or via an auto cash-out the server enforces.
+// There is no server loop: cxSync() settles the round lazily on any request once it is due (see mutate() and the 'cxpoll' / 'state' routes).
+const CR_RATE=0.1,CR_MAX=100,CR_WAIT=8000;
+const crM=ms=>Math.min(CR_MAX,Math.floor(Math.exp(CR_RATE*Math.max(0,ms)/1000)*100)/100);
+const crPoint=()=>{const r=crypto.randomInt(1e6)/1e6;return Math.min(CR_MAX,Math.max(1,Math.floor(97/(1-r))/100))};
+const cx=()=>db.cx||(db.cx={id:0,t0:0,cp:0,bets:{},last:null,hist:[]});
+const crAt=c=>c.t0+Math.ceil(Math.log(c.cp)/CR_RATE*1000);
+const cxDue=()=>{const c=cx();if(!c.t0||Date.now()<c.t0)return false;const m=crM(Date.now()-c.t0);return m>=c.cp||Object.values(c.bets).some(b=>!b.done&&b.auto&&b.auto<c.cp&&m>=b.auto)};
+function cxPay(u,b,at,c){const pay=at?Math.floor(b.bet*at):0;u.tokens+=pay;u.wagered+=b.bet;u.profit+=pay-b.bet;b.done=1;b.at=at;b.pay=pay;
+ rec(u,b.bet,pay,'crash',at?`${at.toFixed(2)}x cashed out · crashed at ${c.cp.toFixed(2)}x`:`Crashed at ${c.cp.toFixed(2)}x`);
+ HR('crash',u,'Crash',b.bet,pay,[['Round','#'+c.id,1],['Crash point',c.cp.toFixed(2)+'x',1],['Cashed out',at?at.toFixed(2)+'x':'Crashed',1]]);
+ log(`📈 ${u.name} crash ${at?'cashed '+at.toFixed(2)+'x':'lost'} (bet ${b.bet}, crash ${c.cp.toFixed(2)}x)`)}
+function cxSync(){const c=cx();if(!c.t0||Date.now()<c.t0)return;const m=crM(Date.now()-c.t0),dead=m>=c.cp;
+ for(const[id,b]of Object.entries(c.bets)){if(b.done)continue;const u=db.users[id];if(!u){b.done=1;continue}
+  if(b.auto&&b.auto<c.cp&&m>=b.auto)cxPay(u,b,b.auto,c);else if(dead)cxPay(u,b,0,c)}
+ if(dead){c.last={id:c.id,cp:c.cp,t:crAt(c),rows:Object.entries(c.bets).slice(0,40).map(([id,b])=>({id,name:b.name,avatar:b.avatar,bet:b.bet,at:b.at||0,pay:b.pay||0}))};
+  c.hist=[c.cp,...(c.hist||[])].slice(0,14);c.t0=0;c.cp=0;c.bets={}}}
+const cxView=u=>{const c=cx(),mb=c.bets[u.id],L=c.last;
+ return{now:Date.now(),id:c.id,t0:c.t0,hist:c.hist||[],bets:Object.entries(c.bets).map(([id,b])=>({id,name:b.name,avatar:b.avatar,bet:b.bet,done:b.done?1:0,at:b.at||0,pay:b.pay||0})),
+  mine:mb?{bet:mb.bet,auto:mb.auto,done:mb.done?1:0,at:mb.at||0}:null,last:L?{id:L.id,cp:L.cp,t:L.t,rows:L.rows,me:L.rows.find(r=>r.id===u.id)||null}:null}};
+const PCF_MAX=20,pcfMult=n=>.97*Math.pow(2,n);
+function pcfCash(u){const g=u.pcf,pay=Math.floor(g.bet*pcfMult(g.n));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay,'coinflip',`Progressive · ${g.n} wins · ${pcfMult(g.n).toFixed(2)}x`);u.pcf=null;HR('coinflip',u,'Progressive Coinflip',g.bet,pay,[['Wins in a row',String(g.n),1],['Multiplier',pcfMult(g.n).toFixed(2)+'x',1]]);
+ log(`🪙 ${u.name} cashed out progressive coinflip for ${pay} (bet ${g.bet}, ${g.n} wins)`);return{cashed:pay,n:g.n}}
 function twCash(u){const g=u.tw,pay=Math.floor(g.bet*twMult(g.d,g.picks.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay,'towers',`${g.d} · ${g.picks.length}/${TWR} floors · ${twMult(g.d,g.picks.length).toFixed(2)}x`);u.tw=null;HR('towers',u,'Towers',g.bet,pay,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Multiplier',twMult(g.d,g.picks.length).toFixed(2)+'x',1]]);
  log(`🗼 ${u.name} cashed out towers for ${pay} (bet ${g.bet}, ${g.picks.length} floors, ${g.d})`);return{cashed:pay,bombs:g.bombs,picks:g.picks,d:g.d}}
 
@@ -628,10 +684,10 @@ async function check(b,H,req){
 const admData=(WC,own)=>{const us=Object.values(db.users),tk=us.reduce((s,x)=>s+(x.tokens||0),0),iv=us.reduce((s,x)=>s+invVal(x),0),sv=Object.entries(db.shop).reduce((s,[k,q])=>s+val(k)*q,0),now=Date.now();
  return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),dp:db.dp.filter(w=>w.status==='pending'),dpDone:db.dp.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:own?whView(WC):undefined,logs:own?db.logs.slice(-100).reverse():undefined,alts:own?altGroups():undefined,codes:codeList(),
   stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<45000).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length+db.dp.filter(w=>w.status==='pending').length,
-   cfOpen:db.cf.open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
+   cfOpen:db.cf.open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,cr:Object.values(cx().bets).filter(x=>!x.done).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
   cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]})),lb:lbAdm()}};
 const admPlayer=(t,own)=>({id:t.id,name:t.name,avatar:t.avatar,tokens:Math.floor(t.tokens||0),invValue:Math.floor(invVal(t)),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),lastSeen:t.lastSeen||0,
- inv:Object.entries(t.inv||{}).filter(([k])=>I[k]).map(([k,q])=>({id:k,q})),games:{mines:!!t.mines,tw:!!t.tw,bj:!!(t.bj&&!t.bj.done),jp:!!jp.players[t.id],cf:db.cf.open.filter(g=>g.c.id===t.id).length},
+ inv:Object.entries(t.inv||{}).filter(([k])=>I[k]).map(([k,q])=>({id:k,q})),games:{mines:!!t.mines,tw:!!t.tw,cr:!!(cx().bets[t.id]&&!cx().bets[t.id].done),bj:!!(t.bj&&!t.bj.done),jp:!!jp.players[t.id],cf:db.cf.open.filter(g=>g.c.id===t.id).length},
  alts:own&&t.dev?Object.values(db.users).filter(x=>x.id!==t.id&&x.dev===t.dev).map(x=>x.name):[]});
 async function handle(a,b,sid,H){
  if(a==='lb')return lbView(sid);
@@ -645,9 +701,11 @@ async function handle(a,b,sid,H){
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,owner:isOwner(u.id),streamer:!!STR[u.id],wlock:wlLeft(u),rw:{rb:Math.floor(u.rb||0),rbT:Math.floor(u.rbT||0),ref:Math.floor(u.refP||0),refT:Math.floor(u.refT||0),by:u.ref&&u.ref.by&&db.users[u.ref.by]?{id:u.ref.by,name:db.users[u.ref.by].name}:null,pr:rkRf(u.id),pb:rkRb(u.id),pr0:REF_PCT,pb0:RB_PCT,bonus:{amt:refBonus(),minw:refMinW(),q:refQual(u),paid:u.refBC||0,dc:!!DC,dcOn:dcOn()}},role:roleOf(u.id,STR),rk:rankInfo(u.id,1),discord:DC,dcOn:dcOn(),imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
-   day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},cd:{open:cdDb().open,recent:cdDb().recent.slice(-10)},
+   day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},cd:{open:cdDb().open,recent:cdDb().recent.slice(-10)},du:{open:duDb().open,recent:duDb().recent.slice(-10)},rp:{open:rpDb().open.map(g=>({...g,m:undefined})),recent:rpDb().recent.slice(-10)},plt:PLT,
    bj:u.bj?bjView(u.bj):null,
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
+   cx:cxView(u),
+   pcf:u.pcf?{bet:u.pcf.bet,n:u.pcf.n}:null,
    tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),dp:db.dp.filter(w=>w.uid===u.id).slice(-10),tips:(db.tips||[]).filter(x=>x.from.id===u.id||x.to.id===u.id).slice(-15),
    online,activeMines,chat:(db.chat||[]).slice(-50).map(m=>m.sys?m:{...m,r:roleOf(m.uid,STR),k:rankInfo(m.uid).k}),
@@ -785,6 +843,20 @@ async function handle(a,b,sid,H){
  if(a==='twpick'){const g=u.tw;if(!g)E('No game');const i=needInt(b.i,0);if(i>=TWD[g.d][0])E('Invalid tile');
   if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0,'towers',`${g.d} · bomb on floor ${g.picks.length+1}`);u.tw=null;HR('towers',u,'Towers',g.bet,0,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Result','Hit a bomb on floor '+(g.picks.length+1),1]]);log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
   g.picks.push(i);if(g.picks.length===TWR)return twCash(u);return{safe:true}}
+ if(a==='pcfstart'){if(u.pcf)E('Game in progress');const bet=needInt(b.bet);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;u.pcf={bet,n:0};return{ok:1}}
+ if(a==='pcfflip'){const g=u.pcf;if(!g)E('No game');const side=b.side==='tails'?'tails':'heads',res=crypto.randomInt(2)?'heads':'tails';
+  if(res!==side){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0,'coinflip','Progressive · lost on round '+(g.n+1));u.pcf=null;HR('coinflip',u,'Progressive Coinflip',g.bet,0,[['Wins in a row',String(g.n),1],['Result','Lost on round '+(g.n+1),1]]);return{win:false,res,side,n:g.n}}
+  g.n++;if(g.n>=PCF_MAX){const r=pcfCash(u);return{win:true,res,side,n:r.n,cashed:r.cashed}}return{win:true,res,side,n:g.n}}
+ if(a==='pcfcash'){if(!u.pcf||u.pcf.n<1)E('Win a flip first');return pcfCash(u)}
+ if(a==='cxpoll')return{cx:cxView(u)};
+ if(a==='cxbet'){const c=cx(),now=Date.now(),bet=needInt(b.bet),au=Math.round((+b.auto||0)*100)/100;if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
+  if(au&&!(au>=1.1&&au<=99))E('Auto cash out must be between 1.1x and 99x');if(c.bets[u.id])E('You are already in this round');if(c.t0&&now>=c.t0)E('Round already started, wait for the next one');
+  if(!c.t0){if(c.last&&now<c.last.t+2500)E('Round just ended, one moment');c.id=(c.id||0)+1;c.cp=crPoint();c.t0=now+CR_WAIT;c.bets={}}
+  u.tokens-=bet;c.bets[u.id]={name:u.name,avatar:u.avatar,bet,auto:au||0,done:0,at:0};return{ok:1,cx:cxView(u)}}
+ if(a==='cxleave'){const c=cx(),bt=c.bets[u.id];if(!bt||bt.done)E('No bet to cancel');if(!c.t0||Date.now()>=c.t0)E('Round already started');u.tokens+=bt.bet;delete c.bets[u.id];if(!Object.keys(c.bets).length){c.t0=0;c.cp=0}return{ok:1,cx:cxView(u)}}
+ if(a==='cxcash'){const c=cx(),bt=c.bets[u.id];if(!bt||bt.done)E('Too late, that round already ended');if(!c.t0||Date.now()<c.t0)E('Round has not started yet');
+  const m=crM(Date.now()-c.t0);if(m>=c.cp){cxSync();return{win:false,at:0,cx:cxView(u)}}
+  cxPay(u,bt,m,c);return{win:true,at:m,pay:bt.pay,cx:cxView(u)}}
  if(a==='upgrade'){const bet=needInt(b.bet),mu=Math.round(+b.mult*100)/100;if(!(mu>=1.1&&mu<=100))E('Pick a multiplier between 1.1x and 100x');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
   const ch=.97/mu,roll=crypto.randomInt(1e6)/1e6,win=roll<ch,pay=win?Math.floor(bet*mu):0;u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'upgrader',`${mu.toFixed(2)}x · ${(ch*100).toFixed(2)}% · ${win?'Upgraded':'Failed'}`);
   HR('upgrader',u,'Upgrader',bet,pay,[['Multiplier',mu.toFixed(2)+'x',1],['Chance',(ch*100).toFixed(2)+'%',1],['Result',win?'Upgraded':'Failed',1]]);log(`⬆️ ${u.name} upgrade ${mu.toFixed(2)}x ${win?'won':'lost'} (bet ${bet})`);
@@ -796,6 +868,24 @@ async function handle(a,b,sid,H){
  if(a==='cdjoin'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');if(u.tokens<g.bet)E('Not enough '+cur());u.tokens-=g.bet;return{ok:1,r:cdResolve(g,{user:u},b.jcol)}}
  if(a==='cdbot'){const D=cdDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');return{ok:1,r:cdResolve(g,{user:null},b.jcol)}}
  if(a==='cdbotplay'){const D=cdDb(),bet=needInt(b.bet),col=cdc(b.col);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;const g={id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},col,bet,t:Date.now()};D.open.push(g);return{ok:1,r:cdResolve(g,{user:null},b.jcol)}}
+ if(a==='plinko'){const bet=needInt(b.bet),rows=PLR.includes(+b.rows)?+b.rows:E('Pick 8, 12 or 16 rows'),risk=PLK.includes(b.risk)?b.risk:E('Pick a risk level');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
+  const path=[];let k=0;for(let i=0;i<rows;i++){const r=crypto.randomInt(2);path.push(r);k+=r}
+  const mu=PLT[rows][risk][k],pay=Math.floor(bet*mu);u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'plinko',`${rows} rows · ${risk} · ${mu.toFixed(2)}x`);
+  HR('plinko',u,'Plinko',bet,pay,[['Rows',String(rows),1],['Risk',risk,1],['Multiplier',mu.toFixed(2)+'x',1]]);log(`🔻 ${u.name} plinko ${rows}/${risk} ${mu.toFixed(2)}x (bet ${bet})`);return{ok:1,path,slot:k,mult:mu,pay,bet,rows,risk}}
+ if(a==='ducreate'){const D=duDb(),bet=needInt(b.bet);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());if(D.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open duels');
+  u.tokens-=bet;D.open.push({id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},bet,t:Date.now()});log(`⚔️ ${u.name} created duel #${D.id} (${bet})`);
+  hk('duels',{title:`Duel #${D.id} posted`,color:0x94a3b8,user:u,desc:ulink(u),fields:[['Bet',fm(bet)+' '+cur(),1]]});return{ok:1,id:D.id}}
+ if(a==='ducancel'){const D=duDb(),g=D.open.find(x=>x.id===+b.id)||E('Duel not found');if(g.c.id!==u.id)E('Not your duel');u.tokens+=g.bet;D.open=D.open.filter(x=>x!==g);return{ok:1}}
+ if(a==='dujoin'){const D=duDb(),g=D.open.find(x=>x.id===+b.id)||E('Duel already taken');if(g.c.id===u.id)E('Cannot join your own duel');if(u.tokens<g.bet)E('Not enough '+cur());u.tokens-=g.bet;return{ok:1,r:duResolve(g,{user:u})}}
+ if(a==='dubot'){const D=duDb(),g=D.open.find(x=>x.id===+b.id)||E('Duel already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');return{ok:1,r:duResolve(g,{user:null})}}
+ if(a==='dubotplay'){const D=duDb(),bet=needInt(b.bet);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;const g={id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},bet,t:Date.now()};D.open.push(g);return{ok:1,r:duResolve(g,{user:null})}}
+ if(a==='rpcreate'){const D=rpDb(),bet=needInt(b.bet),m=RPM.includes(b.move)?b.move:E('Pick rock, paper or scissors');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());if(D.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open RPS games');
+  u.tokens-=bet;D.open.push({id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},m,bet,t:Date.now()});log(`✊ ${u.name} created RPS #${D.id} (${bet})`);
+  hk('rps',{title:`RPS #${D.id} posted`,color:0x94a3b8,user:u,desc:ulink(u),fields:[['Bet',fm(bet)+' '+cur(),1]]});return{ok:1,id:D.id}}
+ if(a==='rpcancel'){const D=rpDb(),g=D.open.find(x=>x.id===+b.id)||E('Game not found');if(g.c.id!==u.id)E('Not your game');u.tokens+=g.bet;D.open=D.open.filter(x=>x!==g);return{ok:1}}
+ if(a==='rpjoin'){const D=rpDb(),jm=RPM.includes(b.move)?b.move:E('Pick rock, paper or scissors'),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id===u.id)E('Cannot join your own game');if(u.tokens<g.bet)E('Not enough '+cur());u.tokens-=g.bet;return{ok:1,r:rpResolve(g,{user:u},jm)}}
+ if(a==='rpbot'){const D=rpDb(),g=D.open.find(x=>x.id===+b.id)||E('Game already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');return{ok:1,r:rpResolve(g,{user:null})}}
+ if(a==='rpbotplay'){const D=rpDb(),bet=needInt(b.bet),m=RPM.includes(b.move)?b.move:E('Pick rock, paper or scissors');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;const g={id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},m,bet,t:Date.now()};D.open.push(g);return{ok:1,r:rpResolve(g,{user:null})}}
  if(a==='rlspin'){const bet=needInt(b.bet),k=String(b.kind||''),t=RT[k]||E('Bad bet'),pk=k==='num'?needInt(b.pick,0):0;if(k==='num'&&pk>36)E('Pick 0-36');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
   const n=crypto.randomInt(37),col=n===0?'green':RRED.includes(n)?'red':'black',win=t[1](n,pk),pay=win?bet*t[0]:0;u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'roulette',`${k==='num'?'#'+pk:k} · landed ${n} ${col} · ${win?'Won':'Lost'}`);
   HR('roulette',u,'Roulette',bet,pay,[['Bet',k==='num'?'Number '+pk:k,1],['Landed',n+' '+col,1]]);log(`🎡 ${u.name} roulette ${k} ${win?'won':'lost'} (bet ${bet}, landed ${n})`);return{ok:1,n,col,win,pay,bet}}
@@ -837,6 +927,7 @@ async function handle(a,b,sid,H){
   else if(a==='admcancelbj'){const t=findUser(b.user);if(t.bj&&!t.bj.done){t.tokens+=t.bj.bet;t.bj=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s blackjack hand (refunded)`)}
   else if(a==='admcancelcf'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Coinflip not found');const o=db.users[g.c.id];if(o){for(const[k,q]of Object.entries(g.items))add(o.inv,k,q);o.tokens+=g.tokens||0}db.cf.open=db.cf.open.filter(x=>x!==g);logA(`🛠️ ${u.name} cancelled coinflip #${g.id} (refunded)`)}
   else if(a==='admkick'){const t=findUser(b.user);let n=0;if(MODE==='mm2')for(const k of Object.keys(db.sessions))if(db.sessions[k]===t.id){delete db.sessions[k];n++}logA(`🛠️ ${u.name} force-logged-out ${t.name} (${n} sessions)`)}
+  else if(a==='admcancelcrash'){const t=findUser(b.user),c=cx(),bt=c.bets[t.id];if(bt&&!bt.done){t.tokens+=bt.bet;delete c.bets[t.id];if(!Object.keys(c.bets).length&&c.t0&&Date.now()<c.t0){c.t0=0;c.cp=0}}logA(`🛠️ ${u.name} cancelled ${t.name}'s crash bet`)}
   else if(a==='admcanceltw'){const t=findUser(b.user);if(t.tw){t.tokens+=t.tw.bet;t.tw=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s towers game`)}
   else if(a==='admcanceljp'){jpRefund();logA(`🛠️ ${u.name} cancelled the jackpot (refunded)`)}
   else if(a==='admcancelmines'){const t=findUser(b.user);if(t.mines){t.tokens+=t.mines.bet;t.mines=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s mines game`)}
@@ -922,8 +1013,9 @@ const run=async(req,res)=>{
   else if(a==='pwlogin')out=await pwLogin(b,H,req);
   else if(a==='admlist'||a==='admplayer'||a==='admbans'||a==='reflist'){await load();out=await handle(a,b,sid,H)}
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
+  else if(a==='cxpoll'){await load();out=cxDue()?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
-   const needResolve=(jp.end&&Date.now()>=jp.end)||false,known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
+   const needResolve=(jp.end&&Date.now()>=jp.end)||cxDue(),known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
    out=(needResolve||needTouch)?await mutate(()=>{if(needTouch){const uu=db.users[db.sessions[sid]];if(uu)uu.lastSeen=Date.now()}return handle(a,b,sid,H)}):await handle(a,b,sid,H)}
   else out=await mutate(()=>handle(a,b,sid,H));
  }catch(e){out={error:e.message||'Error'};HQ.length=0}
