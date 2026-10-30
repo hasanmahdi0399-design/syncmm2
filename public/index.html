@@ -591,6 +591,76 @@ button.dc{background:linear-gradient(135deg,#5865f2,#4752c4)}
 .cdarena{display:flex;align-items:center;justify-content:center;gap:28px;padding:18px 0}.cdarena>b{font-size:22px;opacity:.7}.cdside{display:flex;flex-direction:column;align-items:center;gap:10px}.cdside small{opacity:.8}
 .cddie{width:84px;height:84px;border-radius:16px;background:var(--c);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:12px;box-shadow:0 6px 22px #0006,inset 0 0 0 2px #fff3}.cddie i{border-radius:50%;margin:3px}.cddie i.on{background:#fff}.cddie.roll{animation:cdroll .35s linear infinite}@keyframes cdroll{0%{transform:rotate(0) scale(1)}50%{transform:rotate(180deg) scale(1.12)}100%{transform:rotate(360deg) scale(1)}}
 .rlball{width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:700;color:#fff;border:6px solid #fbbf24;box-shadow:0 0 28px #fbbf2455,inset 0 0 18px #0008}
+/* ===== v3: upgrader / colour dice / roulette animations ===== */
+.fxh{position:absolute;left:50%;top:45%;width:0;height:0;pointer-events:none;z-index:6;display:block}
+.fxp{position:absolute;left:0;top:0;width:var(--s);height:var(--s);border-radius:2px;opacity:0;animation:fxb 1.2s cubic-bezier(.15,.8,.3,1) forwards}
+@keyframes fxb{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}70%{opacity:1}100%{opacity:0;transform:translate(var(--x),calc(var(--y) + 60px)) rotate(var(--r)) scale(.4)}}
+.swin{animation:swinp .9s ease-out}.slose{animation:sloseS .5s}
+@keyframes swinp{0%{box-shadow:0 0 0 0 #4ade8099}100%{box-shadow:0 0 0 40px #4ade8000}}
+@keyframes sloseS{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+/* upgrader */
+.updial{position:relative;border-radius:50%;filter:drop-shadow(0 0 22px var(--glow2));transition:filter .4s}
+.updial svg{display:block;width:100%;overflow:visible}
+.updial .updeco{transform-origin:100px 100px;animation:rot 40s linear infinite}
+.updial.spin{filter:drop-shadow(0 0 34px #8f7cffcc)}.updial.spin .updeco{animation-duration:3s}
+.updial.idle .uparc{animation:uparc 2.4s ease-in-out infinite alternate}
+@keyframes uparc{to{stroke-opacity:.6}}
+.updial.win{filter:drop-shadow(0 0 36px #4ade80cc);animation:upwin .8s cubic-bezier(.2,1.4,.3,1)}
+.updial.lose{filter:drop-shadow(0 0 30px #f87171aa);animation:uplose .55s}
+@keyframes upwin{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes uplose{15%,55%{transform:translateX(-7px)}35%,75%{transform:translateX(7px)}}
+.upflash{position:absolute;inset:6%;border-radius:50%;pointer-events:none;opacity:0}
+.updial.win .upflash{background:radial-gradient(circle,#4ade8077,transparent 70%);animation:upfl .9s ease-out}
+.updial.lose .upflash{background:radial-gradient(circle,#f8717177,transparent 70%);animation:upfl .9s ease-out}
+@keyframes upfl{0%{opacity:1;transform:scale(.6)}100%{opacity:0;transform:scale(1.35)}}
+.upbar{height:8px;border-radius:8px;background:linear-gradient(90deg,#7f1d1d,#ef4444);margin:14px 0 6px;overflow:hidden}
+.upbar i{display:block;height:100%;background:linear-gradient(90deg,#16a34a,#86efac);border-radius:8px;transition:width .3s}
+.upbtn.busy{animation:upbusy 1s ease-in-out infinite alternate}
+@keyframes upbusy{to{box-shadow:0 8px 30px -2px var(--glow2);filter:brightness(1.2)}}
+/* colour dice */
+.cdarena{gap:34px;position:relative}.cdvs{font:700 20px 'Syncopate',system-ui,sans-serif;opacity:.8;letter-spacing:.1em}
+.cdside{position:relative;transition:opacity .4s,transform .4s,filter .4s}
+.cdside small b{font-weight:800}
+.cdcrown{position:absolute;top:-28px;font-size:26px;opacity:0;transform:translateY(10px) scale(.4)}
+.cdside.cdw .cdcrown{animation:cdcr .7s cubic-bezier(.2,1.5,.3,1) .1s forwards}
+.cdside.cdl{opacity:.5;filter:saturate(.5)}
+@keyframes cdcr{to{opacity:1;transform:none}}
+.cddie{position:relative;background:linear-gradient(145deg,color-mix(in srgb,var(--c) 62%,#fff),var(--c) 48%,color-mix(in srgb,var(--c) 62%,#000));box-shadow:0 12px 26px -6px #000c,0 0 24px -4px var(--c),inset 0 2px 3px #ffffff77,inset 0 -5px 8px #0005;transition:box-shadow .3s}
+.cddie::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(120deg,#ffffff55,transparent 40%);pointer-events:none}
+.cddie i{margin:3px;transform:scale(.4);transition:transform .15s}.cddie i.on{background:var(--pc,#fff);box-shadow:0 1px 3px #0008,inset 0 -1px 2px #0004;transform:scale(1)}
+.cddie.idle{animation:cdidle 2.8s ease-in-out infinite}.cdside+b+.cdside .cddie.idle{animation-delay:-1.4s}
+@keyframes cdidle{50%{transform:translateY(-8px) rotate(4deg)}}
+.cddie.roll{animation:cdtumble .5s linear infinite}
+@keyframes cdtumble{0%{transform:translateY(0) rotate(0) scale(1)}25%{transform:translateY(-26px) rotate(110deg) scale(1.1)}50%{transform:translateY(0) rotate(200deg) scale(.95)}75%{transform:translateY(-14px) rotate(290deg) scale(1.06)}100%{transform:translateY(0) rotate(360deg) scale(1)}}
+.cddie.land{animation:cdland .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes cdland{0%{transform:scale(1.35) rotate(-14deg)}60%{transform:scale(.92) rotate(3deg)}100%{transform:none}}
+.cdside.cdw .cddie{box-shadow:0 12px 26px -6px #000c,0 0 40px 4px var(--c),inset 0 2px 3px #ffffff77}
+.cdst{text-align:center;min-height:22px;font:700 12px 'Syncopate',system-ui,sans-serif;letter-spacing:.2em;color:var(--ac2);margin-bottom:6px}
+.cdst.tie{color:#fde047;animation:cdtie .5s ease-in-out 2}
+@keyframes cdtie{50%{transform:scale(1.25);text-shadow:0 0 14px #fde047}}
+.cdsws{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;margin-bottom:4px}
+.cdsw{aspect-ratio:1;padding:0;border-radius:50%;border:2px solid #ffffff30;background:radial-gradient(circle at 32% 28%,color-mix(in srgb,var(--c) 60%,#fff),var(--c) 55%,color-mix(in srgb,var(--c) 70%,#000));box-shadow:0 4px 10px -3px var(--c);transition:transform .15s,box-shadow .2s,border-color .2s}
+.cdsw:hover:not(:disabled){transform:scale(1.15)}.cdsw.on{border-color:#fff;transform:scale(1.12);box-shadow:0 0 0 3px #ffffff33,0 0 18px 0 var(--c)}.cdsw:disabled{opacity:.25}
+.cdsm{display:inline-block;width:.8em;height:.8em;border-radius:50%;background:var(--c);vertical-align:-.05em;margin:0 .3em;box-shadow:0 0 8px -1px var(--c)}
+/* roulette */
+.rlw{position:relative;width:min(340px,92%);aspect-ratio:1;border-radius:50%;filter:drop-shadow(0 14px 26px #000a)}
+.rlw.spin{filter:drop-shadow(0 14px 30px #000a) drop-shadow(0 0 24px #fbbf2455)}
+.rlwh{position:absolute;inset:0;border-radius:50%}.rlwh svg{display:block;width:100%;height:100%}
+.rlhl{animation:rlhl .9s ease-in-out infinite alternate}@keyframes rlhl{to{filter:brightness(1.8)}}
+.rlpt{position:absolute;left:50%;top:-8px;margin-left:-11px;z-index:4;width:0;height:0;border:11px solid transparent;border-top:20px solid #fde047;filter:drop-shadow(0 2px 4px #000a)}
+.rlbo{position:absolute;inset:0;z-index:3;pointer-events:none}
+.rlbl{position:absolute;left:50%;width:4.6%;aspect-ratio:1;margin-left:-2.3%;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,#d6dcff 55%,#8b92a5);box-shadow:0 2px 5px #000c,0 0 8px #fff8}
+.rlbl.idle{animation:rlidle 2s ease-in-out infinite alternate}@keyframes rlidle{to{transform:translateY(5px)}}
+.rlbl.rest{animation:rlrest .6s cubic-bezier(.2,1.6,.4,1)}@keyframes rlrest{0%{transform:scale(1.7) translateY(-8px)}100%{transform:none}}
+.rlhub{position:absolute;left:50%;top:50%;width:16%;aspect-ratio:1;margin:-8% 0 0 -8%;z-index:2;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 clamp(14px,4.6vw,20px)/1 system-ui;border:2px solid #fde68a;box-shadow:0 0 16px #fbbf2466,inset 0 0 8px #0006;text-shadow:0 1px 3px #0008;transition:background .4s}
+.rlw.spin .rlhub{animation:rlhub .5s ease-in-out infinite alternate}@keyframes rlhub{to{box-shadow:0 0 26px #fbbf24cc,inset 0 0 8px #0006}}
+.rlstage.swin .rlhub{animation:upwin .8s cubic-bezier(.2,1.4,.3,1)}
+.rlb.red{border-color:#dc262688;background:#dc262633}.rlb.black{border-color:#6b728888;background:#0a0d1899}
+.rlb.on{outline:2px solid var(--ac2);box-shadow:0 0 14px -2px var(--glow2)}
+.rlhist{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:28px}
+.rlhist span{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;border:1.5px solid #ffffff44}
+.rlhist span.new{animation:bpop .5s cubic-bezier(.2,1.6,.4,1);border-color:#fde047;box-shadow:0 0 10px #fde04799}
+@media(prefers-reduced-motion:reduce){.updial,.updial *,.cddie,.rlbl,.rlhl,.rlhub,.upbtn{animation:none!important}}
 </style></head><body><svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="goldRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0ae"/><stop offset=".5" stop-color="#c98d14"/><stop offset="1" stop-color="#6e4506"/></linearGradient>
 <radialGradient id="goldFace" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#ffe58f"/><stop offset=".55" stop-color="#e0a921"/><stop offset="1" stop-color="#a8700c"/></radialGradient>
@@ -1292,71 +1362,119 @@ async function twst(){if(twbusy)return;if(!(twbet>=MINB())){toast('Minimum bet i
 async function twp(i){const r=await api('twpick',{i});if(r.boom||r.cashed!=null)twres=r;await load();twr()}
 async function twca(){const r=await api('twcash');if(r.cashed!=null)twres=r;await load();twr()}
 
+// ---- shared fx ----
+const fxSleep=ms=>new Promise(r=>setTimeout(r,ms));
+function FXB(cols,n=30){if(!cfg.anim)return;const h=document.querySelector('.mstage .fxh');if(!h)return;for(let i=0;i<n;i++){const p=document.createElement('i');p.className='fxp';const a=Math.random()*Math.PI*2,d=70+Math.random()*140;p.style.cssText=`--x:${(Math.cos(a)*d).toFixed(0)}px;--y:${(Math.sin(a)*d-30).toFixed(0)}px;--r:${(Math.random()*720-360).toFixed(0)}deg;--s:${(5+Math.random()*7).toFixed(0)}px;background:${cols[i%cols.length]};animation-delay:${(Math.random()*.12).toFixed(2)}s`;h.appendChild(p);setTimeout(()=>p.remove(),1600)}}
+
 // ---- Upgrader ----
-let upbet=MODE==='ps99'?1e6:10,upm=2,upres=null,upbusy=false,upinit=0;
+let upbet=MODE==='ps99'?1e6:10,upm=2,upres=null,upbusy=false,upinit=0,upang=0;
 const upc=m=>.97/m*100;
-function rUp(v){if(!upinit){upinit=1;upbet=PS()?1e6:10}const r=upres,ch=upc(upm),ang=r?(r.win?r.roll/r.chance:1)*0:0;
- const C=2*Math.PI*70,arc=C*ch/100;
- const dial=`<svg viewBox="0 0 180 180" class="updial"><circle cx="90" cy="90" r="70" fill="none" stroke="#ef444455" stroke-width="16"/><circle cx="90" cy="90" r="70" fill="none" stroke="#22c55e" stroke-width="16" stroke-dasharray="${arc.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 90 90)"/>${r?`<g id="upn" style="transform-origin:90px 90px;transition:transform ${cfg.anim?2.2:0}s cubic-bezier(.15,.8,.2,1);transform:rotate(0deg)"><path d="M90 8 L97 26 L83 26Z" fill="#fff"/></g>`:''}<text x="90" y="86" text-anchor="middle" fill="#fff" font-size="26" font-weight="700">${upm.toFixed(2)}x</text><text x="90" y="108" text-anchor="middle" fill="#9aa" font-size="12">${ch.toFixed(2)}% chance</text></svg>`;
- const msg=r&&!upbusy?(r.win?`<div class="mres win">Upgraded! +${fmt(r.pay-r.bet)} ${CI()}<small>Rolled ${(r.roll*100).toFixed(2)} (needed under ${(r.chance*100).toFixed(2)})</small></div>`:`<div class="mres lose">Failed<small>Rolled ${(r.roll*100).toFixed(2)} (needed under ${(r.chance*100).toFixed(2)})</small></div>`):'';
+function rUp(v){if(!upinit){upinit=1;upbet=PS()?1e6:10}const r=upres,ch=upc(upm),rest=r&&!upbusy;
+ const R=76,C=2*Math.PI*R,arc=C*ch/100;
+ let ticks='';for(let i=0;i<60;i++){const a=i*6*Math.PI/180,l=i%5===0?7:3.5,x1=100+Math.sin(a)*92,y1=100-Math.cos(a)*92,x2=100+Math.sin(a)*(92-l),y2=100-Math.cos(a)*(92-l);ticks+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#ffffff${i%5===0?'55':'22'}" stroke-width="${i%5===0?1.6:1}"/>`}
+ const cls='updial'+(upbusy?' spin':'')+(rest?(r.win?' win':' lose'):' idle');
+ const dial=`<div class="${cls}"><svg viewBox="0 0 200 200"><defs><linearGradient id="upg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86efac"/><stop offset="1" stop-color="#16a34a"/></linearGradient><linearGradient id="upl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f87171"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient><radialGradient id="upd" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#2a2f63"/><stop offset="1" stop-color="#0a0c1c"/></radialGradient><filter id="upf" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+ <circle class="updeco" cx="100" cy="100" r="97" fill="none" stroke="var(--ac2)" stroke-opacity=".35" stroke-width="1" stroke-dasharray="2 7"/>${ticks}
+ <circle cx="100" cy="100" r="${R}" fill="none" stroke="url(#upl)" stroke-opacity=".55" stroke-width="15"/>
+ <circle class="uparc" cx="100" cy="100" r="${R}" fill="none" stroke="url(#upg)" stroke-width="15" stroke-linecap="round" stroke-dasharray="${arc.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 100 100)" filter="url(#upf)"/>
+ <circle cx="100" cy="100" r="60" fill="url(#upd)" stroke="#ffffff22"/>
+ <g id="upn" style="transform-origin:100px 100px;transform:rotate(${upang}deg)"><path d="M100 14 L107 34 L93 34Z" fill="#fff" filter="url(#upf)"/><line x1="100" y1="34" x2="100" y2="52" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g>
+ <circle cx="100" cy="100" r="5" fill="#fff" fill-opacity=".8"/>
+ <text x="100" y="92" text-anchor="middle" fill="#fff" font-size="25" font-weight="800">${upm.toFixed(2)}x</text>
+ <text x="100" y="109" text-anchor="middle" fill="#a8b0d4" font-size="9.5">${ch.toFixed(2)}% chance</text>
+ <text id="upro" x="100" y="126" text-anchor="middle" fill="${rest?(r.win?'#4ade80':'#f87171'):'#8b92a5'}" font-size="11" font-weight="700">${rest?(r.roll*100).toFixed(2):(upbusy?'0.00':'')}</text></svg><i class="upflash"></i></div>`;
+ const msg=rest?(r.win?`<div class="mres win">Upgraded! +${fmt(r.pay-r.bet)} ${CI()}<small>Rolled ${(r.roll*100).toFixed(2)} (needed under ${(r.chance*100).toFixed(2)})</small></div>`:`<div class="mres lose">Failed<small>Rolled ${(r.roll*100).toFixed(2)} (needed under ${(r.chance*100).toFixed(2)})</small></div>`):'';
  v.innerHTML=`<div class="mw"><div class="box mctl"><h3>⬆️ Upgrader <span class="muted">— up to 100x</span></h3>
  <label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('ub',upbet,'upbet=amtP(this.value)',PHA())}<button class="s" onclick="upset(.5)">½</button><button class="s" onclick="upset(2)">2×</button><button class="s" onclick="upset(0)">Max</button></div>
  <div class="row">${BETS().map(x=>`<button class="s ${upbet===x?'on':''}" onclick="upbet=${x};upr()">${fmt(x)}</button>`).join('')}</div>
  <label class="lb">Multiplier</label><div class="row"><input id="um" type="number" min="1.1" max="100" step="0.1" value="${upm}" oninput="upm=Math.min(100,Math.max(1.1,+this.value||1.1));upr(1)" style="flex:1;min-width:90px"></div>
  <div class="row">${[1.5,2,3,5,10,50].map(x=>`<button class="s ${upm===x?'on':''}" onclick="upm=${x};upr()">${x}x</button>`).join('')}</div>
+ <div class="upbar"><i style="width:${Math.min(100,ch).toFixed(2)}%"></i></div>
  <div class="stat"><span>Payout if win</span><b>${fmt(Math.floor(upbet*upm))} ${CI()}</b></div><div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div>
- <button class="big" onclick="upgo()" ${upbusy?'disabled':''}>${upbusy?'Upgrading…':'Upgrade'}</button></div>
- <div class="mstage" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px"><div style="width:min(320px,90%)">${dial}</div>${msg}</div></div>`;
- if(r&&upbusy&&cfg.anim){const n=$('#upn');if(n){const t=r.roll*360;requestAnimationFrame(()=>requestAnimationFrame(()=>{n.style.transform='rotate('+(1440+t)+'deg)'}))}}}
+ <button class="big upbtn ${upbusy?'busy':''}" onclick="upgo()" ${upbusy?'disabled':''}>${upbusy?'Upgrading…':'Upgrade'}</button></div>
+ <div class="mstage upstage ${rest?(r.win?'swin':'slose'):''}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px"><i class="fxh"></i><div style="width:min(330px,92%)">${dial}</div>${msg}</div></div>`;
+ if(upbusy&&r&&cfg.anim){const n=$('#upn'),o=$('#upro');if(n){const tgt=upang+1440+(((r.roll*360-upang)%360)+360)%360;requestAnimationFrame(()=>requestAnimationFrame(()=>{n.style.transition='transform 2.3s cubic-bezier(.12,.7,.15,1)';n.style.transform='rotate('+tgt+'deg)';upang=tgt}));const t0=Date.now(),iv=setInterval(()=>{const el=$('#upro');if(!el||Date.now()-t0>2200){clearInterval(iv);return}el.textContent=(Math.random()*100).toFixed(2)},70)}}}
 const upr=k=>{if(tab!=='upgrader')return;if(k){const a=document.activeElement,p=a&&a.id==='um'?a.selectionStart:0;rUp($('#view'));const e=$('#um');if(e){e.focus();try{e.setSelectionRange(p,p)}catch(x){}}}else rUp($('#view'))};
 function upset(x){upbet=x?Math.max(MINB(),Math.floor(upbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));upr()}
-async function upgo(){if(upbusy)return;if(!(upbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}upbusy=true;upres=null;upr();const r=await api('upgrade',{bet:upbet,mult:upm});if(!r||r.win===undefined){upbusy=false;await load();upr();return}r.bet=upbet;upres=r;upr();await new Promise(x=>setTimeout(x,cfg.anim?2300:0));upbusy=false;await load();upr()}
+async function upgo(){if(upbusy)return;if(!(upbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}upbusy=true;upres=null;upr();const r=await api('upgrade',{bet:upbet,mult:upm});if(!r||r.win===undefined){upbusy=false;await load();upr();return}r.bet=upbet;upres=r;if(!cfg.anim)upang=r.roll*360;upr();await fxSleep(cfg.anim?2400:0);upbusy=false;await load();upr();if(r.win)FXB(['#4ade80','#86efac','#fde047','#ffffff','#8f7cff'],36)}
 
 // ---- Colour Dice ----
-let cdbet=MODE==='ps99'?1e6:10,cdcol='red',cdres=null,cdbusy=false,cdinit=0;
-const CDH={red:'#ef4444',blue:'#3b82f6'},cdPips={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
-const cdDie=(n,c,roll)=>`<div class="cddie${roll?' roll':''}" style="--c:${CDH[c]}">${Array.from({length:9},(_,i)=>`<i class="${n&&cdPips[n].includes(i)?'on':''}"></i>`).join('')}</div>`;
-function rCd(v){if(!cdinit){cdinit=1;cdbet=PS()?1e6:10}const D=S.cd||{open:[],recent:[]},r=cdres,me=S.me.id;
- const res=r?`<div class="cdarena"><div class="cdside"><small>${r.mine?'You':md2(r.c.name)} · ${r.cCol}</small>${cdDie(r.a,r.cCol,cdbusy)}</div><b>VS</b><div class="cdside"><small>${md2(r.j.name)} · ${r.jCol}</small>${cdDie(r.b,r.jCol,cdbusy)}</div></div>${cdbusy?'':(r.winner.id===me?`<div class="mres win">You won +${fmt(r.won-r.bet)} ${CI()}<small>${r.rounds.length>1?'Tie rerolled · ':''}${r.a} vs ${r.b}</small></div>`:`<div class="mres lose">You lost<small>${r.a} vs ${r.b}</small></div>`)}`:`<div class="cdarena"><div class="cdside"><small>Red</small>${cdDie(0,'red')}</div><b>VS</b><div class="cdside"><small>Blue</small>${cdDie(0,'blue')}</div></div><p class="muted" style="text-align:center">Each side rolls a d6 · higher wins · ties reroll · 5% tax</p>`;
- const open=D.open.length?D.open.map(g=>{const mine=g.c.id===me;return `<div class="stat"><span><span style="color:${CDH[g.col]}">●</span> ${md2(g.c.name)} <small class="muted">· ${g.col}</small></span><b>${fmt(g.bet)} ${CI()} ${mine?`<button class="s" onclick="cdact('cdbot',${g.id})">🤖 SyncBot</button> <button class="s" onclick="cdact('cdcancel',${g.id})">Cancel</button>`:`<button class="s on" onclick="cdact('cdjoin',${g.id})">Join (${g.col==='red'?'blue':'red'})</button>`}</b></div>`}).join(''):'<p class="muted">No open games — create one!</p>';
- const rec=D.recent.slice().reverse().slice(0,6).map(g=>`<div class="stat"><span>#${g.id} ${md2(g.c.name)} <small class="muted">${g.a}</small> vs <small class="muted">${g.b}</small> ${md2(g.j.name)}</span><b>${md2(g.winner.name)} +${fmt(g.won)}</b></div>`).join('')||'<p class="muted">Nothing yet</p>';
+let cdbet=MODE==='ps99'?1e6:10,cdcol='red',cdjc='blue',cdres=null,cdbusy=false,cdinit=0;
+const CDL=['red','blue','green','yellow','purple','orange','pink','cyan'];
+const CDH={red:'#ef4444',blue:'#3b82f6',green:'#22c55e',yellow:'#facc15',purple:'#a855f7',orange:'#f97316',pink:'#ec4899',cyan:'#06b6d4'},CDP={yellow:'#422006',cyan:'#022c3a'},cdPips={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const cdName=c=>c[0].toUpperCase()+c.slice(1),cdOther=c=>c!==cdjc?cdjc:CDL.find(x=>x!==c);
+const cdDie=(n,c,cls='')=>`<div class="cddie ${cls}" style="--c:${CDH[c]||'#888'};--pc:${CDP[c]||'#fff'}">${Array.from({length:9},(_,i)=>`<i class="${n&&cdPips[n].includes(i)?'on':''}"></i>`).join('')}</div>`;
+const cdPip=(d,n)=>d.querySelectorAll('i').forEach((p,i)=>p.classList.toggle('on',cdPips[n].includes(i)));
+const cdSw=(sel,fn,not)=>CDL.map(c=>`<button class="cdsw ${sel===c?'on':''}" style="--c:${CDH[c]}" title="${cdName(c)}" ${not===c?'disabled':''} onclick="${fn}('${c}')"></button>`).join('');
+function rCd(v){if(!cdinit){cdinit=1;cdbet=PS()?1e6:10}const D=S.cd||{open:[],recent:[]},r=cdres,me=S.me.id;if(cdjc===cdcol)cdjc=CDL.find(x=>x!==cdcol);
+ const rest=r&&!cdbusy,wc=rest&&r.winner.id===me,cw=rest&&r.winner.id===r.c.id;
+ const res=r?`<div class="cdarena"><div class="cdside ${rest?(cw?'cdw':'cdl'):''}"><span class="cdcrown">👑</span><small>${r.mine?'You':md2(r.c.name)} · <b style="color:${CDH[r.cCol]}">${cdName(r.cCol)}</b></small>${cdDie(cdbusy?r.rounds[0][0]:r.a,r.cCol,cdbusy?'roll':'')}</div><b class="cdvs">VS</b><div class="cdside ${rest?(cw?'cdl':'cdw'):''}"><span class="cdcrown">👑</span><small>${md2(r.j.name)} · <b style="color:${CDH[r.jCol]}">${cdName(r.jCol)}</b></small>${cdDie(cdbusy?r.rounds[0][1]:r.b,r.jCol,cdbusy?'roll':'')}</div></div><div id="cdst" class="cdst">${cdbusy?'Rolling…':''}</div>${rest?(wc?`<div class="mres win">You won +${fmt(r.won-r.bet)} ${CI()}<small>${r.rounds.length>1?'Tie rerolled · ':''}${r.a} vs ${r.b}</small></div>`:`<div class="mres lose">You lost<small>${r.a} vs ${r.b}</small></div>`):''}`:`<div class="cdarena"><div class="cdside"><small><b style="color:${CDH[cdcol]}">${cdName(cdcol)}</b></small>${cdDie(0,cdcol,'idle')}</div><b class="cdvs">VS</b><div class="cdside"><small><b style="color:${CDH[cdjc]}">${cdName(cdjc)}</b></small>${cdDie(0,cdjc,'idle')}</div></div><p class="muted" style="text-align:center">Each side rolls a d6 · higher wins · ties reroll · 5% tax</p>`;
+ const open=D.open.length?D.open.map(g=>{const mine=g.c.id===me;return `<div class="stat"><span><i class="cdsm" style="--c:${CDH[g.col]||'#888'}"></i> ${md2(g.c.name)} <small class="muted">· ${g.col}</small></span><b>${fmt(g.bet)} ${CI()} ${mine?`<button class="s" onclick="cdact('cdbot',${g.id})">🤖 SyncBot</button> <button class="s" onclick="cdact('cdcancel',${g.id})">Cancel</button>`:`<button class="s on" onclick="cdact('cdjoin',${g.id})">Join (<i class="cdsm" style="--c:${CDH[cdOther(g.col)]}"></i>${cdOther(g.col)})</button>`}</b></div>`}).join(''):'<p class="muted">No open games — create one!</p>';
+ const rec=D.recent.slice().reverse().slice(0,6).map(g=>`<div class="stat"><span>#${g.id} <i class="cdsm" style="--c:${CDH[g.cCol]||'#888'}"></i>${md2(g.c.name)} <small class="muted">${g.a}</small> vs <small class="muted">${g.b}</small> ${md2(g.j.name)}<i class="cdsm" style="--c:${CDH[g.jCol]||'#888'}"></i></span><b>${md2(g.winner.name)} +${fmt(g.won)}</b></div>`).join('')||'<p class="muted">Nothing yet</p>';
  v.innerHTML=`<div class="mw"><div class="box mctl"><h3>🎲 Colour Dice</h3>
  <label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('cb',cdbet,'cdbet=amtP(this.value)',PHA())}<button class="s" onclick="cdset(.5)">½</button><button class="s" onclick="cdset(2)">2×</button><button class="s" onclick="cdset(0)">Max</button></div>
  <div class="row">${BETS().map(x=>`<button class="s ${cdbet===x?'on':''}" onclick="cdbet=${x};cdr()">${fmt(x)}</button>`).join('')}</div>
- <label class="lb">Your colour</label><div class="row"><button class="s ${cdcol==='red'?'on':''}" style="flex:1" onclick="cdcol='red';cdr()">🔴 Red</button><button class="s ${cdcol==='blue'?'on':''}" style="flex:1" onclick="cdcol='blue';cdr()">🔵 Blue</button></div>
+ <label class="lb">Your colour · <b style="color:${CDH[cdcol]}">${cdName(cdcol)}</b></label><div class="cdsws">${cdSw(cdcol,'cdpick')}</div>
+ <label class="lb">Opponent / join colour · <b style="color:${CDH[cdjc]}">${cdName(cdjc)}</b></label><div class="cdsws">${cdSw(cdjc,'cdpickj',cdcol)}</div>
  <div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div>
  <button class="big" onclick="cdact('cdbotplay')" ${cdbusy?'disabled':''}>🤖 Play vs SyncBot</button><button class="big s" style="margin-top:8px" onclick="cdact('cdcreate')" ${cdbusy?'disabled':''}>Create game for players</button></div>
- <div class="mstage">${res}<div class="box"><h3>Open games</h3>${open}</div><div class="box"><h3>Recent</h3>${rec}</div></div></div>`}
+ <div class="mstage"><i class="fxh"></i>${res}<div class="box"><h3>Open games</h3>${open}</div><div class="box"><h3>Recent</h3>${rec}</div></div></div>`}
 const md2=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[c]);
 const cdr=()=>{if(tab==='colordice'&&!cdbusy)rCd($('#view'))};
+function cdpick(c){cdcol=c;if(cdjc===c)cdjc=CDL.find(x=>x!==c);cdr()}
+function cdpickj(c){if(c===cdcol)return;cdjc=c;cdr()}
 function cdset(x){cdbet=x?Math.max(MINB(),Math.floor(cdbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));cdr()}
+async function cdAnim(r){const ds=document.querySelectorAll('.cdarena .cddie'),st=$('#cdst');if(ds.length<2)return;
+ for(let k=0;k<r.rounds.length;k++){const[a,b]=r.rounds[k];
+  ds.forEach(d=>d.classList.add('roll'));if(st)st.textContent=k?'Rolling again…':'Rolling…';
+  const iv=setInterval(()=>ds.forEach(d=>cdPip(d,1+Math.floor(Math.random()*6))),80);await fxSleep(1000);clearInterval(iv);
+  ds.forEach(d=>d.classList.remove('roll'));cdPip(ds[0],a);cdPip(ds[1],b);ds.forEach(d=>{d.classList.remove('land');void d.offsetWidth;d.classList.add('land')});
+  if(k<r.rounds.length-1){if(st){st.textContent='TIE! Rerolling…';st.classList.add('tie')}await fxSleep(1000);if(st)st.classList.remove('tie')}else await fxSleep(450)}}
 async function cdact(a,id){if(cdbusy)return;if((a==='cdcreate'||a==='cdbotplay')&&!(cdbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}
- const r=await api(a,{id,bet:cdbet,col:cdcol});if(!r||!r.ok){await load();return rCd($('#view'))}
+ const D=S.cd||{open:[]},og=D.open.find(x=>x.id===id),base=og?og.col:cdcol;
+ const r=await api(a,{id,bet:cdbet,col:cdcol,jcol:cdOther(base)});if(!r||!r.ok){await load();return rCd($('#view'))}
  if(a==='cdcreate'){toast('Game created');await load();return rCd($('#view'))}
- if(r.r){cdres=Object.assign({},r.r,{mine:r.r.c.id===S.me.id});cdbusy=true;rCd($('#view'));await new Promise(x=>setTimeout(x,cfg.anim?1400:0));cdbusy=false}
- await load();rCd($('#view'))}
+ if(r.r){cdres=Object.assign({},r.r,{mine:r.r.c.id===S.me.id});cdbusy=true;rCd($('#view'));if(cfg.anim)await cdAnim(cdres);cdbusy=false}
+ await load();rCd($('#view'));if(cdres&&cdres.winner.id===S.me.id)FXB([CDH[cdres.winner.id===cdres.c.id?cdres.cCol:cdres.jCol],'#fde047','#ffffff'],34)}
 
 // ---- Roulette ----
-let rlbet=MODE==='ps99'?1e6:10,rlk='red',rlp=7,rlres=null,rlbusy=false,rlshow=null,rlinit=0;
-const RLRED=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36],RLC=n=>n===0?'#16a34a':RLRED.includes(n)?'#dc2626':'#1f2937';
+let rlbet=MODE==='ps99'?1e6:10,rlk='red',rlp=7,rlres=null,rlbusy=false,rlshow=null,rlinit=0,rlang=0,rlh=[];
+const RLRED=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36],RLC=n=>n===0?'#16a34a':RLRED.includes(n)?'#dc2626':'#161b2b';
+const RLORD=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26],RLS=360/37;
 const RLB=[['red','🔴 Red','2x'],['black','⚫ Black','2x'],['odd','Odd','2x'],['even','Even','2x'],['low','1-18','2x'],['high','19-36','2x'],['d1','1st 12','3x'],['d2','2nd 12','3x'],['d3','3rd 12','3x'],['num','Number','36x']];
-function rRl(v){if(!rlinit){rlinit=1;rlbet=PS()?1e6:10}const r=rlres,n=rlshow;
- const ball=`<div class="rlball" style="background:${n==null?'#334155':RLC(n)}">${n==null?'?':n}</div>`;
- const msg=r&&!rlbusy?(r.win?`<div class="mres win">+${fmt(r.pay-r.bet)} ${CI()}<small>Landed ${r.n} ${r.col}</small></div>`:`<div class="mres lose">You lost<small>Landed ${r.n} ${r.col}</small></div>`):'';
+const rlp2=(r,a)=>{const t=a*Math.PI/180;return[+(150+r*Math.sin(t)).toFixed(2),+(150-r*Math.cos(t)).toFixed(2)]};
+function rlWheel(hl){let s='<svg viewBox="0 0 300 300"><defs><linearGradient id="rlrim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset=".5" stop-color="#b8860b"/><stop offset="1" stop-color="#fcd34d"/></linearGradient><radialGradient id="rlcone" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3a3f66"/><stop offset="1" stop-color="#0b0d1c"/></radialGradient><radialGradient id="rlhubg" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#b8860b"/></radialGradient></defs><circle cx="150" cy="150" r="148" fill="url(#rlrim)"/><circle cx="150" cy="150" r="139" fill="#0a0d18"/><circle cx="150" cy="150" r="115" fill="none" stroke="#ffffff10"/>';
+ RLORD.forEach((n,i)=>{const a0=i*RLS-RLS/2,a1=a0+RLS,[x0,y0]=rlp2(114,a0),[x1,y1]=rlp2(114,a1),[x2,y2]=rlp2(82,a1),[x3,y3]=rlp2(82,a0),[tx,ty]=rlp2(93,i*RLS),h=hl===n;
+  s+=`<path d="M${x0} ${y0}A114 114 0 0 1 ${x1} ${y1}L${x2} ${y2}A82 82 0 0 0 ${x3} ${y3}Z" fill="${RLC(n)}" stroke="${h?'#fde047':'#d4af37'}" stroke-width="${h?2.4:.6}"${h?' class="rlhl"':''}/><text x="${tx}" y="${ty}" transform="rotate(${(i*RLS).toFixed(2)} ${tx} ${ty})" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="9.5" font-weight="700">${n}</text>`});
+ s+='<circle cx="150" cy="150" r="82" fill="url(#rlcone)" stroke="#d4af37" stroke-width="1.2"/>';
+ for(let k=0;k<4;k++){const[x,y]=rlp2(70,k*90),[x2,y2]=rlp2(70,k*90+180);s+=`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="#d4af37" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/><circle cx="${x}" cy="${y}" r="5" fill="url(#rlhubg)"/>`}
+ return s+'<circle cx="150" cy="150" r="24" fill="url(#rlhubg)"/></svg>'}
+function rRl(v){if(!rlinit){rlinit=1;rlbet=PS()?1e6:10}const r=rlres,rest=r&&!rlbusy,n=rest?r.n:null;
+ const ballTop=rest?'11.5%':'6.2%';
+ const msg=rest?(r.win?`<div class="mres win">+${fmt(r.pay-r.bet)} ${CI()}<small>Landed ${r.n} ${r.col}</small></div>`:`<div class="mres lose">You lost<small>Landed ${r.n} ${r.col}</small></div>`):'';
  v.innerHTML=`<div class="mw"><div class="box mctl"><h3>🎡 Roulette <span class="muted">— single zero</span></h3>
  <label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('rb',rlbet,'rlbet=amtP(this.value)',PHA())}<button class="s" onclick="rlset(.5)">½</button><button class="s" onclick="rlset(2)">2×</button><button class="s" onclick="rlset(0)">Max</button></div>
  <div class="row">${BETS().map(x=>`<button class="s ${rlbet===x?'on':''}" onclick="rlbet=${x};rlr()">${fmt(x)}</button>`).join('')}</div>
- <label class="lb">Bet on</label><div class="row" style="flex-wrap:wrap">${RLB.map(([k,l,m])=>`<button class="s ${rlk===k?'on':''}" onclick="rlk='${k}';rlr()">${l} <small>${m}</small></button>`).join('')}</div>
+ <label class="lb">Bet on</label><div class="row" style="flex-wrap:wrap">${RLB.map(([k,l,m])=>`<button class="s rlb ${k} ${rlk===k?'on':''}" onclick="rlk='${k}';rlr()">${l} <small>${m}</small></button>`).join('')}</div>
  ${rlk==='num'?`<div class="row"><input id="rlpk" type="number" min="0" max="36" value="${rlp}" oninput="rlp=Math.min(36,Math.max(0,Math.floor(+this.value||0)))" style="flex:1" placeholder="0-36"></div>`:''}
  <div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div>
  <button class="big" onclick="rlgo()" ${rlbusy?'disabled':''}>${rlbusy?'Spinning…':'Spin'}</button></div>
- <div class="mstage" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">${ball}${msg}<div class="rlhist">${(S.me.rlh||[]).slice(-0).join('')}</div></div></div>`}
+ <div class="mstage rlstage ${rest?(r.win?'swin':'slose'):''}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px"><i class="fxh"></i>
+ <div class="rlw ${rlbusy?'spin':''}"><i class="rlpt"></i><div class="rlwh" style="transform:rotate(${rlang}deg)">${rlWheel(n)}</div><div class="rlbo"><i class="rlbl ${rest?'rest':rlbusy?'':'idle'}" style="top:${ballTop}"></i></div><div class="rlhub" style="background:${n==null?'radial-gradient(circle at 35% 30%,#fff3b0,#b8860b)':RLC(n)};color:${n==null?'#3b2f00':'#fff'}">${n==null?'?':n}</div></div>
+ ${msg}<div class="rlhist">${rlh.slice(-14).reverse().map((x,i)=>`<span class="${i===0?'new':''}" style="background:${RLC(x)}">${x}</span>`).join('')}</div></div></div>`}
 const rlr=()=>{if(tab==='roulette'&&!rlbusy)rRl($('#view'))};
 function rlset(x){rlbet=x?Math.max(MINB(),Math.floor(rlbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));rlr()}
 async function rlgo(){if(rlbusy)return;if(!(rlbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}
  const r=await api('rlspin',{bet:rlbet,kind:rlk,pick:rlp});if(!r||!r.ok){await load();return rlr()}
- rlres=r;rlbusy=true;if(cfg.anim){const t0=Date.now();while(Date.now()-t0<1800){rlshow=Math.floor(Math.random()*37);const b=$('.rlball');if(b){b.textContent=rlshow;b.style.background=RLC(rlshow)}await new Promise(x=>setTimeout(x,80))}}
- rlshow=r.n;rlbusy=false;await load();rRl($('#view'))}
+ const i=RLORD.indexOf(r.n),want=((-i*RLS-rlang)%360+360)%360,tgt=rlang+360*5+want;
+ rlres=r;
+ if(cfg.anim){rlbusy=true;rRl($('#view'));
+  const w=$('.rlwh'),bo=$('.rlbo'),bl=$('.rlbl');
+  if(w&&bo&&bl){await fxSleep(60);w.style.transition='transform 4.6s cubic-bezier(.1,.6,.1,1)';bo.style.transition='transform 4.6s cubic-bezier(.12,.55,.2,1)';bl.style.transition='top 4.6s cubic-bezier(.75,0,.95,.5)';
+   w.style.transform='rotate('+tgt+'deg)';bo.style.transform='rotate(-2520deg)';bl.style.top='11.5%';await fxSleep(4800)}
+  rlang=tgt;rlbusy=false}else rlang=tgt;
+ rlh.push(r.n);await load();rRl($('#view'));
+ if(r.win)FXB(['#fde047','#4ade80','#ffffff','#f59e0b'],36)}
 
 // ---- Blackjack ----
 let bjBet=MODE==='ps99'?1000000:10,bjBusy=false,bjSeen={id:0,p:0,d:0,hole:false};
