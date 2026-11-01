@@ -373,19 +373,23 @@ async function psFetch(prev){
  return{t:Date.now(),items}}
 function psSet(c){PSTS=c.t;ITEMS=c.items.map(([id,name,rarity,value,t])=>({id,name,type:'pet',rarity,value,icon:'https://ps99.biggamesapi.io/image/'+t}));I=Object.fromEntries(ITEMS.map(i=>[i.id,i]))}
 async function psLoad(){
- const raw=await R('GET','psitems');let c=raw?JSON.parse(raw):null;
+ const raw=await rget('psitems',0,300000);let c=raw?JSON.parse(raw):null;
  if(!c||Date.now()-c.t>PSTTL){
   if(!c||await R('SET','psitems:lock','1','NX','PX',60000)==='OK'){
    try{c=await psFetch(c)}catch(e){if(!c)throw Error('PS99 values are loading, try again in a moment ('+e.message+')');c.t=Date.now()-PSTTL+300000}
-   await R('SET','psitems',JSON.stringify(c))}}
- psSet(c)}
+   const ps_=JSON.stringify(c);await R('SET','psitems',ps_);RC.set('psitems',{s:ps_,t:Date.now()})}}
+ if(c.t!==PSTS||ITEMS===MM2_ITEMS)psSet(c)}
+const RC=new Map();let FR=false,LOADED='';
+const rget=async(key,fresh,ttl=4000)=>{const c=RC.get(key);if(!fresh&&c&&Date.now()-c.t<ttl)return c.s;const s=await R('GET',key);RC.set(key,{s,t:Date.now()});return s};
+const ser=()=>JSON.stringify(MODE==='ps99'?{...db,sessions:undefined,_m:MODE}:{...db,_m:MODE});
+const ONL=120000;
 let db,jp;
 let DBKEY=KEY; // the Redis key the CURRENT db was loaded from; persist() always writes back to this, never to whatever KEY is now
-const load=async fresh=>{DBKEY=KEY;const s=await R('GET',DBKEY);db={users:{},sessions:{},shop:{},wd:[],dp:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},...(s?JSON.parse(s):{})};
+const load=async fresh=>{DBKEY=KEY;const s=await rget(DBKEY,fresh||FR);db={users:{},sessions:{},shop:{},wd:[],dp:[],values:{},webhook:'',logs:[],jp:null,chat:[],cf:{open:[],recent:[],id:0},...(s?JSON.parse(s):{})};LOADED=ser();
  if(db._m&&db._m!==MODE)throw Error('Data mismatch ('+db._m+' data under '+MODE+'), refusing to continue');
- if(MODE==='ps99'){const mm=await R('GET','db');MAIN=mm?JSON.parse(mm):{users:{},sessions:{}};db.sessions=MAIN.sessions||{};await psLoad()}
+ if(MODE==='ps99'){const mm=await rget('db',FR,10000);MAIN=mm?JSON.parse(mm):{users:{},sessions:{}};db.sessions=MAIN.sessions||{};await psLoad()}
  if(db.cb){for(const g of db.cb.open||[])for(const p of g.players)if(!p.bot&&db.users[p.id])db.users[p.id].tokens+=g.cost;delete db.cb} // case battles were removed: refund anything still open
- jp=db.jp||(db.jp={players:{},end:0,id:0,last:null});await wgLoad(fresh)};
+ jp=db.jp||(db.jp={players:{},end:0,id:0,last:null});await wgLoad()};
 // Device fingerprint: a salted, one-way hash of the request IP, stored per user so admins can see
 // which accounts share a device (likely alts/ban evasion). Never the raw IP, never sent anywhere else.
 const DEVSALT=process.env.DEVICE_SALT||'syncmm2-default-salt-change-me';
@@ -393,7 +397,7 @@ const getIp=req=>String(req.headers['x-forwarded-for']||req.socket?.remoteAddres
 const hashDev=ip=>ip?crypto.createHash('sha256').update(DEVSALT+ip).digest('hex').slice(0,20):'';
 function altGroups(){const by={};for(const u of Object.values(db.users)){if(!u.dev)continue;(by[u.dev]=by[u.dev]||[]).push(u.name)}
  return Object.values(by).filter(g=>g.length>1)}
-const persist=async()=>{await R('SET',DBKEY,JSON.stringify(MODE==='ps99'?{...db,sessions:undefined,_m:MODE}:{...db,_m:MODE}));try{await wgFlush()}catch{}};
+const persist=async()=>{const s=ser();if(s!==LOADED){await R('SET',DBKEY,s);RC.set(DBKEY,{s,t:Date.now()});LOADED=s}try{await wgFlush()}catch{}};
 const save=()=>{};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function mutate(fn){const t=crypto.randomBytes(8).toString('hex');let ok=0;
@@ -454,7 +458,7 @@ const refQual=u=>{const m=refMinW();let n=0;for(const x of Object.values(db.user
 const UPG_RB=0.001;
 const accrue=(u,bet,game)=>{if(!(bet>0))return;const up=game==='upgrader',rb=bet*(up?UPG_RB:rkRb(u.id));u.rb=(u.rb||0)+rb;u.rbT=(u.rbT||0)+rb;
  if(!up&&u.ref&&u.ref.by){const r=db.users[u.ref.by];if(r&&r.id!==u.id){const e=bet*rkRf(r.id);u.ref.w=(u.ref.w||0)+bet;u.ref.e=(u.ref.e||0)+e;r.refP=(r.refP||0)+e;r.refT=(r.refT||0)+e}}};
-const rec=(u,bet,pay,game,info)=>{accrue(u,bet,game);if(game){(u.hist=u.hist||[]).push({g:game,bet,pay,t:Date.now(),i:info||''});if(u.hist.length>150)u.hist=u.hist.slice(-150)}const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
+const rec=(u,bet,pay,game,info)=>{accrue(u,bet,game);if(game){(u.hist=u.hist||[]).push({g:game,bet,pay,t:Date.now(),i:info||''});if(u.hist.length>50)u.hist=u.hist.slice(-50)}const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
  s.w[u.id]=(s.w[u.id]||0)+bet;s.p[u.id]=(s.p[u.id]||0)+(pay-bet);s.n++;s.names[u.id]=[u.name,u.avatar];
  if(pay-bet>0&&(!s.best||pay-bet>s.best.amt))s.best={name:u.name,avatar:u.avatar,amt:pay-bet,bet}};
 const dayPub=()=>{const s=db.day&&db.day.d===dayKey()?db.day:null;if(!s)return{n:0,wag:0,top:[],most:[],best:null};
@@ -659,9 +663,6 @@ function cxSync(){const c=cx();if(!c.t0||Date.now()<c.t0)return;const m=crM(Date
 const cxView=u=>{const c=cx(),mb=c.bets[u.id],L=c.last;
  return{now:Date.now(),id:c.id,t0:c.t0,hist:c.hist||[],bets:Object.entries(c.bets).map(([id,b])=>({id,name:b.name,avatar:b.avatar,bet:b.bet,done:b.done?1:0,at:b.at||0,pay:b.pay||0})),
   mine:mb?{bet:mb.bet,auto:mb.auto,done:mb.done?1:0,at:mb.at||0}:null,last:L?{id:L.id,cp:L.cp,t:L.t,rows:L.rows,me:L.rows.find(r=>r.id===u.id)||null}:null}};
-const PCF_MAX=20,pcfMult=n=>.97*Math.pow(2,n);
-function pcfCash(u){const g=u.pcf,pay=Math.floor(g.bet*pcfMult(g.n));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay,'coinflip',`Progressive · ${g.n} wins · ${pcfMult(g.n).toFixed(2)}x`);u.pcf=null;HR('coinflip',u,'Progressive Coinflip',g.bet,pay,[['Wins in a row',String(g.n),1],['Multiplier',pcfMult(g.n).toFixed(2)+'x',1]]);
- log(`🪙 ${u.name} cashed out progressive coinflip for ${pay} (bet ${g.bet}, ${g.n} wins)`);return{cashed:pay,n:g.n}}
 function twCash(u){const g=u.tw,pay=Math.floor(g.bet*twMult(g.d,g.picks.length));u.tokens+=pay;u.wagered+=g.bet;u.profit+=pay-g.bet;rec(u,g.bet,pay,'towers',`${g.d} · ${g.picks.length}/${TWR} floors · ${twMult(g.d,g.picks.length).toFixed(2)}x`);u.tw=null;HR('towers',u,'Towers',g.bet,pay,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Multiplier',twMult(g.d,g.picks.length).toFixed(2)+'x',1]]);
  log(`🗼 ${u.name} cashed out towers for ${pay} (bet ${g.bet}, ${g.picks.length} floors, ${g.d})`);return{cashed:pay,bombs:g.bombs,picks:g.picks,d:g.d}}
 
@@ -683,7 +684,7 @@ async function check(b,H,req){
 
 const admData=(WC,own)=>{const us=Object.values(db.users),tk=us.reduce((s,x)=>s+(x.tokens||0),0),iv=us.reduce((s,x)=>s+invVal(x),0),sv=Object.entries(db.shop).reduce((s,[k,q])=>s+val(k)*q,0),now=Date.now();
  return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),dp:db.dp.filter(w=>w.status==='pending'),dpDone:db.dp.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:own?whView(WC):undefined,logs:own?db.logs.slice(-100).reverse():undefined,alts:own?altGroups():undefined,codes:codeList(),
-  stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<45000).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length+db.dp.filter(w=>w.status==='pending').length,
+  stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<ONL).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length+db.dp.filter(w=>w.status==='pending').length,
    cfOpen:db.cf.open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,cr:Object.values(cx().bets).filter(x=>!x.done).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
   cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]})),lb:lbAdm()}};
 const admPlayer=(t,own)=>({id:t.id,name:t.name,avatar:t.avatar,tokens:Math.floor(t.tokens||0),invValue:Math.floor(invVal(t)),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),lastSeen:t.lastSeen||0,
@@ -698,14 +699,13 @@ async function handle(a,b,sid,H){
  if(u&&a!=='logout'&&a!=='admreturn'&&!(b.asid&&ADMINS.includes(db.sessions[b.asid]))){const bh=banHit(await getBans(),u.id,CURDEV);if(bh){if(a==='state')return{banned:{reason:bh.reason||''}};E('You are banned from this site')}}
  if(a==='state'){
   if(!u)return{guest:true};const admin=ADMINS.includes(u.id),m=u.mines,now=Date.now(),WC=isOwner(u.id)?await whCfg():{},STR=await getStreamers(),DC=await dcGet(u.id);
-  const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<45000).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
+  const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<ONL).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,owner:isOwner(u.id),streamer:!!STR[u.id],wlock:wlLeft(u),rw:{rb:Math.floor(u.rb||0),rbT:Math.floor(u.rbT||0),ref:Math.floor(u.refP||0),refT:Math.floor(u.refT||0),by:u.ref&&u.ref.by&&db.users[u.ref.by]?{id:u.ref.by,name:db.users[u.ref.by].name}:null,pr:rkRf(u.id),pb:rkRb(u.id),pr0:REF_PCT,pb0:RB_PCT,bonus:{amt:refBonus(),minw:refMinW(),q:refQual(u),paid:u.refBC||0,dc:!!DC,dcOn:dcOn()}},role:roleOf(u.id,STR),rk:rankInfo(u.id,1),discord:DC,dcOn:dcOn(),imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
    day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},cd:{open:cdDb().open,recent:cdDb().recent.slice(-10)},du:{open:duDb().open,recent:duDb().recent.slice(-10)},rp:{open:rpDb().open.map(g=>({...g,m:undefined})),recent:rpDb().recent.slice(-10)},plt:PLT,
    bj:u.bj?bjView(u.bj):null,
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    cx:cxView(u),
-   pcf:u.pcf?{bet:u.pcf.bet,n:u.pcf.n}:null,
    tw:u.tw?{bet:u.tw.bet,d:u.tw.d,picks:u.tw.picks,mult:twMult(u.tw.d,u.tw.picks.length)}:null,
    wd:db.wd.filter(w=>w.uid===u.id).slice(-10),dp:db.dp.filter(w=>w.uid===u.id).slice(-10),tips:(db.tips||[]).filter(x=>x.from.id===u.id||x.to.id===u.id).slice(-15),
    online,activeMines,chat:(db.chat||[]).slice(-50).map(m=>m.sys?m:{...m,r:roleOf(m.uid,STR),k:rankInfo(m.uid).k}),
@@ -776,7 +776,7 @@ async function handle(a,b,sid,H){
    dy=db.day&&db.day.d===dayKey()?db.day:null,admin=isOwner(u.id);
   const PSTR=await getStreamers(),PDC=await dcGet(t.id);
   return{p:{role:roleOf(t.id,PSTR),rk:rankInfo(t.id,1),discord:PDC?{id:PDC.id,name:PDC.name,user:PDC.user,avatar:PDC.avatar}:null,id:t.id,name:t.name,avatar:t.avatar,balance:Math.floor(t.tokens||0),invValue:invVal(t),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),
-   rank,players:us.length,pieces:inv.reduce((n,x)=>n+x.q,0),kinds:inv.length,top:inv.slice(0,10),online:Date.now()-(t.lastSeen||0)<45000,lastSeen:t.lastSeen||0,
+   rank,players:us.length,pieces:inv.reduce((n,x)=>n+x.q,0),kinds:inv.length,top:inv.slice(0,10),online:Date.now()-(t.lastSeen||0)<ONL,lastSeen:t.lastSeen||0,
    todayWag:dy?Math.floor(dy.w[t.id]||0):0,todayProfit:dy?Math.floor(dy.p[t.id]||0):0,
    alts:admin&&t.dev?us.filter(x=>x.id!==t.id&&x.dev===t.dev).map(x=>x.name):undefined}}}
  if(a==='sell'){const n=needInt(b.qty),v=take({[b.item]:n}),t=Math.floor(v*.9);u.tokens+=t;add(db.shop,b.item,n);log(`💱 ${u.name} sold ${n}x ${b.item} for ${t} ${cur()}`);hk('exchange',{title:'Sold to shop',user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Received',fm(t)+' '+cur(),1]]});return{ok:1}}
@@ -843,11 +843,6 @@ async function handle(a,b,sid,H){
  if(a==='twpick'){const g=u.tw;if(!g)E('No game');const i=needInt(b.i,0);if(i>=TWD[g.d][0])E('Invalid tile');
   if(g.bombs[g.picks.length].includes(i)){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0,'towers',`${g.d} · bomb on floor ${g.picks.length+1}`);u.tw=null;HR('towers',u,'Towers',g.bet,0,[['Difficulty',g.d,1],['Floors',g.picks.length+' / '+TWR,1],['Result','Hit a bomb on floor '+(g.picks.length+1),1]]);log(`🗼 ${u.name} hit a bomb in towers (bet ${g.bet}, floor ${g.picks.length+1}, ${g.d})`);return{boom:true,bombs:g.bombs,picks:g.picks.concat(i),d:g.d}}
   g.picks.push(i);if(g.picks.length===TWR)return twCash(u);return{safe:true}}
- if(a==='pcfstart'){if(u.pcf)E('Game in progress');const bet=needInt(b.bet);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;u.pcf={bet,n:0};return{ok:1}}
- if(a==='pcfflip'){const g=u.pcf;if(!g)E('No game');const side=b.side==='tails'?'tails':'heads',res=crypto.randomInt(2)?'heads':'tails';
-  if(res!==side){u.wagered+=g.bet;u.profit-=g.bet;rec(u,g.bet,0,'coinflip','Progressive · lost on round '+(g.n+1));u.pcf=null;HR('coinflip',u,'Progressive Coinflip',g.bet,0,[['Wins in a row',String(g.n),1],['Result','Lost on round '+(g.n+1),1]]);return{win:false,res,side,n:g.n}}
-  g.n++;if(g.n>=PCF_MAX){const r=pcfCash(u);return{win:true,res,side,n:r.n,cashed:r.cashed}}return{win:true,res,side,n:g.n}}
- if(a==='pcfcash'){if(!u.pcf||u.pcf.n<1)E('Win a flip first');return pcfCash(u)}
  if(a==='cxpoll')return{cx:cxView(u)};
  if(a==='cxbet'){const c=cx(),now=Date.now(),bet=needInt(b.bet),au=Math.round((+b.auto||0)*100)/100;if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
   if(au&&!(au>=1.1&&au<=99))E('Auto cash out must be between 1.1x and 99x');if(c.bets[u.id])E('You are already in this round');if(c.t0&&now>=c.t0)E('Round already started, wait for the next one');
@@ -1001,7 +996,7 @@ const exclusive=fn=>{const r=QUEUE.then(fn,fn);QUEUE=r.then(()=>{},()=>{});retur
 module.exports=(req,res)=>exclusive(()=>run(req,res));
 const run=async(req,res)=>{
  const a=req.query.a,b=(req.body&&typeof req.body==='object')?req.body:{},H={};HQ.length=0;{const h=req.headers['x-forwarded-host']||req.headers.host;SITE=h?'https://'+h:''}
- CURDEV=hashDev(getIp(req));
+ CURDEV=hashDev(getIp(req));FR=!!b.fr;
  setMode(['start','check','pwlogin','logout','admlogin','admreturn','admkick'].includes(a)?'mm2':b.gm);
  const ck=Object.fromEntries((req.headers.cookie||'').split('; ').map(c=>c.split('='))),sid=ck.sid;b.asid=ck.asid||'';let out;
  if(a==='dcback')return dcBack(req,res,sid);
@@ -1015,7 +1010,7 @@ const run=async(req,res)=>{
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='cxpoll'){await load();out=cxDue()?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
-   const needResolve=(jp.end&&Date.now()>=jp.end)||cxDue(),known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>20000);
+   const needResolve=(jp.end&&Date.now()>=jp.end)||cxDue(),known=MODE==='ps99'?MAIN.users[uid]:db.users[uid],needTouch=uid&&known&&(!db.users[uid]||Date.now()-(db.users[uid].lastSeen||0)>60000);
    out=(needResolve||needTouch)?await mutate(()=>{if(needTouch){const uu=db.users[db.sessions[sid]];if(uu)uu.lastSeen=Date.now()}return handle(a,b,sid,H)}):await handle(a,b,sid,H)}
   else out=await mutate(()=>handle(a,b,sid,H));
  }catch(e){out={error:e.message||'Error'};HQ.length=0}
