@@ -455,9 +455,9 @@ const refBonus=()=>MODE==='ps99'?(Number(process.env.REF_BONUS_GEMS)||150000000)
 const refMinW=()=>process.env.REF_BONUS_MIN_WAGER?Number(process.env.REF_BONUS_MIN_WAGER)||0:MINB*10;
 const refQual=u=>{const m=refMinW();let n=0;for(const x of Object.values(db.users))if(x.ref&&x.ref.by===u.id&&(x.ref.w||0)>=m)n++;return n};
 // Upgrader exception: bets there earn only UPG_RB (0.1%) rakeback regardless of rank, and pay the referrer nothing (no % and it doesn't count toward the referral bonus either).
-const UPG_RB=0.001;
+const UPG_RB=0.001,DICE_RTP=97;
 const accrue=(u,bet,game)=>{if(!(bet>0))return;const up=game==='upgrader',rb=bet*(up?UPG_RB:rkRb(u.id));u.rb=(u.rb||0)+rb;u.rbT=(u.rbT||0)+rb;
- if(!up&&u.ref&&u.ref.by){const r=db.users[u.ref.by];if(r&&r.id!==u.id){const e=bet*rkRf(r.id);u.ref.w=(u.ref.w||0)+bet;u.ref.e=(u.ref.e||0)+e;r.refP=(r.refP||0)+e;r.refT=(r.refT||0)+e}}};
+};
 const rec=(u,bet,pay,game,info)=>{accrue(u,bet,game);if(game){(u.hist=u.hist||[]).push({g:game,bet,pay,t:Date.now(),i:info||''});if(u.hist.length>50)u.hist=u.hist.slice(-50)}const d=dayKey(),s=db.day&&db.day.d===d?db.day:(db.day={d,w:{},p:{},n:0,names:{},best:null});
  s.w[u.id]=(s.w[u.id]||0)+bet;s.p[u.id]=(s.p[u.id]||0)+(pay-bet);s.n++;s.names[u.id]=[u.name,u.avatar];
  if(pay-bet>0&&(!s.best||pay-bet>s.best.amt))s.best={name:u.name,avatar:u.avatar,amt:pay-bet,bet}};
@@ -470,7 +470,7 @@ const invVal=u=>Object.entries(u.inv).reduce((s,[k,q])=>s+val(k)*q,0);
 const add=(o,k,q)=>{o[k]=(o[k]||0)+q;if(o[k]<=0)delete o[k]};
 const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100)};
 // ---- Discord webhooks: one channel per category, each with its own embed. URLs live in Redis ('whcfg', set in Admin > Webhooks) or env WEBHOOK_<CHANNEL>. A channel with no URL is skipped, never rerouted. ----
-const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],upgrader:['⬆️ Upgrader',0xa855f7],crash:['📈 Crash',0xf97316],duels:['⚔️ Duels',0xef4444],rps:['✊ Rock Paper Scissors',0x38bdf8],plinko:['🔻 Plinko',0xeab308],colordice:['🎲 Colour Dice',0xf43f5e],roulette:['🎡 Roulette',0x10b981],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
+const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],upgrader:['⬆️ Upgrader',0xa855f7],crash:['📈 Crash',0xf97316],dice:['🎲 Dice',0x8b5cf6],rps:['✊ Rock Paper Scissors',0x38bdf8],plinko:['🔻 Plinko',0xeab308],colordice:['🎲 Colour Dice',0xf43f5e],roulette:['🎡 Roulette',0x10b981],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
 const WHRE=/^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 let SITE='',HQ=[];
 const md=s=>String(s??'').replace(/([\\*_`~|>\[\]])/g,'\\$1'),cut=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
@@ -607,19 +607,6 @@ function cdResolve(g,J,jcol){const D=cdDb(),cu=db.users[g.c.id],bot=!J.user,jc=C
  D.open=D.open.filter(x=>x!==g);const rc={id:g.id,c:g.c,j:jn,cCol:g.col,jCol:jc,rounds,a,b,winner:w,bet:g.bet,won:got,t:Date.now()};D.recent.push(rc);D.recent=D.recent.slice(-20);
  log(`🎲 Colour Dice #${g.id}: ${w.name} won ${got} (${g.c.name} ${a} vs ${b} ${jn.name})`);
  hk('colordice',{title:`Colour Dice #${g.id} · ${w.name} won`,color:0x22c55e,user:w,desc:`${md(g.c.name)} (${g.col}) vs ${md(jn.name)}${bot?' 🤖':''} (${jc})\\nRolls: ${rounds.map(r=>r.join('-')).join(' · ')}`,fields:[['Pot',fm(pot)+' '+cur(),1],['Tax',fm(tx)+' '+cur(),1],['Winner gets',fm(got)+' '+cur(),1]]});return rc}
-// ---- Duels (HP fight, vs player or SyncBot): both start at 100 HP, a coin flip picks who strikes first, then hits alternate (10-30 dmg, 15% crits x1.5) until one hits 0. 5% tax on the pot. ----
-const DUT=.05,duDb=()=>db.du||(db.du={open:[],recent:[],id:0});
-function duFight(){const hp=[100,100],lg=[];let t=crypto.randomInt(2);
- while(hp[0]>0&&hp[1]>0&&lg.length<80){const crit=crypto.randomInt(100)<15,dmg=Math.floor((10+crypto.randomInt(21))*(crit?1.5:1));hp[1-t]=Math.max(0,hp[1-t]-dmg);lg.push([t,dmg,crit?1:0,hp[0],hp[1]]);t=1-t}
- return{log:lg,winner:hp[0]>0?1:0}} // winner 0 = creator
-function duResolve(g,J){const D=duDb(),cu=db.users[g.c.id],bot=!J.user,f=duFight(),winC=f.winner===0,pot=g.bet*2,tx=Math.floor(pot*DUT),got=pot-tx;
- if(winC)cu.tokens+=got;else if(J.user)J.user.tokens+=got;
- cu.wagered+=g.bet;cu.profit+=(winC?got:0)-g.bet;rec(cu,g.bet,winC?got:0,'duels',`#${g.id} vs ${bot?'SyncBot':J.user.name} · ${winC?'Won':'Lost'}`);
- if(J.user){J.user.wagered+=g.bet;J.user.profit+=(winC?0:got)-g.bet;rec(J.user,g.bet,winC?0:got,'duels',`#${g.id} vs ${g.c.name} · ${winC?'Lost':'Won'}`)}
- const jn=bot?{id:'bot',name:'SyncBot',avatar:'/logo.png',bot:1}:{id:J.user.id,name:J.user.name,avatar:J.user.avatar},w=winC?{id:g.c.id,name:g.c.name,avatar:g.c.avatar}:jn;
- D.open=D.open.filter(x=>x!==g);const rc={id:g.id,c:g.c,j:jn,log:f.log,winner:w,bet:g.bet,won:got,t:Date.now()};D.recent.push(rc);D.recent=D.recent.slice(-20);
- log(`⚔️ Duel #${g.id}: ${w.name} won ${got} (${g.c.name} vs ${jn.name})`);
- hk('duels',{title:`Duel #${g.id} · ${w.name} won`,color:0x22c55e,user:w,desc:`${md(g.c.name)} vs ${md(jn.name)}${bot?' 🤖':''} · ${f.log.length} hits`,fields:[['Pot',fm(pot)+' '+cur(),1],['Tax',fm(tx)+' '+cur(),1],['Winner gets',fm(got)+' '+cur(),1]]});return rc}
 // ---- Rock Paper Scissors (vs player or SyncBot): the creator's move is stored server-side and never sent to clients until the game resolves. Ties refund both. 5% tax on decisive games. ----
 const RPM=['rock','paper','scissors'],RPT=.05,rpDb=()=>db.rp||(db.rp={open:[],recent:[],id:0});
 const rpWin=(a,b)=>a===b?0:(a+1)%3===b?2:1; // 0 tie, 1 first wins, 2 second wins
@@ -702,7 +689,7 @@ async function handle(a,b,sid,H){
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<ONL).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,owner:isOwner(u.id),streamer:!!STR[u.id],wlock:wlLeft(u),rw:{rb:Math.floor(u.rb||0),rbT:Math.floor(u.rbT||0),ref:Math.floor(u.refP||0),refT:Math.floor(u.refT||0),by:u.ref&&u.ref.by&&db.users[u.ref.by]?{id:u.ref.by,name:db.users[u.ref.by].name}:null,pr:rkRf(u.id),pb:rkRb(u.id),pr0:REF_PCT,pb0:RB_PCT,bonus:{amt:refBonus(),minw:refMinW(),q:refQual(u),paid:u.refBC||0,dc:!!DC,dcOn:dcOn()}},role:roleOf(u.id,STR),rk:rankInfo(u.id,1),discord:DC,dcOn:dcOn(),imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
-   day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},cd:{open:cdDb().open,recent:cdDb().recent.slice(-10)},du:{open:duDb().open,recent:duDb().recent.slice(-10)},rp:{open:rpDb().open.map(g=>({...g,m:undefined})),recent:rpDb().recent.slice(-10)},plt:PLT,
+   day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},cd:{open:cdDb().open,recent:cdDb().recent.slice(-10)},rp:{open:rpDb().open.map(g=>({...g,m:undefined})),recent:rpDb().recent.slice(-10)},plt:PLT,
    bj:u.bj?bjView(u.bj):null,
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    cx:cxView(u),
@@ -721,6 +708,7 @@ async function handle(a,b,sid,H){
   if(last&&last.uid===u.id&&Date.now()-last.t<1500)E('Slow down');
   db.chat.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,avatar:u.avatar,msg,t:Date.now()});u.lastChat=Date.now();
   db.chat=db.chat.slice(-50);return{ok:1}}
+ if(a==='refset'||a==='refbonus')E('Referrals are paused for now 🔒');
  if(a==='reflist'){const rows=Object.values(db.users).filter(x=>x.ref&&x.ref.by===u.id).map(x=>({id:x.id,name:x.name,avatar:x.avatar,w:Math.floor(x.ref.w||0),e:Math.round((x.ref.e||0)*100)/100,t:x.ref.t||0,q:(x.ref.w||0)>=refMinW()})).sort((x,y)=>y.w-x.w);
   return{list:rows.slice(0,200),n:rows.length,w:rows.reduce((q,x)=>q+x.w,0),e:Math.floor(u.refT||0),pend:Math.floor(u.refP||0)}}
  if(a==='refset'){if(u.ref&&u.ref.by)E('You already have a referrer');const k=String(b.code||'').trim().replace(/^@/,'');if(!k)E('Enter a username or Roblox ID');
@@ -867,13 +855,10 @@ async function handle(a,b,sid,H){
   const path=[];let k=0;for(let i=0;i<rows;i++){const r=crypto.randomInt(2);path.push(r);k+=r}
   const mu=PLT[rows][risk][k],pay=Math.floor(bet*mu);u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'plinko',`${rows} rows · ${risk} · ${mu.toFixed(2)}x`);
   HR('plinko',u,'Plinko',bet,pay,[['Rows',String(rows),1],['Risk',risk,1],['Multiplier',mu.toFixed(2)+'x',1]]);log(`🔻 ${u.name} plinko ${rows}/${risk} ${mu.toFixed(2)}x (bet ${bet})`);return{ok:1,path,slot:k,mult:mu,pay,bet,rows,risk}}
- if(a==='ducreate'){const D=duDb(),bet=needInt(b.bet);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());if(D.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open duels');
-  u.tokens-=bet;D.open.push({id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},bet,t:Date.now()});log(`⚔️ ${u.name} created duel #${D.id} (${bet})`);
-  hk('duels',{title:`Duel #${D.id} posted`,color:0x94a3b8,user:u,desc:ulink(u),fields:[['Bet',fm(bet)+' '+cur(),1]]});return{ok:1,id:D.id}}
- if(a==='ducancel'){const D=duDb(),g=D.open.find(x=>x.id===+b.id)||E('Duel not found');if(g.c.id!==u.id)E('Not your duel');u.tokens+=g.bet;D.open=D.open.filter(x=>x!==g);return{ok:1}}
- if(a==='dujoin'){const D=duDb(),g=D.open.find(x=>x.id===+b.id)||E('Duel already taken');if(g.c.id===u.id)E('Cannot join your own duel');if(u.tokens<g.bet)E('Not enough '+cur());u.tokens-=g.bet;return{ok:1,r:duResolve(g,{user:u})}}
- if(a==='dubot'){const D=duDb(),g=D.open.find(x=>x.id===+b.id)||E('Duel already taken');if(g.c.id!==u.id)E('Only the creator can call SyncBot');return{ok:1,r:duResolve(g,{user:null})}}
- if(a==='dubotplay'){const D=duDb(),bet=needInt(b.bet);if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());u.tokens-=bet;const g={id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},bet,t:Date.now()};D.open.push(g);return{ok:1,r:duResolve(g,{user:null})}}
+ if(a==='dice'){const bet=needInt(b.bet),mode=b.mode==='over'?'over':b.mode==='under'?'under':E('Pick over or under'),ch=Math.round(+b.chance*100)/100;if(!(ch>=1&&ch<=90))E('Win chance must be between 1% and 90%');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
+  const roll=crypto.randomInt(10000)/100,win=mode==='under'?roll<ch:roll>=100-ch,mu=DICE_RTP/ch,pay=win?Math.floor(bet*mu):0,target=mode==='under'?ch:Math.round((100-ch)*100)/100;
+  u.tokens+=pay-bet;u.wagered+=bet;u.profit+=pay-bet;rec(u,bet,pay,'dice',`${mode} ${target.toFixed(2)} · rolled ${roll.toFixed(2)} · ${mu.toFixed(2)}x · ${win?'Won':'Lost'}`);
+  HR('dice',u,'Dice',bet,pay,[['Bet',mode+' '+target.toFixed(2),1],['Rolled',roll.toFixed(2),1],['Multiplier',mu.toFixed(2)+'x',1]]);log(`🎲 ${u.name} dice ${mode} ${target.toFixed(2)} rolled ${roll.toFixed(2)} ${win?'won':'lost'} (bet ${bet})`);return{ok:1,roll,win,mode,chance:ch,target,mult:mu,pay,bet}}
  if(a==='rpcreate'){const D=rpDb(),bet=needInt(b.bet),m=RPM.includes(b.move)?b.move:E('Pick rock, paper or scissors');if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());if(D.open.filter(g=>g.c.id===u.id).length>=3)E('Max 3 open RPS games');
   u.tokens-=bet;D.open.push({id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},m,bet,t:Date.now()});log(`✊ ${u.name} created RPS #${D.id} (${bet})`);
   hk('rps',{title:`RPS #${D.id} posted`,color:0x94a3b8,user:u,desc:ulink(u),fields:[['Bet',fm(bet)+' '+cur(),1]]});return{ok:1,id:D.id}}
