@@ -685,34 +685,37 @@ button.dc{background:linear-gradient(135deg,#5865f2,#4752c4)}
 .plslot{transform-box:fill-box;transform-origin:center;transition:fill-opacity .3s}
 .plslot.land{animation:plland .55s cubic-bezier(.2,1.6,.4,1);filter:drop-shadow(0 0 10px #fff)}
 @keyframes plland{0%{transform:translateY(0) scale(1)}35%{transform:translateY(5px) scale(1.18)}100%{transform:none}}
-/* duels */
-.dustage{background:radial-gradient(560px 300px at 50% 0%,#5b1d3a66,transparent 70%),linear-gradient(180deg,#160d1d,#0a0810)!important}
-.duarena{position:relative;display:flex;align-items:flex-start;justify-content:center;gap:clamp(10px,4vw,40px);padding:34px 4px 8px}
-.duarena::after{content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;opacity:0;background:radial-gradient(circle,#ffe08a88,transparent 65%)}
-.duarena.crit{animation:crshake .45s}.duarena.crit::after{animation:duflash .5s ease-out}
-@keyframes duflash{0%{opacity:1}100%{opacity:0}}
-.duvs{align-self:center;font-size:34px;animation:hfloat 1.6s ease-in-out infinite alternate;filter:drop-shadow(0 0 12px #f87171)}
-.dufi{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(160px,38%);transition:opacity .5s,filter .5s}
-.duav{position:relative;width:88px;height:88px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--ac1),#38e8ff);box-shadow:0 0 30px -6px var(--glow2)}.duav img{width:100%;height:100%;border-radius:50%;object-fit:cover;background:var(--p3);display:block}
-.duq{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--p3);font-size:36px}
-.dufi.idle .duav{animation:hfloat 2s ease-in-out infinite alternate;background:linear-gradient(135deg,#f87171,#fb923c)}
-.duco{position:absolute;top:-24px;left:50%;transform:translateX(-50%) scale(.3);font-size:26px;opacity:0;transition:.4s cubic-bezier(.2,1.5,.3,1)}
-.dufi.win .duco{opacity:1;transform:translateX(-50%) scale(1)}.dufi.win .duav{box-shadow:0 0 40px 2px #fde047;background:linear-gradient(135deg,#fde047,#f59e0b)}
-.dufi.ko{opacity:.5;filter:grayscale(.8);transform:rotate(-7deg) translateY(8px)}
-.dufi>b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.duhpw{position:relative;width:100%;height:16px;border-radius:99px;background:#000a;border:1px solid #ffffff22;overflow:hidden}
-.duhpw i{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
-.duhg{background:#fbbf24;transition:width .5s ease-out}
-.duhp{background:linear-gradient(90deg,#16a34a,#4ade80);transition:width .25s ease-out,background .3s}.duhp.low{background:linear-gradient(90deg,#b91c1c,#f87171)}
-.duhpw span{position:absolute;inset:0;text-align:center;font:700 10px/16px system-ui;text-shadow:0 1px 2px #000;z-index:2}
-.dufi.atk0{animation:duA0 .5s cubic-bezier(.3,.7,.3,1)}.dufi.atk1{animation:duA1 .5s cubic-bezier(.3,.7,.3,1)}
-@keyframes duA0{35%{transform:translateX(52px) scale(1.14)}100%{transform:none}}
-@keyframes duA1{35%{transform:translateX(-52px) scale(1.14)}100%{transform:none}}
-.dufi.hurt .duav{animation:duhurt .45s}
-@keyframes duhurt{0%{filter:none}15%{transform:translateX(-9px);filter:brightness(2.2) drop-shadow(0 0 16px #ef4444)}35%{transform:translateX(8px)}55%{transform:translateX(-5px)}100%{transform:none;filter:none}}
-.duflt{position:absolute;top:60px;font:900 26px 'Syncopate',system-ui,sans-serif;color:#ff8a8a;text-shadow:0 2px 8px #000,0 0 14px #ef4444;pointer-events:none;animation:dufl 1s ease-out forwards;font-style:normal}
-.duflt.s0{left:14%}.duflt.s1{right:14%}.duflt.crit{font-size:36px;color:#fde047;text-shadow:0 2px 8px #000,0 0 20px #f59e0b}
-@keyframes dufl{0%{opacity:0;transform:translateY(10px) scale(.5)}20%{opacity:1;transform:translateY(-6px) scale(1.2)}100%{opacity:0;transform:translateY(-62px) scale(1)}}
+/* ===== dice ===== */
+.distage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative;min-height:380px;background:radial-gradient(520px 320px at 50% 0%,#4c2a9a66,transparent 70%),linear-gradient(180deg,#120f2a,#090812)!important}
+.dinum{font:800 clamp(54px,13vw,96px)/1 'Syncopate',system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:#e9e5ff;text-shadow:0 0 34px #8b5cf6aa;transition:color .3s,text-shadow .3s}
+.dinum.win{color:#4ade80;text-shadow:0 0 34px #4ade80aa}.dinum.lose{color:#f87171;text-shadow:0 0 34px #f87171aa}
+.ditw{position:relative;width:min(580px,96%);padding:44px 10px 4px}
+.ditrack{position:relative;height:18px;border-radius:99px;box-shadow:inset 0 2px 6px #0009,0 0 30px -8px #8b5cf6;border:1px solid #ffffff22}
+.dithr{position:absolute;top:-7px;bottom:-7px;width:3px;margin-left:-1.5px;background:#fff;border-radius:3px;box-shadow:0 0 10px #fff;transition:left .25s}
+.dithr em{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font:800 11px system-ui;font-style:normal;color:#fff;background:#0b0d18;border:1px solid #ffffff44;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.dimk{position:absolute;top:-40px;width:42px;height:42px;margin-left:-21px;z-index:3;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#a78bfa,#6d28d9);box-shadow:0 8px 20px -4px #000c,0 0 22px #8b5cf6aa,inset 0 2px 3px #fff6;font-size:22px;transition:background .3s,box-shadow .3s}
+.dimk::after{content:"";position:absolute;left:50%;bottom:-6px;margin-left:-6px;border:6px solid transparent;border-top-color:#6d28d9;border-bottom:0}
+.dimk.go span{display:block;animation:cdroll .4s linear infinite}
+.dimk.w{background:linear-gradient(145deg,#86efac,#16a34a);box-shadow:0 8px 20px -4px #000c,0 0 26px #4ade80}.dimk.w::after{border-top-color:#16a34a}
+.dimk.l{background:linear-gradient(145deg,#fca5a5,#b91c1c);box-shadow:0 8px 20px -4px #000c,0 0 26px #f87171}.dimk.l::after{border-top-color:#b91c1c}
+.ditk{display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--m);opacity:.8;font-variant-numeric:tabular-nums}
+.dimodes{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dimb{padding:11px 6px}.dimb.on{outline:2px solid var(--ac2);box-shadow:0 0 16px -4px var(--glow2)}
+.dirange{accent-color:#8b5cf6;height:30px}
+.dibtn.busy{animation:upbusy 1s ease-in-out infinite alternate}
+.dihist{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:28px;margin-top:6px}
+.dih{padding:4px 9px;border-radius:99px;font:700 11.5px system-ui;font-variant-numeric:tabular-nums;border:1.5px solid #ffffff22}
+.dih.w{color:#4ade80;background:#4ade8014;border-color:#4ade8055}.dih.l{color:#f87171;background:#f8717114;border-color:#f8717155}
+.dih.new{animation:bpop .5s cubic-bezier(.2,1.6,.4,1)}
+@media(prefers-reduced-motion:reduce){.dimk.go span,.dibtn{animation:none!important}}
+/* ===== upgrader v4 ===== */
+.upstage{background:radial-gradient(520px 340px at 50% 10%,#3b2a8c66,transparent 70%),linear-gradient(180deg,#120f2a,#090812)!important;min-height:420px}
+.up2 .uparc{stroke-opacity:1}.up2.idle .uparc{animation:uparc 2.4s ease-in-out infinite alternate}
+.uprk{float:right;text-transform:none;letter-spacing:0;font:800 11px system-ui;color:var(--c);border:1.5px solid var(--c);padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--c) 14%,transparent)}
+.uprange{accent-color:#8b5cf6;height:30px}
+.uphs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:28px}
+.uph{padding:4px 9px;border-radius:99px;font:700 11.5px system-ui;border:1.5px solid #ffffff22}
+.uph.w{color:#4ade80;background:#4ade8014;border-color:#4ade8055}.uph.l{color:#f87171;background:#f8717114;border-color:#f8717155}
+.uph.new{animation:bpop .5s cubic-bezier(.2,1.6,.4,1)}
 /* rps */
 .rpstage{background:radial-gradient(520px 300px at 50% 0%,#0e3a5a77,transparent 70%),linear-gradient(180deg,#0b1626,#070b14)!important}
 .rpmv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rpmv button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 4px}.rpmv button span{font-size:34px;line-height:1.1;transition:transform .2s}.rpmv button:hover:not(:disabled) span{transform:scale(1.2) rotate(-6deg)}.rpmv small{font-size:11px;opacity:.8}.rpmv button.on{outline:2px solid var(--ac2);box-shadow:0 0 18px -4px var(--glow2)}
@@ -804,16 +807,16 @@ const PHA=()=>PS()?'e.g. 50m, 1.5b, 50,000,000':'Amount';
 const AF=(id,val,on,ph,w)=>`<div class="af" style="flex:1;min-width:${w||90}px"><input id="${id}" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="${ph||''}" value="${val?amtStr(val):''}" oninput="${on};amtHint(this)"><small class="amth">${val?'= '+Math.floor(val).toLocaleString():''}</small></div>`;
 const msw=()=>`<div class="msw"><button class="mm ${PS()?'':'on'}" onclick="swMode('mm2')">MM2</button><i>||</i><button class="ps ${PS()?'on':''}" onclick="swMode('ps99')">PS99</button></div>`;
 function swMode(m){if(m===MODE)return;localStorage.mode=m;location.reload()}
-let S=null,tab=(()=>{const p=location.pathname.replace(/^\/|\/$/g,'');return ['values','inventory','exchange','tip','jackpot','coinflip','blackjack','mines','towers','upgrader','colordice','roulette','crash','duels','rps','plinko','withdraw','deposit','leaderboard','rewards','players','settings','streamer','admin'].includes(p)?p:'home'})(),q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=MODE==='ps99'?1000000:10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"hide":false}');
+let S=null,tab=(()=>{const p=location.pathname.replace(/^\/|\/$/g,'');return ['values','inventory','exchange','tip','jackpot','coinflip','blackjack','mines','towers','upgrader','colordice','roulette','crash','dice','rps','plinko','withdraw','deposit','leaderboard','rewards','players','settings','streamer','admin'].includes(p)?p:'home'})(),q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=MODE==='ps99'?1000000:10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"hide":false}');
 let chatOpen=false,chatSeen=0;
 const BETS=()=>PS()?[1e6,5e6,10e6,50e6,100e6,500e6]:[5,10,50,100,500,1000];
 const ICO=k=>`<svg viewBox="0 0 24 24">${{"home": "<path d=\"M3 11.5 12 4l9 7.5\"/><path d=\"M5.5 10v9.5h13V10\"/><path d=\"M10 19.5v-5h4v5\"/>", "values": "<path d=\"M3 17l5-5 4 4 8-9\"/><path d=\"M15 7h5v5\"/>", "inv": "<path d=\"M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z\"/><path d=\"M3.5 7.5 12 12l8.5-4.5M12 12v9\"/>", "ex": "<path d=\"M4 8h14l-3.5-3.5M20 16H6l3.5 3.5\"/>", "tip": "<rect x=\"3.5\" y=\"9\" width=\"17\" height=\"11\" rx=\"1.5\"/><path d=\"M12 9v11M3.5 13h17M12 9c-3.5 0-5-1-5-2.500S8.500 4 10 5c1 .7 2 4 2 4zm0 0c3.500 0 5-1 5-2.500S15.500 4 14 5c-1 .7-2 4-2 4z\"/>", "jp": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"2.500\"/><path d=\"M12 3v6.500M12 14.500V21M3 12h6.500M14.500 12H21\"/>", "cf": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v10M9.500 9.500c0-1 1-1.700 2.500-1.700s2.500.7 2.500 1.800-1 1.600-2.500 2-2.500.9-2.500 2 1 1.800 2.500 1.800 2.500-.8 2.500-1.800\"/>", "bj": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2.500\"/><path d=\"M12 7.500l3.500 4.500-3.500 4.500L8.500 12z\"/>", "mine": "<path d=\"M6 4h12l3.500 5L12 21 2.500 9z\"/><path d=\"M2.500 9h19M9 4 7.500 9 12 21l4.500-12L15 4\"/>", "tw": "<path d=\"M5 21V10h14v11M3 21h18M8 10V6h3v4M13 10V6h3v4M10 21v-5h4v5\"/>", "up": "<path d=\"M12 16V4M7 9l5-5 5 5M4 20h16\"/>", "down": "<path d=\"M12 4v12M7 11l5 5 5-5M4 20h16\"/>", "pl": "<circle cx=\"12\" cy=\"8\" r=\"3.500\"/><path d=\"M5 20c0-3.500 3-6 7-6s7 2.500 7 6\"/>", "lb": "<path d=\"M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1.500A3.500 3.500 0 0 0 7.500 11M17 6h3v1.500A3.500 3.500 0 0 1 16.500 11M12 14v4M8.500 20h7\"/>", "set": "<path d=\"M4 7h10M18 7h2M4 17h2M10 17h10\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"8\" cy=\"17\" r=\"2\"/>", "adm": "<path d=\"M12 3l8 3v6c0 4.500-3.300 8-8 9-4.700-1-8-4.500-8-9V6z\"/>"}[k]}</svg>`;
-const NAV=[['home','home','Home'],['values','values','Values'],['inventory','inv','Inventory'],['exchange','ex','Exchange'],['tip','tip','Tip'],['jackpot','jp','Jackpot'],['coinflip','cf','Coinflip'],['blackjack','bj','Blackjack'],['mines','mine','Mines'],['towers','tw','Towers'],['upgrader','up','Upgrader'],['colordice','cf','Colour Dice'],['roulette','jp','Roulette'],['crash','up','Crash'],['duels','bj','Duels'],['rps','cf','RPS'],['plinko','mine','Plinko'],['withdraw','up','Withdraw'],['deposit','down','Deposit'],['leaderboard','lb','Leaderboard'],['rewards','tip','Rewards'],['players','pl','Players'],['settings','set','Settings'],['streamer','tip','Streamer'],['admin','adm','Admin']];
+const NAV=[['home','home','Home'],['values','values','Values'],['inventory','inv','Inventory'],['exchange','ex','Exchange'],['tip','tip','Tip'],['jackpot','jp','Jackpot'],['coinflip','cf','Coinflip'],['blackjack','bj','Blackjack'],['mines','mine','Mines'],['towers','tw','Towers'],['upgrader','up','Upgrader'],['colordice','cf','Colour Dice'],['roulette','jp','Roulette'],['crash','up','Crash'],['dice','cf','Dice'],['rps','cf','RPS'],['plinko','mine','Plinko'],['withdraw','up','Withdraw'],['deposit','down','Deposit'],['leaderboard','lb','Leaderboard'],['rewards','tip','Rewards'],['players','pl','Players'],['settings','set','Settings'],['streamer','tip','Streamer'],['admin','adm','Admin']];
 const toast=(m,ok)=>{const t=$('#toast');t.textContent=m;t.style.background=ok?'linear-gradient(135deg,#16a34a,#15803d)':'';t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2500)};
 let FRU=0;
 const api=async(a,b={})=>{if(!['state','cxpoll','lb','history','psearch','profile','reflist'].includes(a))FRU=Date.now();try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...b,gm:MODE,fr:Date.now()-FRU<5000?1:0})});let j;try{j=await r.json()}catch{j={error:`Server returned an invalid response (${r.status})`}}if(!r.ok&&!j.error)j.error=`Request failed (${r.status})`;if(j.error)toast(j.error);return j}catch(e){const j={error:'Network error: '+(e&&e.message?e.message:'request failed')};toast(j.error);return j}};
 // Splash: logo + title, then fades out. Used on site entry and when opening a game.
-const NG=[['games','🎮','Games',['jackpot','coinflip','duels','rps','mines','towers','plinko','crash','upgrader','blackjack','roulette','colordice']],['items','🎒','Items',['values','inventory','exchange']],['wallet','💰','Wallet',['deposit','withdraw','tip']],['community','🏆','Community',['leaderboard','rewards','players']],['account','⚙️','Account',['settings','streamer','admin']]];
+const NG=[['games','🎮','Games',['jackpot','coinflip','rps','dice','mines','towers','plinko','crash','upgrader','blackjack','roulette','colordice']],['items','🎒','Items',['values','inventory','exchange']],['wallet','💰','Wallet',['deposit','withdraw','tip']],['community','🏆','Community',['leaderboard','rewards','players']],['account','⚙️','Account',['settings','streamer','admin']]];
 let ngOpenS=(()=>{try{return JSON.parse(localStorage.getItem('ngo')||'null')}catch(e){return null}})()||{games:1};
 const ngSave=()=>{try{localStorage.setItem('ngo',JSON.stringify(ngOpenS))}catch(e){}};
 function ngT(k){ngOpenS[k]=!ngOpenS[k];ngSave();const e=document.querySelector('.ng[data-g="'+k+'"]');if(e)e.classList.toggle('open',!!ngOpenS[k])}
@@ -821,7 +824,7 @@ function ngFor(t){const g=NG.find(x=>x[3].includes(t));if(!g)return;if(!ngOpenS[
 const navBtn=n=>`<button id="t_${n[0]}" onclick="go('${n[0]}')">${ICO(n[1])}<span>${n[2]}</span></button>`;
 function navHtml(m){const ok=n=>n&&(n[0]!=='admin'||m.admin)&&(n[0]!=='streamer'||m.streamer)&&(!n[3]||PS());
  return navBtn(NAV[0])+NG.map(g=>{const its=g[3].map(id=>NAV.find(x=>x[0]===id)).filter(ok);if(!its.length)return'';return `<div class="ng ${ngOpenS[g[0]]?'open':''}" data-g="${g[0]}"><button class="ngh" onclick="ngT('${g[0]}')"><em>${g[1]}</em><span>${g[2]}</span><small>${its.length}</small><i></i></button><div class="ngb"><div>${its.map(navBtn).join('')}</div></div></div>`}).join('')}
-const GAMES=['mines','jackpot','coinflip','blackjack','towers','upgrader','colordice','roulette','crash','duels','rps','plinko'];
+const GAMES=['mines','jackpot','coinflip','blackjack','towers','upgrader','colordice','roulette','crash','dice','rps','plinko'];
 function splash(text,ms=1200){const old=$('#splash');if(old)old.remove();
  const d=document.createElement('div');d.id='splash';d.innerHTML=`<img src="${LG()}" alt=""><b>${text}</b><i></i>`;document.body.appendChild(d);setTimeout(()=>d.remove(),ms)}
 {const s=document.querySelector('#splash');if(s){setTimeout(()=>s.remove(),1300)}}
@@ -880,9 +883,9 @@ function head(){const ib=$('#impbar');if(S.me.imp&&!ib){const d=document.createE
 function go(t,np){if(!NAV.some(x=>x[0]===t)||(t==='admin'&&!(S&&S.me&&S.me.admin))||(t==='streamer'&&!(S&&S.me&&S.me.streamer)))t='home';const was=tab;tab=t;if(!np){try{const u=t==='home'?'/':'/'+t;if(location.pathname!==u)history.pushState(null,'',u)}catch(e){}}sel={};q='';sb(0);const n=NAV.find(x=>x[0]===t);if(GAMES.includes(t)&&was!==t)splash(n[2]);document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.id==='t_'+t));ngFor(t);$('#tt').textContent=n[2];const my=++nav;
  $('#view').innerHTML=`<div class="ld"><div class="sp"></div><span class="muted">Loading ${n[2]}…</span></div>`;
  setTimeout(async()=>{if(my!==nav)return;await load();if(my===nav)render()},350)}
-const render0=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,coinflip:rCf,blackjack:rBj,mines:rMines,towers:rTw,upgrader:rUp,colordice:rCd,roulette:rRl,crash:rCrash,duels:rDuel,rps:rRps,plinko:rPlinko,tip:rTip,withdraw:rWd,deposit:rDep,leaderboard:rLb,rewards:rRew,players:rPl,settings:rSet,streamer:rStr,admin:rAdm})[tab]($('#view'))};
+const render0=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,coinflip:rCf,blackjack:rBj,mines:rMines,towers:rTw,upgrader:rUp,colordice:rCd,roulette:rRl,crash:rCrash,dice:rDice,rps:rRps,plinko:rPlinko,tip:rTip,withdraw:rWd,deposit:rDep,leaderboard:rLb,rewards:rRew,players:rPl,settings:rSet,streamer:rStr,admin:rAdm})[tab]($('#view'))};
 
-const HG=[['all','All games'],['coinflip','Coinflip'],['jackpot','Jackpot'],['blackjack','Blackjack'],['mines','Mines'],['towers','Towers'],['upgrader','Upgrader'],['colordice','Colour Dice'],['roulette','Roulette'],['crash','Crash'],['duels','Duels'],['rps','RPS'],['plinko','Plinko']];
+const HG=[['all','All games'],['coinflip','Coinflip'],['jackpot','Jackpot'],['blackjack','Blackjack'],['mines','Mines'],['towers','Towers'],['upgrader','Upgrader'],['colordice','Colour Dice'],['roulette','Roulette'],['crash','Crash'],['dice','Dice'],['rps','RPS'],['plinko','Plinko']];
 const render=()=>{render0();const v=$('#view');if(v&&S&&S.me&&(tab==='home'||GAMES.includes(tab))){const b=document.createElement('button');b.className='s hist-btn';b.type='button';b.textContent='📜 History';b.onclick=()=>openHist(GAMES.includes(tab)?tab:'all');v.prepend(b)}};
 async function openHist(g){
  let m=$('#histm');if(!m){m=document.createElement('div');m.id='histm';m.className='wmo';m.onclick=e=>{if(e.target===m)m.remove()};document.body.appendChild(m)}
@@ -916,8 +919,8 @@ function pProf(){const e=$('#pprof');if(!e)return;const p=pprof;if(!p){e.innerHT
 
 function rValues(v){v.innerHTML=`<div class="box"><h3>${PS()?'Titanic &amp; Huge Values':'Values of Items'} <span class="muted">${PS()?'— RAP in gems':''}</span></h3>${PS()?`<div class="vf">${[['all','All'],['titanic','Titanic'],['huge','Huge']].map(x=>`<button class="s ${vf===x[0]?'on':''}" onclick="vf='${x[0]}';rValues($('#view'))">${x[1]}</button>`).join('')}</div>`:''}${srch('vl')}<div class="grid" id="g"></div></div>`;vl()}
 function vl(){$('#g').innerHTML=filt([...S.items].filter(i=>vf==='all'||i.rarity===vf).sort((a,b)=>b.value-a.value)).map(i=>card(i)).join('')||'<p class="muted">Nothing found.</p>'}
-const HCATS=[['versus','⚔️','Versus','Play against other players',[['jackpot','jp','Jackpot','Winner takes all'],['coinflip','cf','Coinflip','Normal or progressive'],['duels','bj','Duels','Last one standing'],['rps','cf','RPS','Beat their move']]],
- ['arcade','🕹️','Arcade','Fast solo games',[['mines','mine','Mines','Dodge the bombs'],['towers','tw','Towers','Climb the floors'],['plinko','mine','Plinko','Drop the ball'],['crash','up','Crash','Cash out in time'],['upgrader','up','Upgrader','Multiply your bet']]],
+const HCATS=[['versus','⚔️','Versus','Play against other players',[['jackpot','jp','Jackpot','Winner takes all'],['coinflip','cf','Coinflip','Normal or progressive'],['rps','cf','RPS','Beat their move']]],
+ ['arcade','🕹️','Arcade','Fast solo games',[['mines','mine','Mines','Dodge the bombs'],['towers','tw','Towers','Climb the floors'],['plinko','mine','Plinko','Drop the ball'],['dice','cf','Dice','Over / under'],['crash','up','Crash','Cash out in time'],['upgrader','up','Upgrader','Multiply your bet']]],
  ['table','🎴','Table','Classic casino',[['blackjack','bj','Blackjack','Beat the dealer'],['roulette','jp','Roulette','Spin the wheel'],['colordice','cf','Colour Dice','Red vs Blue']]]];
 let hcat='all';
 function hcatSet(c){hcat=c;const e=$('#hgw');if(e)e.innerHTML=hgames()}
@@ -1071,28 +1074,14 @@ setInterval(()=>{if(tab==='leaderboard'&&!document.hidden&&$('#lbv'))lbFetch()},
 let RDM=null;
 let RWL=null;
 const pctTxt=x=>(+(x*100).toFixed(3))+'%';
-function rRew(v){const m=S.me,w=m.rw||{rb:0,rbT:0,ref:0,refT:0,pr:.01,pb:.005,by:null},link=location.origin+'/?ref='+encodeURIComponent(m.name);
+function rRew(v){const m=S.me,w=m.rw||{rb:0,rbT:0,ref:0,refT:0,pr:.01,pb:.005,by:null};
  v.innerHTML=`<div class="rwg">
  ${rkBox(m.rk,1)}
  <div class="box rdmbox"><h3>💸 Rakeback <span class="rwpct">${pctTxt(w.pb)} of every bet</span></h3><p class="muted" style="margin:-6px 0 0">Every bet you place earns rakeback, win or lose. Upgrader bets earn a flat 0.1% instead.${m.rk&&m.rk.k?` ${rkTag(m.rk.k)} rate.`:''} Claim it whenever you want.</p>
   <div class="rwst"><div><small>Available</small><b>${fmt(w.rb)} ${CI()}</b></div><div><small>Total earned</small><b>${fmt(w.rbT+w.rb)} ${CI()}</b></div></div>
   <button class="big" style="margin:0" ${w.rb>=1?'':'disabled'} onclick="rwClaim('rb')">Claim rakeback</button></div>
- <div class="box"><h3>🤝 Referrals <span class="rwpct">${pctTxt(w.pr)} of their bets</span></h3><p class="muted" style="margin:-6px 0 10px">Share your link. You earn ${pctTxt(w.pr)} of everything your referrals wager, forever (Upgrader bets don't count).${m.rk&&m.rk.k?` ${rkTag(m.rk.k)} rate (max 1.5%).`:''}</p>
-  <div class="rwlink"><input id="rflink" readonly value="${esc(link)}" onclick="this.select()"><button class="s" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(link)}');toast('Link copied',1)">Copy</button></div>
-  <small class="muted" style="display:block;margin-top:6px">Or tell them to enter your username <b style="color:var(--t)">${esc(m.name)}</b> below. ${PS()?'PS99':'MM2'} referrals are tracked on the ${PS()?'PS99':'MM2'} side only.</small>
-  <div class="rwst"><div><small>Referred players</small><b id="rfn">…</b></div><div><small>They wagered</small><b id="rfw">…</b></div><div><small>You earned</small><b>${fmt(w.refT+w.ref)} ${CI()}</b></div><div><small>Available</small><b>${fmt(w.ref)} ${CI()}</b></div></div>
-  <button class="big" style="margin:0" ${w.ref>=1?'':'disabled'} onclick="rwClaim('ref')">Claim referral earnings</button></div>
-${(()=>{const b=w.bonus||{amt:0,minw:0,q:0,paid:0},rd=Math.max(0,b.q-b.paid);return `<div class="box"><h3>🎁 Referral bonus <span class="rwpct">${fmt(b.amt)} ${CN()} each</span></h3><p class="muted" style="margin:-6px 0 0">Earn ${fmt(b.amt)} ${CN()} for every referred player who wagers ${fmt(b.minw)}. Needs your Discord linked${b.dc?' ✓':''}. Bonus is wager-locked (90%).</p>
-  <div class="rwst"><div><small>Qualified</small><b>${b.q}</b></div><div><small>Claimed</small><b>${b.paid}</b></div><div><small>Ready</small><b>${rd} = ${fmt(rd*b.amt)} ${CI()}</b></div></div>
-  ${b.dc?`<button class="big" style="margin:0" ${rd>0?'':'disabled'} onclick="rwBonus()">Claim bonus</button>`:`<button class="big" style="margin:0" onclick="go('settings')">Link Discord to claim</button>`}</div>`})()}
- <div class="box"><h3>Your referrer</h3>${w.by?`<p style="margin:0">You were referred by <b>${esc(w.by.name)}</b>.</p>`:`<p class="muted" style="margin:-6px 0 10px">Got a referral code? Enter the username of the player who invited you. You can only do this once.</p><div class="row"><input id="rfin" placeholder="Their Roblox username" maxlength="40" autocomplete="off" style="flex:1;min-width:0" onkeydown="if(event.key==='Enter')rfSet()"><button id="rfb" onclick="rfSet()">Apply</button></div>`}</div>
- <div class="box"><h3>Your referrals</h3><div id="rlist" class="rwtb"><div class="muted">Loading…</div></div></div></div>`;
- api('reflist').then(r=>{if(tab!=='rewards'||!$('#rlist'))return;if(!r||r.error){$('#rlist').innerHTML='<div class="muted">Could not load referrals.</div>';return}
-  $('#rfn').textContent=r.n;$('#rfw').innerHTML=fmt(r.w)+' '+CI();
-  $('#rlist').innerHTML=r.list.length?`<table><tr><th>Player</th><th>Wagered</th><th>You earned</th><th>Bonus</th></tr>${r.list.map(x=>`<tr><td><img class="av" src="${esc(x.avatar)}" alt="">${esc(x.name)}</td><td>${fmt(x.w)} ${CI()}</td><td class="g">+${PS()?abbr(x.e):(Math.round(x.e*100)/100).toLocaleString()} ${CI()}</td><td>${x.q?'✅':'⏳'}</td></tr>`).join('')}</table>`:'<div class="muted">No referrals yet. Share your link to start earning.</div>'})}
+ <div class="box"><h3>🤝 Referrals</h3><p style="margin:0;font-weight:700">Referrals are paused for now 🔒</p>${w.ref>=1?`<p class="muted" style="margin:10px 0 8px">You still have <b style="color:var(--t)">${fmt(w.ref)} ${CI()}</b> in earlier referral earnings.</p><button class="big" style="margin:0" onclick="rwClaim('ref')">Claim earlier earnings</button>`:''}</div></div>`}
 async function rwClaim(k){const r=await api('rwclaim',{k});if(r&&r.ok){toast(r.msg,1);await load();if(tab==='rewards')rRew($('#view'))}}
-async function rwBonus(){const r=await api('refbonus');if(r&&r.ok){toast(r.msg,1);await load();if(tab==='rewards')rRew($('#view'))}}
-async function rfSet(){const i=$('#rfin'),c=(i.value||'').trim();if(!c){toast('Enter a username');return}$('#rfb').disabled=true;const r=await api('refset',{code:c});if($('#rfb'))$('#rfb').disabled=false;if(r&&r.ok){toast(r.msg,1);await load();if(tab==='rewards')rRew($('#view'))}}
 function rSet(v){const m=S.me,sw=(k,t,d)=>`<label class="swr"><span><b>${t}</b><small>${d}</small></span><span class="sw"><input type="checkbox" ${cfg[k]?'checked':''} onchange="sc('${k}',this.checked)"><i></i></span></label>`;
  v.innerHTML=`<div class="setg">
  <div class="box prof"><img src="${esc(m.avatar)}" alt=""><div><h3 style="margin:0">${roleTag(m.role)}${rkTag(m.rk&&m.rk.k)}${esc(m.name)}</h3><div class="muted">Roblox ID <b style="color:var(--t)">${m.id}</b> <button class="s tiny" onclick="navigator.clipboard&&navigator.clipboard.writeText('${m.id}');toast('ID copied',1)">Copy</button></div><div class="pbal">${fmt(m.tokens)} ${CI()} <small>${PS()?'gems':'tokens'}</small></div></div></div>
@@ -1288,12 +1277,12 @@ const rkT=n=>Math.floor(n).toLocaleString('en-US');
 const rkA=n=>{n=Math.floor(n);return n>=1e9?+(n/1e9).toFixed(2)+'B':n>=1e6?+(n/1e6).toFixed(2)+'M':n>=1e3?+(n/1e3).toFixed(1)+'K':String(n)};
 // Progress box. r = rank info from the server ({k,n,b,p (PS99 gems wagered),m (MM2 tokens wagered),next,tiers}). Works for yourself and for other players' profiles.
 function rkBox(r,self){if(!r)return '';const nx=r.next,pc=nx?Math.floor(nx.pct*1000)/10:100,k=r.k||'';
- const head=r.k?`<span class="rkn">${rkTag(k)}</span><span class="rkb">${pctTxt(r.rb)} rakeback · ${pctTxt(r.rf)} referrals</span>`:`<span class="rkn muted">No rank yet</span>`;
+ const head=r.k?`<span class="rkn">${rkTag(k)}</span><span class="rkb">${pctTxt(r.rb)} rakeback</span>`:`<span class="rkn muted">No rank yet</span>`;
  const need=nx?`<p class="rkc">${self?'You need':'Needs'} <b>${rkA(nx.needG)} gems</b> wagered on PS99 <b>or</b> <b>${rkT(nx.needT)} tokens</b> wagered on MM2 to reach ${rkTag(nx.k)} <span style="color:var(--m)">(${rkA(nx.g)} gems / ${rkT(nx.t)} tokens total)</span></p>`:`<p class="rkc">👑 Max rank reached.</p>`;
  return `<div class="box rkbox k-${k||'none'}"><h3 style="margin:0 0 8px">Rank</h3><div class="rktop">${head}${nx?`<span class="muted" style="font-size:12px">Next: ${rkTag(nx.k)} · ${pc}%</span>`:''}</div>
   ${nx?`<div class="rkbar"><i style="width:${Math.max(2,pc)}%"></i></div>`:''}${need}
   <p class="rkc" style="margin-top:6px">Total wagered — PS99: <b>${rkA(r.p)} gems</b> · MM2: <b>${rkT(r.m)} tokens</b>. Ranks sync across both sites.</p>
-  ${self?`<table class="rkt"><tr><th>Rank</th><th>PS99 wagered</th><th>or MM2 wagered</th><th>Rakeback</th><th>Referrals</th></tr>${(r.tiers||[]).map(t=>`<tr class="${t.k===k?'me':''}"><td>${rkTag(t.k)}</td><td>${rkA(t.g)} gems</td><td>${rkT(t.t)} tokens</td><td>${pctTxt(t.rb)}</td><td>${pctTxt(t.rf)}</td></tr>`).join('')}</table><p class="rkc" style="margin-top:6px">Rakeback is what you earn back on your own bets. Referrals is what you earn from your referrals' bets (max 1.5%).</p>`:''}</div>`}
+  ${self?`<table class="rkt"><tr><th>Rank</th><th>PS99 wagered</th><th>or MM2 wagered</th><th>Rakeback</th></tr>${(r.tiers||[]).map(t=>`<tr class="${t.k===k?'me':''}"><td>${rkTag(t.k)}</td><td>${rkA(t.g)} gems</td><td>${rkT(t.t)} tokens</td><td>${pctTxt(t.rb)}</td></tr>`).join('')}</table><p class="rkc" style="margin-top:6px">Rakeback is what you earn back on your own bets.</p>`:''}</div>`}
 function roleTag(r){return r==='owner'?'<span class="rtag rt-owner">[Owner 👑]</span>':r==='admin'?'<span class="rtag rt-admin">[Admin]</span>':r==='streamer'?'<span class="rtag rt-streamer">[Streamer]</span>':''}
 async function dcLink(){const r=await api('dclink');if(r&&r.url)location.href=r.url}
 async function dcUnlink(){if(!confirm('Unlink your Discord account?'))return;const r=await api('dcunlink');if(r&&r.ok){toast('Discord unlinked',1);await load();if(tab==='settings'&&$('#view'))rSet($('#view'))}}
@@ -1510,37 +1499,52 @@ async function twca(){const r=await api('twcash');if(r.cashed!=null)twres=r;awai
 const fxSleep=ms=>new Promise(r=>setTimeout(r,ms));
 function FXB(cols,n=30){const h=document.querySelector('.mstage .fxh');if(!h)return;for(let i=0;i<n;i++){const p=document.createElement('i');p.className='fxp';const a=Math.random()*Math.PI*2,d=70+Math.random()*140;p.style.cssText=`--x:${(Math.cos(a)*d).toFixed(0)}px;--y:${(Math.sin(a)*d-30).toFixed(0)}px;--r:${(Math.random()*720-360).toFixed(0)}deg;--s:${(5+Math.random()*7).toFixed(0)}px;background:${cols[i%cols.length]};animation-delay:${(Math.random()*.12).toFixed(2)}s`;h.appendChild(p);setTimeout(()=>p.remove(),1600)}}
 
-// ---- Upgrader ----
-let upbet=MODE==='ps99'?1e6:10,upm=2,upres=null,upbusy=false,upinit=0,upang=0;
+// ---- Upgrader (v4 redesign) ----
+let upbet=MODE==='ps99'?1e6:10,upm=2,upres=null,upbusy=false,upinit=0,upang=0,uphist=[];
 const upc=m=>.97/m*100;
-function rUp(v){if(!upinit){upinit=1;upbet=PS()?1e6:10}const r=upres,ch=upc(upm),rest=r&&!upbusy;
- const R=76,C=2*Math.PI*R,arc=C*ch/100;
- let ticks='';for(let i=0;i<60;i++){const a=i*6*Math.PI/180,l=i%5===0?7:3.5,x1=100+Math.sin(a)*92,y1=100-Math.cos(a)*92,x2=100+Math.sin(a)*(92-l),y2=100-Math.cos(a)*(92-l);ticks+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#ffffff${i%5===0?'55':'22'}" stroke-width="${i%5===0?1.6:1}"/>`}
- const cls='updial'+(upbusy?' spin':'')+(rest?(r.win?' win':' lose'):' idle');
- const dial=`<div class="${cls}"><svg viewBox="0 0 200 200"><defs><linearGradient id="upg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86efac"/><stop offset="1" stop-color="#16a34a"/></linearGradient><linearGradient id="upl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f87171"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient><radialGradient id="upd" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#2a2f63"/><stop offset="1" stop-color="#0a0c1c"/></radialGradient><filter id="upf" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
- <circle class="updeco" cx="100" cy="100" r="97" fill="none" stroke="var(--ac2)" stroke-opacity=".35" stroke-width="1" stroke-dasharray="2 7"/>${ticks}
- <circle cx="100" cy="100" r="${R}" fill="none" stroke="url(#upl)" stroke-opacity=".55" stroke-width="15"/>
- <circle class="uparc" cx="100" cy="100" r="${R}" fill="none" stroke="url(#upg)" stroke-width="15" stroke-linecap="round" stroke-dasharray="${arc.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 100 100)" filter="url(#upf)"/>
- <circle cx="100" cy="100" r="60" fill="url(#upd)" stroke="#ffffff22"/>
- <g id="upn" style="transform-origin:100px 100px;transform:rotate(${upang}deg)"><path d="M100 14 L107 34 L93 34Z" fill="#fff" filter="url(#upf)"/><line x1="100" y1="34" x2="100" y2="52" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/></g>
- <circle cx="100" cy="100" r="5" fill="#fff" fill-opacity=".8"/>
- <text x="100" y="92" text-anchor="middle" fill="#fff" font-size="25" font-weight="800">${upm.toFixed(2)}x</text>
- <text x="100" y="109" text-anchor="middle" fill="#a8b0d4" font-size="9.5">${ch.toFixed(2)}% chance</text>
- <text id="upro" x="100" y="126" text-anchor="middle" fill="${rest?(r.win?'#4ade80':'#f87171'):'#8b92a5'}" font-size="11" font-weight="700">${rest?(r.roll*100).toFixed(2):(upbusy?'0.00':'')}</text></svg><i class="upflash"></i></div>`;
+const upSl=m=>Math.round(Math.log(m/1.1)/Math.log(100/1.1)*1000),upFromSl=t=>{const m=1.1*Math.pow(100/1.1,t/1000);return m<10?Math.round(m*100)/100:Math.round(m*10)/10};
+const upRisk=ch=>ch>=60?['Safe','#4ade80']:ch>=30?['Balanced','#fbbf24']:ch>=10?['Risky','#fb923c']:['Insane','#f87171'];
+const UPR=82,UPC=2*Math.PI*UPR;
+function upDial(ch,rest,r){
+ let ticks='';for(let i=0;i<100;i++){const a=i*3.6*Math.PI/180,big=i%10===0,l=big?9:4,o=104,x1=110+Math.sin(a)*o,y1=110-Math.cos(a)*o,x2=110+Math.sin(a)*(o-l),y2=110-Math.cos(a)*(o-l);ticks+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#fff" stroke-opacity="${big?.5:.18}" stroke-width="${big?1.8:1}"/>`}
+ const cls='updial up2'+(upbusy?' spin':'')+(rest?(r.win?' win':' lose'):' idle'),rk=upRisk(ch);
+ return `<div class="${cls}"><svg viewBox="0 0 220 220"><defs><linearGradient id="upg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a7f3d0"/><stop offset="1" stop-color="#10b981"/></linearGradient><linearGradient id="upl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7f1d1d"/><stop offset="1" stop-color="#3b0a14"/></linearGradient><radialGradient id="upd" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#2b2468"/><stop offset="1" stop-color="#090a1a"/></radialGradient><filter id="upf" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+ <circle class="updeco" cx="110" cy="110" r="108" fill="none" stroke="var(--ac2)" stroke-opacity=".4" stroke-width="1" stroke-dasharray="1 8"/>${ticks}
+ <circle cx="110" cy="110" r="${UPR}" fill="none" stroke="url(#upl)" stroke-width="18"/>
+ <circle id="uparc" class="uparc" cx="110" cy="110" r="${UPR}" fill="none" stroke="url(#upg)" stroke-width="18" stroke-linecap="round" stroke-dasharray="${(UPC*ch/100).toFixed(1)} ${UPC.toFixed(1)}" transform="rotate(-90 110 110)" filter="url(#upf)"/>
+ <circle cx="110" cy="110" r="64" fill="url(#upd)" stroke="#ffffff26"/><circle cx="110" cy="110" r="58" fill="none" stroke="#ffffff10" stroke-dasharray="3 5"/>
+ <g id="upn" style="transform-origin:110px 110px;transform:rotate(${upang}deg)"><line x1="110" y1="110" x2="110" y2="30" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/><circle cx="110" cy="24" r="7" fill="#fff" filter="url(#upf)"/></g>
+ <circle cx="110" cy="110" r="5" fill="#fff"/>
+ <text id="upmt" x="110" y="98" text-anchor="middle" fill="#fff" font-size="26" font-weight="800">${upm.toFixed(2)}x</text>
+ <text id="upct" x="110" y="116" text-anchor="middle" fill="#b6bde0" font-size="10">${ch.toFixed(2)}% chance</text>
+ <text id="upro" x="110" y="136" text-anchor="middle" fill="${rest?(r.win?'#4ade80':'#f87171'):'#8b92a5'}" font-size="13" font-weight="800">${rest?(r.roll*100).toFixed(2):(upbusy?'0.00':'')}</text></svg><i class="upflash"></i></div>`}
+function rUp(v){if(!upinit){upinit=1;upbet=PS()?1e6:10}const r=upres,ch=upc(upm),rest=r&&!upbusy,rk=upRisk(ch);
  const msg=rest?(r.win?`<div class="mres win">Upgraded! +${fmt(r.pay-r.bet)} ${CI()}<small>Rolled ${(r.roll*100).toFixed(2)} (needed under ${(r.chance*100).toFixed(2)})</small></div>`:`<div class="mres lose">Failed<small>Rolled ${(r.roll*100).toFixed(2)} (needed under ${(r.chance*100).toFixed(2)})</small></div>`):'';
+ const hist=uphist.length?uphist.map((h,i)=>`<span class="uph ${h.win?'w':'l'} ${i===0&&rest?'new':''}" title="${h.roll.toFixed(2)} / ${h.ch.toFixed(2)}">${h.m}x</span>`).join(''):'<span class="muted" style="font-size:12px">Your upgrades show up here</span>';
  v.innerHTML=`<div class="mw"><div class="box mctl"><h3>⬆️ Upgrader <span class="muted">— up to 100x</span></h3>
- <label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('ub',upbet,'upbet=amtP(this.value)',PHA())}<button class="s" onclick="upset(.5)">½</button><button class="s" onclick="upset(2)">2×</button><button class="s" onclick="upset(0)">Max</button></div>
+ <label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('ub',upbet,'upbet=amtP(this.value);upUpd()',PHA())}<button class="s" onclick="upset(.5)">½</button><button class="s" onclick="upset(2)">2×</button><button class="s" onclick="upset(0)">Max</button></div>
  <div class="row">${BETS().map(x=>`<button class="s ${upbet===x?'on':''}" onclick="upbet=${x};upr()">${fmt(x)}</button>`).join('')}</div>
- <label class="lb">Multiplier</label><div class="row"><input id="um" type="number" min="1.1" max="100" step="0.1" value="${upm}" oninput="upm=Math.min(100,Math.max(1.1,+this.value||1.1));upr(1)" style="flex:1;min-width:90px"></div>
- <div class="row">${[1.5,2,3,5,10,50].map(x=>`<button class="s ${upm===x?'on':''}" onclick="upm=${x};upr()">${x}x</button>`).join('')}</div>
- <div class="upbar"><i style="width:${Math.min(100,ch).toFixed(2)}%"></i></div>
- <div class="stat"><span>Payout if win</span><b>${fmt(Math.floor(upbet*upm))} ${CI()}</b></div><div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div>
+ <label class="lb">Multiplier <span id="uprk" class="uprk" style="--c:${rk[1]}">${rk[0]}</span></label>
+ <div class="row" style="align-items:center"><input id="ums" class="uprange" type="range" min="0" max="1000" value="${upSl(upm)}" oninput="upSetM(upFromSl(+this.value),1)" style="flex:1;min-width:120px"><input id="um" type="number" min="1.1" max="100" step="0.1" value="${upm}" oninput="upSetM(+this.value,2)" style="width:92px"></div>
+ <div class="row">${[1.5,2,3,5,10,25,50,100].map(x=>`<button class="s upchip ${upm===x?'on':''}" data-m="${x}" onclick="upSetM(${x},0)">${x}x</button>`).join('')}</div>
+ <div class="upbar"><i id="upbari" style="width:${Math.min(100,ch).toFixed(2)}%"></i></div>
+ <div class="stat"><span>Win chance</span><b id="upst1">${ch.toFixed(2)}%</b></div>
+ <div class="stat"><span>Payout if win</span><b class="g" id="upst2">${fmt(Math.floor(upbet*upm))} ${CI()}</b></div>
+ <div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div>
  <button class="big upbtn ${upbusy?'busy':''}" onclick="upgo()" ${upbusy?'disabled':''}>${upbusy?'Upgrading…':'Upgrade'}</button></div>
- <div class="mstage upstage ${rest?(r.win?'swin':'slose'):''}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px"><i class="fxh"></i><div style="width:min(330px,92%)">${dial}</div>${msg}</div></div>`;
- if(upbusy&&r){const n=$('#upn'),o=$('#upro');if(n){const tgt=upang+1440+(((r.roll*360-upang)%360)+360)%360;requestAnimationFrame(()=>requestAnimationFrame(()=>{n.style.transition='transform 2.3s cubic-bezier(.12,.7,.15,1)';n.style.transform='rotate('+tgt+'deg)';upang=tgt}));const t0=Date.now(),iv=setInterval(()=>{const el=$('#upro');if(!el||Date.now()-t0>2200){clearInterval(iv);return}el.textContent=(Math.random()*100).toFixed(2)},70)}}}
-const upr=k=>{if(tab!=='upgrader')return;if(k){const a=document.activeElement,p=a&&a.id==='um'?a.selectionStart:0;rUp($('#view'));const e=$('#um');if(e){e.focus();try{e.setSelectionRange(p,p)}catch(x){}}}else rUp($('#view'))};
+ <div class="mstage upstage ${rest?(r.win?'swin':'slose'):''}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px"><i class="fxh"></i><div style="width:min(360px,94%)">${upDial(ch,rest,r)}</div>${msg}<div class="uphs">${hist}</div></div></div>`;
+ if(upbusy&&r){const n=$('#upn');if(n){const tgt=upang+1440+(((r.roll*360-upang)%360)+360)%360;requestAnimationFrame(()=>requestAnimationFrame(()=>{n.style.transition='transform 2.3s cubic-bezier(.12,.7,.15,1)';n.style.transform='rotate('+tgt+'deg)';upang=tgt}));const t0=Date.now(),iv=setInterval(()=>{const el=$('#upro');if(!el||Date.now()-t0>2200){clearInterval(iv);return}el.textContent=(Math.random()*100).toFixed(2)},70)}}}
+const upr=()=>{if(tab==='upgrader')rUp($('#view'))};
+function upUpd(){const ch=upc(upm),rk=upRisk(ch),s=(i,x)=>{const e=$(i);if(e)e.textContent=x};
+ const a=$('#uparc');if(a)a.setAttribute('stroke-dasharray',(UPC*ch/100).toFixed(1)+' '+UPC.toFixed(1));
+ s('#upmt',upm.toFixed(2)+'x');s('#upct',ch.toFixed(2)+'% chance');s('#upst1',ch.toFixed(2)+'%');
+ const p=$('#upst2');if(p)p.innerHTML=fmt(Math.floor(upbet*upm))+' '+CI();
+ const b=$('#upbari');if(b)b.style.width=Math.min(100,ch).toFixed(2)+'%';
+ const k=$('#uprk');if(k){k.textContent=rk[0];k.style.setProperty('--c',rk[1])}
+ document.querySelectorAll('.upchip').forEach(x=>x.classList.toggle('on',+x.dataset.m===upm))}
+function upSetM(x,src){let n=+x;if(src===2&&!(n>=1.1))return;n=Math.min(100,Math.max(1.1,Math.round((n||1.1)*100)/100));upm=n;if(src!==1){const s=$('#ums');if(s)s.value=upSl(n)}if(src!==2){const e=$('#um');if(e)e.value=n}upUpd()}
 function upset(x){upbet=x?Math.max(MINB(),Math.floor(upbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));upr()}
-async function upgo(){if(upbusy)return;if(!(upbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}upbusy=true;upres=null;upr();const r=await api('upgrade',{bet:upbet,mult:upm});if(!r||r.win===undefined){upbusy=false;await load();upr();return}r.bet=upbet;upres=r;upr();await fxSleep(2400);upbusy=false;await load();upr();if(r.win)FXB(['#4ade80','#86efac','#fde047','#ffffff','#8f7cff'],36)}
+async function upgo(){if(upbusy)return;if(!(upbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}upbusy=true;upres=null;upr();const r=await api('upgrade',{bet:upbet,mult:upm});if(!r||r.win===undefined){upbusy=false;await load();upr();return}r.bet=upbet;upres=r;upr();await fxSleep(2400);uphist.unshift({win:r.win,roll:r.roll*100,ch:r.chance*100,m:+upm.toFixed(2)});uphist=uphist.slice(0,12);upbusy=false;await load();upr();if(r.win)FXB(['#4ade80','#86efac','#fde047','#ffffff','#8f7cff'],36)}
 
 // ---- Colour Dice ----
 let cdbet=MODE==='ps99'?1e6:10,cdcol='red',cdjc='blue',cdres=null,cdbusy=false,cdinit=0;
@@ -1622,41 +1626,48 @@ async function plgo(){if(plbusy)return;if(!(plbet>=MINB())){toast('Minimum bet i
  if(!r||!r.ok){plbusy=false;await load();plr();return}
  plres=r;await plDrop(r);plbusy=false;plhist.unshift(r.mult);plhist=plhist.slice(0,12);await load();plr();if(r.mult>=1)FXB(['#4ade80','#86efac','#fde047','#ffffff','#8f7cff'],r.mult>=5?48:26)}
 
-// ---- Duels ----
-let dubet=MODE==='ps99'?1e6:10,dures=null,dubusy=false,duinit=0;
+// ---- Dice ----
+let dibet=MODE==='ps99'?1e6:10,dimode='under',dich=50,dires=null,dibusy=false,diinit=0,dipos=50,dihist=[],diiv=null;
 const duWho=(x,me)=>x.id===me?'You':md2(x.name);
-function duFi(x,i,hp,cls,me){return `<div class="dufi ${cls}" id="duf${i}"><div class="duav">${x?`<img src="${esc(x.avatar)}" alt="">`:'<span class="duq">❔</span>'}<span class="duco">👑</span></div><b>${x?duWho(x,me):'Opponent'}</b><div class="duhpw"><i class="duhg" id="duhg${i}" style="width:${hp}%"></i><i class="duhp ${hp<35?'low':''}" id="duhp${i}" style="width:${hp}%"></i><span id="duht${i}">${hp} HP</span></div></div>`}
-function rDuel(v){if(!duinit){duinit=1;dubet=PS()?1e6:10}const D=S.du||{open:[],recent:[]},r=dures,me=S.me.id,rest=r&&!dubusy;
- const fin=r?r.log[r.log.length-1]:null,hp=r?(rest?[fin[3],fin[4]]:[100,100]):[100,100];
- const wc=rest&&r.winner.id===r.c.id;
- const arena=`<div class="duarena" id="duar">${r?duFi(r.c,0,hp[0],rest?(wc?'win':'ko'):'',me):duFi({id:me,name:S.me.name,avatar:S.me.avatar},0,100,'',me)}<div class="duvs">⚔️</div>${r?duFi(r.j,1,hp[1],rest?(wc?'ko':'win'):'',me):duFi(null,1,100,'idle',me)}</div><div id="cdst" class="cdst">${dubusy?'Fight!':r?'':'100 HP each · random first strike · 10–30 dmg · 15% crits'}</div>`;
- const msg=rest?(r.winner.id===me?`<div class="mres win">Victory! +${fmt(r.won-r.bet)} ${CI()}<small>${r.log.length} hits</small></div>`:`<div class="mres lose">Defeated<small>${r.log.length} hits</small></div>`):'';
- const open=D.open.length?D.open.map(g=>{const mine=g.c.id===me;return `<div class="gmr"><img class="av" src="${esc(g.c.avatar)}" alt=""><span style="flex:1;min-width:0"><b>${md2(g.c.name)}</b><br><small class="muted">${mine?'Your duel':'Open duel'}</small></span><b>${fmt(g.bet)} ${CI()}</b>${mine?`<button class="s" onclick="duact('dubot',${g.id})">🤖 SyncBot</button><button class="s" onclick="duact('ducancel',${g.id})">Cancel</button>`:`<button onclick="duact('dujoin',${g.id})">⚔️ Fight</button>`}</div>`}).join(''):'<p class="muted">No open duels — create one!</p>';
- const rc=D.recent.slice().reverse().slice(0,6).map(g=>`<div class="stat"><span>#${g.id} ${md2(g.c.name)} <span class="muted">vs</span> ${md2(g.j.name)}</span><b class="g">🏆 ${md2(g.winner.name)} +${fmt(g.won)}</b></div>`).join('')||'<p class="muted">Nothing yet</p>';
- v.innerHTML=`<div class="mw"><div class="box mctl"><h3>⚔️ Duels</h3>
- <label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('dub',dubet,'dubet=amtP(this.value)',PHA())}<button class="s" onclick="duset(.5)">½</button><button class="s" onclick="duset(2)">2×</button><button class="s" onclick="duset(0)">Max</button></div>
- <div class="row">${BETS().map(x=>`<button class="s ${dubet===x?'on':''}" onclick="dubet=${x};dur()">${fmt(x)}</button>`).join('')}</div>
- <div class="stat"><span>Win pays</span><b class="g">${fmt(Math.floor(dubet*2*.95))} ${CI()}</b></div><div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div>
- <button class="big" onclick="duact('dubotplay')" ${dubusy?'disabled':''}>🤖 Fight SyncBot</button><button class="big s" style="margin-top:8px" onclick="duact('ducreate')" ${dubusy?'disabled':''}>Create duel for players</button></div>
- <div class="mstage dustage"><i class="fxh"></i>${arena}${msg}<div class="box"><h3>Open duels</h3>${open}</div><div class="box"><h3>Recent</h3>${rc}</div></div></div>`}
-const dur=()=>{if(tab==='duels'&&!dubusy)rDuel($('#view'))};
-function duset(x){dubet=x?Math.max(MINB(),Math.floor(dubet*x)):Math.max(MINB(),Math.floor(S.me.tokens));dur()}
-async function duAnim(r){const st=$('#cdst'),ar=$('#duar'),fast=false;await fxSleep(fast?0:650);
- for(const[t,dmg,crit,h0,h1]of r.log){const d=1-t,fa=$('#duf'+t),fd=$('#duf'+d),hp=d?h1:h0;if(!$('#duar'))return;
-  if(fa){fa.classList.remove('atk0','atk1');void fa.offsetWidth;fa.classList.add('atk'+t)}
-  await fxSleep(fast?0:210);
-  const bar=$('#duhp'+d),gh=$('#duhg'+d),tx=$('#duht'+d);
-  if(bar){bar.style.width=hp+'%';bar.classList.toggle('low',hp<35);tx.textContent=hp+' HP';setTimeout(()=>{if(gh)gh.style.width=hp+'%'},420)}
-  if(fd){fd.classList.remove('hurt');void fd.offsetWidth;fd.classList.add('hurt')}
-  if(ar){const n=document.createElement('i');n.className='duflt s'+d+(crit?' crit':'');n.textContent='-'+dmg+(crit?'!':'');ar.appendChild(n);setTimeout(()=>n.remove(),1000);if(crit){ar.classList.remove('crit');void ar.offsetWidth;ar.classList.add('crit')}}
-  if(st)st.textContent=`${(t?r.j:r.c).name} hits for ${dmg}${crit?' — CRITICAL!':''}`;
-  await fxSleep(fast?0:(crit?720:520))}
- const wi=r.winner.id===r.c.id?0:1,lo=$('#duf'+(1-wi)),wf=$('#duf'+wi);if(lo)lo.classList.add('ko');if(wf)wf.classList.add('win');if(st)st.textContent='K.O.!';await fxSleep(fast?0:500)}
-async function duact(a,id){if(dubusy)return;if((a==='ducreate'||a==='dubotplay')&&!(dubet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}
- const r=await api(a,{id,bet:dubet});if(!r||!r.ok){await load();return rDuel($('#view'))}
- if(a==='ducreate'){toast('Duel created');await load();return rDuel($('#view'))}
- if(r.r){dures=r.r;dubusy=true;rDuel($('#view'));await duAnim(dures);dubusy=false}
- await load();rDuel($('#view'));if(dures&&dures.winner.id===S.me.id)FXB(['#ef4444','#fde047','#ffffff','#fb923c'],40)}
+const diMu=c=>97/c,diThr=()=>dimode==='under'?dich:+(100-dich).toFixed(2);
+const diZones=()=>{const t=diThr(),g='#22c55e',r='#ef4444';return dimode==='under'?`linear-gradient(90deg,${g} 0 ${t}%,${r} ${t}% 100%)`:`linear-gradient(90deg,${r} 0 ${t}%,${g} ${t}% 100%)`};
+function rDice(v){if(!diinit){diinit=1;dibet=PS()?1e6:10}const r=dires,rest=r&&!dibusy,t=diThr();
+ const hist=dihist.length?dihist.map((h,i)=>`<span class="dih ${h.win?'w':'l'} ${i===0&&rest?'new':''}">${h.roll.toFixed(2)}</span>`).join(''):'<span class="muted" style="font-size:12px">Your rolls show up here</span>';
+ const msg=rest?(r.win?`<div class="mres win">You won +${fmt(r.pay-r.bet)} ${CI()}<small>Rolled ${r.roll.toFixed(2)} · ${r.mode} ${r.target.toFixed(2)} · ${r.mult.toFixed(2)}x</small></div>`:`<div class="mres lose">You lost<small>Rolled ${r.roll.toFixed(2)} · needed ${r.mode} ${r.target.toFixed(2)}</small></div>`):'';
+ v.innerHTML=`<div class="mw"><div class="box mctl"><h3>🎲 Dice <span class="muted">— 1% to 90% chance</span></h3>
+ <label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('dib',dibet,'dibet=amtP(this.value);diUpd()',PHA())}<button class="s" onclick="diset(.5)">½</button><button class="s" onclick="diset(2)">2×</button><button class="s" onclick="diset(0)">Max</button></div>
+ <div class="row">${BETS().map(x=>`<button class="s ${dibet===x?'on':''}" onclick="dibet=${x};dir()">${fmt(x)}</button>`).join('')}</div>
+ <label class="lb">Roll</label><div class="dimodes"><button class="dimb ${dimode==='under'?'on':''}" onclick="dimodeSet('under')" ${dibusy?'disabled':''}>⬇ Roll Under</button><button class="dimb ${dimode==='over'?'on':''}" onclick="dimodeSet('over')" ${dibusy?'disabled':''}>⬆ Roll Over</button></div>
+ <label class="lb">Win chance</label><div class="row" style="align-items:center"><input id="dis" class="dirange" type="range" min="1" max="90" step="1" value="${Math.round(dich)}" oninput="diSetCh(this.value,1)" style="flex:1;min-width:120px"><input id="dichn" type="number" min="1" max="90" step="0.01" value="${dich}" oninput="diSetCh(this.value,2)" style="width:92px"></div>
+ <div class="row">${[5,10,25,50,75,90].map(x=>`<button class="s dichip ${dich===x?'on':''}" data-c="${x}" onclick="diSetCh(${x},0)">${x}%</button>`).join('')}</div>
+ <div class="stat"><span>Multiplier</span><b id="dimu">${diMu(dich).toFixed(2)}x</b></div>
+ <div class="stat"><span id="dithl">${dimode==='under'?'Roll under':'Roll over'}</span><b id="dithv">${t.toFixed(2)}</b></div>
+ <div class="stat"><span>Payout if win</span><b class="g" id="dipay">${fmt(Math.floor(dibet*diMu(dich)))} ${CI()}</b></div>
+ <div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div>
+ <button class="big dibtn ${dibusy?'busy':''}" onclick="digo()" ${dibusy?'disabled':''}>${dibusy?'Rolling…':'Roll dice'}</button></div>
+ <div class="mstage distage ${rest?(r.win?'swin':'slose'):''}"><i class="fxh"></i>
+ <div class="dinum ${rest?(r.win?'win':'lose'):''}" id="dinum">${rest?r.roll.toFixed(2):(dibusy?'00.00':'--.--')}</div>
+ <div class="ditw"><div class="ditrack" id="ditrack" style="background:${diZones()}"><i class="dithr" id="dithm" style="left:${t}%"><em id="dithe">${t.toFixed(2)}</em></i><b class="dimk ${dibusy?'go':''} ${rest?(r.win?'w':'l'):''}" id="dimk" style="left:${rest?r.roll:dipos}%"><span>🎲</span></b></div>
+ <div class="ditk"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div></div>
+ ${msg}<div class="dihist">${hist}</div></div></div>`}
+const dir=()=>{if(tab==='dice'&&!dibusy)rDice($('#view'))};
+function diUpd(){const t=diThr(),s=(i,x)=>{const e=$(i);if(e)e.textContent=x};
+ s('#dimu',diMu(dich).toFixed(2)+'x');s('#dithv',t.toFixed(2));s('#dithl',dimode==='under'?'Roll under':'Roll over');s('#dithe',t.toFixed(2));
+ const p=$('#dipay');if(p)p.innerHTML=fmt(Math.floor(dibet*diMu(dich)))+' '+CI();
+ const tr=$('#ditrack');if(tr)tr.style.background=diZones();const th=$('#dithm');if(th)th.style.left=t+'%';
+ document.querySelectorAll('.dichip').forEach(b=>b.classList.toggle('on',+b.dataset.c===dich))}
+function diSetCh(x,src){let n=Math.round((+x||0)*100)/100;if(src===2&&!(n>=1))return;n=Math.min(90,Math.max(1,n));dich=n;if(src!==1){const s=$('#dis');if(s)s.value=Math.round(n)}if(src!==2){const e=$('#dichn');if(e)e.value=n}diUpd()}
+function dimodeSet(m){if(dibusy)return;dimode=m;dir()}
+function diset(x){dibet=x?Math.max(MINB(),Math.floor(dibet*x)):Math.max(MINB(),Math.floor(S.me.tokens));dir()}
+async function digo(){if(dibusy)return;if(!(dibet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}
+ dibusy=true;dires=null;rDice($('#view'));
+ const num=()=>$('#dinum'),fl=setInterval(()=>{const e=num();if(e)e.textContent=(Math.random()*100).toFixed(2).padStart(5,'0')},60);
+ const r=await api('dice',{bet:dibet,mode:dimode,chance:dich});
+ if(!r||r.win===undefined){clearInterval(fl);dibusy=false;await load();return rDice($('#view'))}
+ const mk=$('#dimk');if(mk){mk.style.transition='left 1.5s cubic-bezier(.15,.8,.2,1)';requestAnimationFrame(()=>requestAnimationFrame(()=>{mk.style.left=r.roll+'%'}))}
+ await fxSleep(1600);clearInterval(fl);
+ dires=r;dipos=r.roll;dihist.unshift({roll:r.roll,win:r.win});dihist=dihist.slice(0,14);dibusy=false;
+ await load();if(tab==='dice'){rDice($('#view'));if(r.win)FXB(['#8b5cf6','#c4b5fd','#4ade80','#fde047','#ffffff'],36)}}
 
 // ---- Rock Paper Scissors ----
 let rpbet=MODE==='ps99'?1e6:10,rpmove='rock',rpres=null,rpbusy=false,rpinit=0;
@@ -1823,7 +1834,5 @@ async function bjDeal(){if(bjBusy)return;if(!(bjBet>=MINB())){toast('Minimum bet
 async function bjAct(a){if(bjBusy)return;bjBusy=true;rBj($('#view'));await api(a);bjBusy=false;await load();if(tab==='blackjack')rBj($('#view'))}
 
 try{const sp=new URLSearchParams(location.search);if(sp.has('discord')){const ok=sp.get('discord')==='ok';setTimeout(()=>toast(ok?'Discord linked!':(sp.get('m')||'Could not link Discord'),ok),900);history.replaceState(null,'',location.pathname)}}catch(e){}
-try{const sp=new URLSearchParams(location.search);if(sp.has('ref')){localStorage.refc=String(sp.get('ref')).slice(0,40);history.replaceState(null,'',location.pathname)}}catch(e){}
-let refTry=0;setInterval(async()=>{try{const c=localStorage.refc;if(!c||!S||!S.me||refTry>=3)return;if(S.me.rw&&S.me.rw.by){localStorage.removeItem('refc');return}refTry++;const r=await api('refset',{code:c});localStorage.removeItem('refc');if(r&&r.ok){toast(r.msg,1);await load();if(tab==='rewards')rRew($('#view'))}}catch(e){}},2500);
 load();
 </script></body></html>
