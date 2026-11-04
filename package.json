@@ -1,1 +1,1 @@
-{"name":"sync-mm2","private":true}
+{"name":"sync-mm2","private":true,"dependencies":{"@upstash/redis":"^1.34.0"}}
