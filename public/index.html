@@ -768,6 +768,15 @@ button.dc{background:linear-gradient(135deg,#5865f2,#4752c4)}
 .hcat{margin-bottom:6px}.hch{display:flex;align-items:baseline;gap:10px;margin:10px 2px 8px}.hch b{font:700 13px 'Syncopate',system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase}.hch span{color:var(--m);font-size:12.5px}
 .hcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:0}.hcols .box{margin-bottom:14px}
 .hon{display:flex;flex-wrap:wrap;gap:8px}.hou{display:flex;align-items:center;gap:7px;padding:4px 12px 4px 4px;border-radius:99px;background:#ffffff0a;border:1px solid var(--ln);color:var(--t);font-size:12.5px;box-shadow:none;max-width:100%}.hou:hover{border-color:var(--ac1);transform:none}.hou .av{width:26px;height:26px;margin:0}.hou span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px}
+
+/* stonks */
+.stcv{width:100%;height:250px;display:block;border-radius:14px;background:#0a0d14;border:1px solid #ffffff14}
+.sthd{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;gap:10px}.sthd b{font:700 26px system-ui;font-variant-numeric:tabular-nums}.sthd small{display:block;color:var(--m,#8b9098);font:500 12px system-ui}
+.stcd{font:700 13px system-ui;padding:5px 11px;border-radius:99px;background:#ffffff10;font-variant-numeric:tabular-nums}
+.stdr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.stdr .big{margin:0;font-weight:800}
+.stup{background:linear-gradient(180deg,#22c55e,#15803d);color:#04130a}.stdn{background:linear-gradient(180deg,#f87171,#b91c1c);color:#190505}
+.stdr .big:disabled{opacity:.45}.stpick{outline:3px solid #fff8}
+.stsec .s{flex:1}
 </style></head><body><svg width="0" height="0" style="position:absolute"><defs>
 <linearGradient id="goldRim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0ae"/><stop offset=".5" stop-color="#c98d14"/><stop offset="1" stop-color="#6e4506"/></linearGradient>
 <radialGradient id="goldFace" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#ffe58f"/><stop offset=".55" stop-color="#e0a921"/><stop offset="1" stop-color="#a8700c"/></radialGradient>
@@ -807,16 +816,16 @@ const PHA=()=>PS()?'e.g. 50m, 1.5b, 50,000,000':'Amount';
 const AF=(id,val,on,ph,w)=>`<div class="af" style="flex:1;min-width:${w||90}px"><input id="${id}" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="${ph||''}" value="${val?amtStr(val):''}" oninput="${on};amtHint(this)"><small class="amth">${val?'= '+Math.floor(val).toLocaleString():''}</small></div>`;
 const msw=()=>`<div class="msw"><button class="mm ${PS()?'':'on'}" onclick="swMode('mm2')">MM2</button><i>||</i><button class="ps ${PS()?'on':''}" onclick="swMode('ps99')">PS99</button></div>`;
 function swMode(m){if(m===MODE)return;localStorage.mode=m;location.reload()}
-let S=null,tab=(()=>{const p=location.pathname.replace(/^\/|\/$/g,'');return ['values','inventory','exchange','tip','jackpot','coinflip','blackjack','mines','towers','upgrader','colordice','roulette','crash','dice','rps','plinko','withdraw','deposit','leaderboard','rewards','players','settings','streamer','admin'].includes(p)?p:'home'})(),q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=MODE==='ps99'?1000000:10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"hide":false}');
+let S=null,tab=(()=>{const p=location.pathname.replace(/^\/|\/$/g,'');return ['values','inventory','exchange','tip','jackpot','coinflip','blackjack','mines','towers','upgrader','colordice','roulette','crash','dice','rps','plinko','stonks','withdraw','deposit','leaderboard','rewards','players','settings','streamer','admin'].includes(p)?p:'home'})(),q='',sel={},mres=null,mlast=-1,seen=0,pend=null,nav=0,mbet=MODE==='ps99'?1000000:10,mmn=3,mbusy=false,cfg=JSON.parse(localStorage.cfg||'{"hide":false}');
 let chatOpen=false,chatSeen=0;
 const BETS=()=>PS()?[1e6,5e6,10e6,50e6,100e6,500e6]:[5,10,50,100,500,1000];
 const ICO=k=>`<svg viewBox="0 0 24 24">${{"home": "<path d=\"M3 11.5 12 4l9 7.5\"/><path d=\"M5.5 10v9.5h13V10\"/><path d=\"M10 19.5v-5h4v5\"/>", "values": "<path d=\"M3 17l5-5 4 4 8-9\"/><path d=\"M15 7h5v5\"/>", "inv": "<path d=\"M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z\"/><path d=\"M3.5 7.5 12 12l8.5-4.5M12 12v9\"/>", "ex": "<path d=\"M4 8h14l-3.5-3.5M20 16H6l3.5 3.5\"/>", "tip": "<rect x=\"3.5\" y=\"9\" width=\"17\" height=\"11\" rx=\"1.5\"/><path d=\"M12 9v11M3.5 13h17M12 9c-3.5 0-5-1-5-2.500S8.500 4 10 5c1 .7 2 4 2 4zm0 0c3.500 0 5-1 5-2.500S15.500 4 14 5c-1 .7-2 4-2 4z\"/>", "jp": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"2.500\"/><path d=\"M12 3v6.500M12 14.500V21M3 12h6.500M14.500 12H21\"/>", "cf": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v10M9.500 9.500c0-1 1-1.700 2.500-1.700s2.500.7 2.500 1.800-1 1.600-2.500 2-2.500.9-2.500 2 1 1.800 2.500 1.800 2.500-.8 2.500-1.800\"/>", "bj": "<rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2.500\"/><path d=\"M12 7.500l3.500 4.500-3.500 4.500L8.500 12z\"/>", "mine": "<path d=\"M6 4h12l3.500 5L12 21 2.500 9z\"/><path d=\"M2.500 9h19M9 4 7.500 9 12 21l4.500-12L15 4\"/>", "tw": "<path d=\"M5 21V10h14v11M3 21h18M8 10V6h3v4M13 10V6h3v4M10 21v-5h4v5\"/>", "up": "<path d=\"M12 16V4M7 9l5-5 5 5M4 20h16\"/>", "down": "<path d=\"M12 4v12M7 11l5 5 5-5M4 20h16\"/>", "pl": "<circle cx=\"12\" cy=\"8\" r=\"3.500\"/><path d=\"M5 20c0-3.500 3-6 7-6s7 2.500 7 6\"/>", "lb": "<path d=\"M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1.500A3.500 3.500 0 0 0 7.500 11M17 6h3v1.500A3.500 3.500 0 0 1 16.500 11M12 14v4M8.500 20h7\"/>", "set": "<path d=\"M4 7h10M18 7h2M4 17h2M10 17h10\"/><circle cx=\"16\" cy=\"7\" r=\"2\"/><circle cx=\"8\" cy=\"17\" r=\"2\"/>", "adm": "<path d=\"M12 3l8 3v6c0 4.500-3.300 8-8 9-4.700-1-8-4.500-8-9V6z\"/>"}[k]}</svg>`;
-const NAV=[['home','home','Home'],['values','values','Values'],['inventory','inv','Inventory'],['exchange','ex','Exchange'],['tip','tip','Tip'],['jackpot','jp','Jackpot'],['coinflip','cf','Coinflip'],['blackjack','bj','Blackjack'],['mines','mine','Mines'],['towers','tw','Towers'],['upgrader','up','Upgrader'],['colordice','cf','Colour Dice'],['roulette','jp','Roulette'],['crash','up','Crash'],['dice','cf','Dice'],['rps','cf','RPS'],['plinko','mine','Plinko'],['withdraw','up','Withdraw'],['deposit','down','Deposit'],['leaderboard','lb','Leaderboard'],['rewards','tip','Rewards'],['players','pl','Players'],['settings','set','Settings'],['streamer','tip','Streamer'],['admin','adm','Admin']];
+const NAV=[['home','home','Home'],['values','values','Values'],['inventory','inv','Inventory'],['exchange','ex','Exchange'],['tip','tip','Tip'],['jackpot','jp','Jackpot'],['coinflip','cf','Coinflip'],['blackjack','bj','Blackjack'],['mines','mine','Mines'],['towers','tw','Towers'],['upgrader','up','Upgrader'],['colordice','cf','Colour Dice'],['roulette','jp','Roulette'],['crash','up','Crash'],['dice','cf','Dice'],['rps','cf','RPS'],['plinko','mine','Plinko'],['stonks','up','Stonks'],['withdraw','up','Withdraw'],['deposit','down','Deposit'],['leaderboard','lb','Leaderboard'],['rewards','tip','Rewards'],['players','pl','Players'],['settings','set','Settings'],['streamer','tip','Streamer'],['admin','adm','Admin']];
 const toast=(m,ok)=>{const t=$('#toast');t.textContent=m;t.style.background=ok?'linear-gradient(135deg,#16a34a,#15803d)':'';t.style.display='block';clearTimeout(t._);t._=setTimeout(()=>t.style.display='none',2500)};
 let FRU=0;
-const api=async(a,b={})=>{if(!['state','cxpoll','lb','history','psearch','profile','reflist'].includes(a))FRU=Date.now();try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...b,gm:MODE,fr:Date.now()-FRU<5000?1:0})});let j;try{j=await r.json()}catch{j={error:`Server returned an invalid response (${r.status})`}}if(!r.ok&&!j.error)j.error=`Request failed (${r.status})`;if(j.error)toast(j.error);return j}catch(e){const j={error:'Network error: '+(e&&e.message?e.message:'request failed')};toast(j.error);return j}};
+const api=async(a,b={})=>{if(!['state','cxpoll','lb','history','psearch','profile','reflist','stonkstick'].includes(a))FRU=Date.now();try{const r=await fetch('/api/'+a,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...b,gm:MODE,fr:Date.now()-FRU<5000?1:0})});let j;try{j=await r.json()}catch{j={error:`Server returned an invalid response (${r.status})`}}if(!r.ok&&!j.error)j.error=`Request failed (${r.status})`;if(j.error)toast(j.error);return j}catch(e){const j={error:'Network error: '+(e&&e.message?e.message:'request failed')};toast(j.error);return j}};
 // Splash: logo + title, then fades out. Used on site entry and when opening a game.
-const NG=[['games','🎮','Games',['jackpot','coinflip','rps','dice','mines','towers','plinko','crash','upgrader','blackjack','roulette','colordice']],['items','🎒','Items',['values','inventory','exchange']],['wallet','💰','Wallet',['deposit','withdraw','tip']],['community','🏆','Community',['leaderboard','rewards','players']],['account','⚙️','Account',['settings','streamer','admin']]];
+const NG=[['games','🎮','Games',['jackpot','coinflip','rps','dice','mines','towers','plinko','stonks','crash','upgrader','blackjack','roulette','colordice']],['items','🎒','Items',['values','inventory','exchange']],['wallet','💰','Wallet',['deposit','withdraw','tip']],['community','🏆','Community',['leaderboard','rewards','players']],['account','⚙️','Account',['settings','streamer','admin']]];
 let ngOpenS=(()=>{try{return JSON.parse(localStorage.getItem('ngo')||'null')}catch(e){return null}})()||{games:1};
 const ngSave=()=>{try{localStorage.setItem('ngo',JSON.stringify(ngOpenS))}catch(e){}};
 function ngT(k){ngOpenS[k]=!ngOpenS[k];ngSave();const e=document.querySelector('.ng[data-g="'+k+'"]');if(e)e.classList.toggle('open',!!ngOpenS[k])}
@@ -824,7 +833,7 @@ function ngFor(t){const g=NG.find(x=>x[3].includes(t));if(!g)return;if(!ngOpenS[
 const navBtn=n=>`<button id="t_${n[0]}" onclick="go('${n[0]}')">${ICO(n[1])}<span>${n[2]}</span></button>`;
 function navHtml(m){const ok=n=>n&&(n[0]!=='admin'||m.admin)&&(n[0]!=='streamer'||m.streamer)&&(!n[3]||PS());
  return navBtn(NAV[0])+NG.map(g=>{const its=g[3].map(id=>NAV.find(x=>x[0]===id)).filter(ok);if(!its.length)return'';return `<div class="ng ${ngOpenS[g[0]]?'open':''}" data-g="${g[0]}"><button class="ngh" onclick="ngT('${g[0]}')"><em>${g[1]}</em><span>${g[2]}</span><small>${its.length}</small><i></i></button><div class="ngb"><div>${its.map(navBtn).join('')}</div></div></div>`}).join('')}
-const GAMES=['mines','jackpot','coinflip','blackjack','towers','upgrader','colordice','roulette','crash','dice','rps','plinko'];
+const GAMES=['stonks','mines','jackpot','coinflip','blackjack','towers','upgrader','colordice','roulette','crash','dice','rps','plinko'];
 function splash(text,ms=1200){const old=$('#splash');if(old)old.remove();
  const d=document.createElement('div');d.id='splash';d.innerHTML=`<img src="${LG()}" alt=""><b>${text}</b><i></i>`;document.body.appendChild(d);setTimeout(()=>d.remove(),ms)}
 {const s=document.querySelector('#splash');if(s){setTimeout(()=>s.remove(),1300)}}
@@ -883,9 +892,9 @@ function head(){const ib=$('#impbar');if(S.me.imp&&!ib){const d=document.createE
 function go(t,np){if(!NAV.some(x=>x[0]===t)||(t==='admin'&&!(S&&S.me&&S.me.admin))||(t==='streamer'&&!(S&&S.me&&S.me.streamer)))t='home';const was=tab;tab=t;if(!np){try{const u=t==='home'?'/':'/'+t;if(location.pathname!==u)history.pushState(null,'',u)}catch(e){}}sel={};q='';sb(0);const n=NAV.find(x=>x[0]===t);if(GAMES.includes(t)&&was!==t)splash(n[2]);document.querySelectorAll('#nv button').forEach(b=>b.classList.toggle('on',b.id==='t_'+t));ngFor(t);$('#tt').textContent=n[2];const my=++nav;
  $('#view').innerHTML=`<div class="ld"><div class="sp"></div><span class="muted">Loading ${n[2]}…</span></div>`;
  setTimeout(async()=>{if(my!==nav)return;await load();if(my===nav)render()},350)}
-const render0=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,coinflip:rCf,blackjack:rBj,mines:rMines,towers:rTw,upgrader:rUp,colordice:rCd,roulette:rRl,crash:rCrash,dice:rDice,rps:rRps,plinko:rPlinko,tip:rTip,withdraw:rWd,deposit:rDep,leaderboard:rLb,rewards:rRew,players:rPl,settings:rSet,streamer:rStr,admin:rAdm})[tab]($('#view'))};
+const render0=()=>{({home:rHome,values:rValues,inventory:rInv,exchange:rEx,jackpot:rJP,coinflip:rCf,blackjack:rBj,mines:rMines,towers:rTw,upgrader:rUp,colordice:rCd,roulette:rRl,crash:rCrash,dice:rDice,rps:rRps,plinko:rPlinko,stonks:rStonks,tip:rTip,withdraw:rWd,deposit:rDep,leaderboard:rLb,rewards:rRew,players:rPl,settings:rSet,streamer:rStr,admin:rAdm})[tab]($('#view'))};
 
-const HG=[['all','All games'],['coinflip','Coinflip'],['jackpot','Jackpot'],['blackjack','Blackjack'],['mines','Mines'],['towers','Towers'],['upgrader','Upgrader'],['colordice','Colour Dice'],['roulette','Roulette'],['crash','Crash'],['dice','Dice'],['rps','RPS'],['plinko','Plinko']];
+const HG=[['all','All games'],['coinflip','Coinflip'],['jackpot','Jackpot'],['blackjack','Blackjack'],['mines','Mines'],['towers','Towers'],['upgrader','Upgrader'],['colordice','Colour Dice'],['roulette','Roulette'],['crash','Crash'],['dice','Dice'],['rps','RPS'],['plinko','Plinko'],['stonks','Stonks']];
 const render=()=>{render0();const v=$('#view');if(v&&S&&S.me&&(tab==='home'||GAMES.includes(tab))){const b=document.createElement('button');b.className='s hist-btn';b.type='button';b.textContent='📜 History';b.onclick=()=>openHist(GAMES.includes(tab)?tab:'all');v.prepend(b)}};
 async function openHist(g){
  let m=$('#histm');if(!m){m=document.createElement('div');m.id='histm';m.className='wmo';m.onclick=e=>{if(e.target===m)m.remove()};document.body.appendChild(m)}
@@ -920,7 +929,7 @@ function pProf(){const e=$('#pprof');if(!e)return;const p=pprof;if(!p){e.innerHT
 function rValues(v){v.innerHTML=`<div class="box"><h3>${PS()?'Titanic &amp; Huge Values':'Values of Items'} <span class="muted">${PS()?'— RAP in gems':''}</span></h3>${PS()?`<div class="vf">${[['all','All'],['titanic','Titanic'],['huge','Huge']].map(x=>`<button class="s ${vf===x[0]?'on':''}" onclick="vf='${x[0]}';rValues($('#view'))">${x[1]}</button>`).join('')}</div>`:''}${srch('vl')}<div class="grid" id="g"></div></div>`;vl()}
 function vl(){$('#g').innerHTML=filt([...S.items].filter(i=>vf==='all'||i.rarity===vf).sort((a,b)=>b.value-a.value)).map(i=>card(i)).join('')||'<p class="muted">Nothing found.</p>'}
 const HCATS=[['versus','⚔️','Versus','Play against other players',[['jackpot','jp','Jackpot','Winner takes all'],['coinflip','cf','Coinflip','Normal or progressive'],['rps','cf','RPS','Beat their move']]],
- ['arcade','🕹️','Arcade','Fast solo games',[['mines','mine','Mines','Dodge the bombs'],['towers','tw','Towers','Climb the floors'],['plinko','mine','Plinko','Drop the ball'],['dice','cf','Dice','Over / under'],['crash','up','Crash','Cash out in time'],['upgrader','up','Upgrader','Multiply your bet']]],
+ ['arcade','🕹️','Arcade','Fast solo games',[['mines','mine','Mines','Dodge the bombs'],['towers','tw','Towers','Climb the floors'],['plinko','mine','Plinko','Drop the ball'],['stonks','up','Stonks','Call up or down'],['dice','cf','Dice','Over / under'],['crash','up','Crash','Cash out in time'],['upgrader','up','Upgrader','Multiply your bet']]],
  ['table','🎴','Table','Classic casino',[['blackjack','bj','Blackjack','Beat the dealer'],['roulette','jp','Roulette','Spin the wheel'],['colordice','cf','Colour Dice','Red vs Blue']]]];
 let hcat='all';
 function hcatSet(c){hcat=c;const e=$('#hgw');if(e)e.innerHTML=hgames()}
@@ -1668,6 +1677,66 @@ async function digo(){if(dibusy)return;if(!(dibet>=MINB())){toast('Minimum bet i
  await fxSleep(1600);clearInterval(fl);
  dires=r;dipos=r.roll;dihist.unshift({roll:r.roll,win:r.win});dihist=dihist.slice(0,14);dibusy=false;
  await load();if(tab==='dice'){rDice($('#view'));if(r.win)FXB(['#8b5cf6','#c4b5fd','#4ade80','#fde047','#ffffff'],36)}}
+
+
+// ---- Stonks (leveraged long/short, auto + manual cashout, liquidation) ----
+let stbet=MODE==='ps99'?1e6:10,stlev=5,stauto=0,stdir='up',stg=null,stbusy=false,stinit=0,sthist=[],stidle=[],stiv=null,stpoll=null,stbase=100,stres=null,stpb=0,stcb=0;
+const stSg=g=>g.dir==='up'?1:-1,stPn=(g,r)=>g.lev*stSg(g)*(r-1);
+const stVal=(g,r)=>{const m=1+stPn(g,r);if(m<=0)return 0;const v=g.bet*m;return Math.floor(v>g.bet?g.bet+(v-g.bet)*.97:v)};
+const stLiq=g=>1-stSg(g)/g.lev,stTp=g=>g.auto>0?1+stSg(g)*g.auto/100/g.lev:null;
+function stSeed(){stidle=[];let x=100;for(let i=0;i<60;i++){x*=1+(Math.random()-.5)*.012;stidle.push(x)}}
+function stDraw(pts,entry,lines,col){const c=$('#stcv');if(!c)return;const d=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;if(c.width!==w*d){c.width=w*d;c.height=h*d}const g=c.getContext('2d');g.setTransform(d,0,0,d,0,0);g.clearRect(0,0,w,h);
+ let lo=Math.min(...pts,entry??1e9),hi=Math.max(...pts,entry??-1e9);const sp=Math.max(hi-lo,hi*.004);(lines||[]).forEach(l=>{if(l.v>lo-sp&&l.v<hi+sp){lo=Math.min(lo,l.v);hi=Math.max(hi,l.v)}});
+ const pad=(hi-lo)*.12||hi*.002;lo-=pad;hi+=pad;const X=i=>8+(w-16)*i/Math.max(1,Math.max(pts.length-1,59)),Y=v=>h-10-(h-20)*(v-lo)/(hi-lo);
+ g.strokeStyle='#ffffff0d';g.lineWidth=1;for(let i=1;i<5;i++){g.beginPath();g.moveTo(0,h*i/5);g.lineTo(w,h*i/5);g.stroke()}
+ const ln=(v,c,t)=>{const y=Y(v);if(y<2||y>h-2)return;g.setLineDash([5,5]);g.strokeStyle=c;g.lineWidth=1.2;g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke();g.setLineDash([]);g.fillStyle=c;g.font='600 10px system-ui';g.fillText(t,6,y-4)};
+ if(entry!=null)ln(entry,'#ffffff77','entry');(lines||[]).forEach(l=>ln(l.v,l.c,l.t));
+ const last=pts[pts.length-1],cc=col||'#4ade80';
+ const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,cc+'44');gr.addColorStop(1,cc+'00');
+ g.beginPath();pts.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));g.strokeStyle=cc;g.lineWidth=2.2;g.lineJoin='round';g.stroke();
+ g.lineTo(X(pts.length-1),h);g.lineTo(X(0),h);g.closePath();g.fillStyle=gr;g.fill();
+ g.beginPath();g.arc(X(pts.length-1),Y(last),4.5,0,7);g.fillStyle=cc;g.fill()}
+function stTick(){if(tab!=='stonks'){clearInterval(stiv);stiv=null;return}if(stbusy||stg)return;const l=stidle[stidle.length-1];stidle.push(l*(1+(Math.random()-.5)*.012));stidle=stidle.slice(-60);stDraw(stidle,null,null,stidle[stidle.length-1]>=stidle[stidle.length-2]?'#4ade80':'#f87171');const e=$('#stpx');if(e)e.textContent=stidle[stidle.length-1].toFixed(2)}
+function stFrame(){if(!stg||tab!=='stonks')return;const g=stg,r=g.path[g.path.length-1],pn=stPn(g,r),col=pn>=0?'#4ade80':'#f87171',tp=stTp(g),ls=[{v:stbase*stLiq(g),c:'#f87171',t:'liquidation'}];if(tp)ls.push({v:stbase*tp,c:'#4ade80',t:'auto cashout'});
+ stDraw(g.path.map(x=>stbase*x),stbase,ls,col);const set=(i,t,c)=>{const e=$(i);if(e){e.textContent=t;if(c)e.style.color=c}};
+ set('#stpx',(stbase*r).toFixed(2));set('#stpnl',(pn>=0?'+':'')+(pn*100).toFixed(1)+'%',col);set('#stval',fmt(stVal(g,r))+' '+(PS()?'gems':'tokens'),col);const cb=$('#stcb');if(cb)cb.textContent='Cash out '+fmt(stVal(g,r))}
+function rStonks(v){if(!stinit){stinit=1;stbet=PS()?1e6:10;stSeed()}
+ if(!stg&&S.stonks&&S.stonks.bet){stg={...S.stonks,path:S.stonks.path&&S.stonks.path.length?S.stonks.path:[1]};stbase=100;stStartPoll()}
+ const g=stg,r=stres,rest=r&&!g;
+ const hist=sthist.length?sthist.map((h,i)=>`<span class="dih ${h.win?'w':'l'} ${i===0&&rest?'new':''}">${h.reason==='liq'?'💥':''}${h.pct>=0?'+':''}${h.pct.toFixed(0)}%</span>`).join(''):'<span class="muted" style="font-size:12px">Your trades show up here</span>';
+ const why={liq:'Liquidated',auto:'Auto cashout hit',cash:'Cashed out'};
+ const msg=rest?(r.pay>r.bet?`<div class="mres win">${why[r.reason]||'Cashed out'} +${fmt(r.pay-r.bet)} ${CI()}<small>${r.lev}x ${r.dir==='up'?'long':'short'} · ${r.pct>=0?'+':''}${r.pct.toFixed(1)}% on your bet</small></div>`:`<div class="mres lose">${why[r.reason]||'Cashed out'}<small>${r.lev}x ${r.dir==='up'?'long':'short'} · ${r.pay>0?'got back '+fmt(r.pay)+' '+CI():'lost '+fmt(r.bet)+' '+CI()}</small></div>`):'';
+ const side=g?`<div class="stat"><span>Position</span><b>${g.lev}x ${g.dir==='up'?'long':'short'} · ${fmt(g.bet)} ${CI()}</b></div>
+ <div class="stat"><span>Profit / loss</span><b id="stpnl">0%</b></div><div class="stat"><span>Cash out value</span><b id="stval">${fmt(g.bet)}</b></div>
+ <div class="stat"><span>Liquidated at</span><b style="color:#f87171">${g.dir==='up'?'−':'+'}${(100/g.lev).toFixed(2)}% price</b></div>
+ <div class="stat"><span>Auto cashout</span><b class="g">${g.auto>0?'+'+g.auto+'% profit':'Off'}</b></div>
+ <button class="big stup" id="stcb" onclick="stCash()">Cash out ${fmt(g.bet)}</button>`
+ :`<label class="lb">Bet amount <span class="muted" style="text-transform:none">(min ${fmt(MINB())})</span></label><div class="row">${AF('stb',stbet,'stbet=amtP(this.value)',PHA())}<button class="s" onclick="stset(.5)">½</button><button class="s" onclick="stset(2)">2×</button><button class="s" onclick="stset(0)">Max</button></div>
+ <div class="row">${BETS().map(x=>`<button class="s ${stbet===x?'on':''}" onclick="stbet=${x};str()">${fmt(x)}</button>`).join('')}</div>
+ <label class="lb">Leverage</label><div class="row">${[2,5,10,25,50].map(x=>`<button class="s ${stlev===x?'on':''}" onclick="stlev=${x};str()">${x}x</button>`).join('')}</div>
+ <label class="lb">Auto cashout <span class="muted" style="text-transform:none">(% profit, blank = off)</span></label><div class="row"><input id="sta" type="number" min="0" step="1" placeholder="Off" value="${stauto||''}" oninput="stauto=Math.max(0,+this.value||0);stUpd()" style="flex:1;min-width:90px">${[25,50,100,200].map(x=>`<button class="s ${stauto===x?'on':''}" onclick="stauto=${x};str()">${x}%</button>`).join('')}</div>
+ <label class="lb">Direction</label><div class="dimodes"><button class="dimb ${stdir==='up'?'on':''}" onclick="stdir='up';str()">▲ Long</button><button class="dimb ${stdir==='down'?'on':''}" onclick="stdir='down';str()">▼ Short</button></div>
+ <div class="stat"><span>Liquidated at</span><b id="stliq" style="color:#f87171"></b></div><div class="stat"><span>Auto cashout at</span><b id="sttp" class="g"></b></div>
+ <div class="stat"><span>Your balance</span><b class="tok">${fmt(S.me.tokens)} ${CI()}</b></div>
+ <button class="big ${stdir==='up'?'stup':'stdn'}" onclick="stGo()" ${stbusy?'disabled':''}>${stbusy?'Opening…':'Open '+(stdir==='up'?'long':'short')+' '+stlev+'x'}</button>`;
+ v.innerHTML=`<div class="mw"><div class="box mctl"><h3>📈 Stonks <span class="muted">— leverage the price</span></h3>${side}</div>
+ <div class="mstage"><i class="fxh"></i><div class="sthd"><div><small>SYNC · ${PS()?'PS99':'MM2'} index</small><b id="stpx">${(g?stbase*g.path[g.path.length-1]:stidle[stidle.length-1]).toFixed(2)}</b></div><span class="stcd">${g?'Position open':'Ready'}</span></div>
+ <canvas id="stcv" class="stcv"></canvas>${msg}<div class="dihist" style="margin-top:12px">${hist}</div></div></div>`;
+ if(g)stFrame();else{stDraw(stidle,null,null,'#4ade80');stUpd()}if(!stiv)stiv=setInterval(stTick,450)}
+const str=()=>{if(tab==='stonks'&&!stbusy&&!stg)rStonks($('#view'))};
+function stUpd(){const g={dir:stdir,lev:stlev,auto:stauto},tp=stTp(g),a=$('#stliq'),b=$('#sttp');if(a)a.textContent=(stdir==='up'?'−':'+')+(100/stlev).toFixed(2)+'% price';if(b)b.textContent=tp?(stdir==='up'?'+':'−')+(stauto/stlev).toFixed(2)+'% price':'Off'}
+function stset(x){stbet=x?Math.max(MINB(),Math.floor(stbet*x)):Math.max(MINB(),Math.floor(S.me.tokens));str()}
+function stStartPoll(){clearInterval(stpoll);stpoll=setInterval(stPoll,400)}
+async function stPoll(){if(!stg||stpb)return;if(tab!=='stonks'){clearInterval(stpoll);return}stpb=1;const r=await api('stonkstick');stpb=0;if(!stg)return;if(r&&r.path&&r.path.length)stg.path=r.path;if(r&&r.done)return stEnd(r);stFrame()}
+async function stGo(){if(stbusy||stg)return;if(!(stbet>=MINB())){toast('Minimum bet is '+fmt(MINB()));return}
+ stbusy=true;stres=null;rStonks($('#view'));const r=await api('stonksstart',{bet:stbet,dir:stdir,lev:stlev,auto:stauto});stbusy=false;
+ if(!r||!r.ok){await load();return str()}
+ stbase=stidle[stidle.length-1];stg={bet:stbet,dir:stdir,lev:stlev,auto:stauto,path:r.path&&r.path.length?r.path:[1]};await load();rStonks($('#view'));stStartPoll()}
+async function stCash(){if(!stg||stcb)return;stcb=1;const r=await api('stonkscash');stcb=0;if(!stg)return;if(r&&r.done)stEnd(r);else if(r&&r.path&&r.path.length)stg.path=r.path}
+async function stEnd(r){clearInterval(stpoll);const g=stg;stg=null;if(r.path&&r.path.length)g.path=r.path;const last=g.path[g.path.length-1];
+ stidle=g.path.map(x=>stbase*x).slice(-60);while(stidle.length<60)stidle.unshift(stidle[0]);
+ const pay=r.pay||0,pct=stPn(g,last)*100;stres={...r,bet:g.bet,pay,lev:g.lev,dir:g.dir,pct};sthist.unshift({win:pay>g.bet,pct,reason:r.reason});sthist=sthist.slice(0,12);
+ await load();if(tab==='stonks'){rStonks($('#view'));if(pay>g.bet)FXB(['#4ade80','#86efac','#fde047','#ffffff'],36)}}
 
 // ---- Rock Paper Scissors ----
 let rpbet=MODE==='ps99'?1e6:10,rpmove='rock',rpres=null,rpbusy=false,rpinit=0;
