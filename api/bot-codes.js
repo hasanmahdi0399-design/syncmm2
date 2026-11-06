@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
     db.codes[code] = {
       mode: 'ps99', tokens: amount, items: {}, max: 1, exp: 0,
       note: 'Discord claim · ' + String(discord_id || '').slice(0, 20),
-      by: {}, t: Date.now(), off: 0
+      by: {}, t: Date.now(), off: 0, wl: true
     };
     await R('SET', 'dbps', JSON.stringify(db));
     return res.status(200).json({ ok: true });

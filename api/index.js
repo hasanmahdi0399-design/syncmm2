@@ -12,7 +12,7 @@ const ADMIN_ENV=[...new Set([...idList(process.env.ADMIN_IDS),...OWNERS])];
 const ADMINS=[...ADMIN_ENV]; // live list = env/owners + admins the Owner added in the panel (Redis 'admins'); refreshed each request by syncAdmins()
 const isOwner=id=>OWNERS.includes(String(id));
 // Actions only an Owner may run (everything else starting with "adm" is open to admins).
-const OWNER_ONLY=new Set(['admaddadmin','admdeladmin','admstreamer','admstreamerdel','admpwset','admpwdel','admwh','admwhtest','admrepair','admlogin','admkick']);
+const OWNER_ONLY=new Set(['admaddadmin','admdeladmin','admstreamer','admstreamerdel','admpwset','admpwdel','admwh','admwhtest','admrepair','admlogin','admkick','admwlsys']);
 // ---- IP bans: Redis key 'ipbans' (shared by MM2 and PS99) = {playerId:{uid,name,avatar,dev,reason,by,byName,t,adm}}.
 // A ban blocks that account AND every non-staff account/visitor on the same IP. Owners can never be banned.
 // Admins can only be banned/unbanned by an Owner. Staff are exempt from IP matching, so sharing an IP with a banned player never locks them out.
@@ -42,8 +42,15 @@ const dcAvatar=u=>u.avatar?`https://cdn.discordapp.com/avatars/${u.id}/${u.avata
 // ---- Wager lock (PS99): gems from redeemed codes must be wagered at 90% before ANY withdrawal. u.wl={base:wagered at redeem,req:total still required}.
 // Remaining = req - (wagered - base). Stacks if the player redeems several codes. Counts every game via u.wagered, so no game code needs touching.
 const WAGER_LOCK=0.9;
-const wlAdd=(u,n)=>{u.wl={base:u.wagered||0,req:wlLeft(u)+Math.ceil(n*WAGER_LOCK)}}; // adds n to the lock at 90%, stacks with whatever is already locked
-const wlLeft=u=>{const l=u&&u.wl;if(!l)return 0;return Math.max(0,Math.ceil(l.req-Math.max(0,(u.wagered||0)-l.base)))};
+// ---- Site config (Redis 'sitecfg', shared by MM2 + PS99): wlOff = Owner switched the whole wager-lock system off; minGemWd = minimum gem withdrawal (PS99, set by admins). ----
+let CFGC={wlOff:0,minGemWd:0},CFGT=0;
+const loadCfg=async()=>{if(Date.now()-CFGT>=5000){try{const r=await R('GET','sitecfg');CFGC={wlOff:0,minGemWd:0,...(r?JSON.parse(r):{})}}catch{}CFGT=Date.now()}return CFGC};
+const putCfg=async c=>{await R('SET','sitecfg',JSON.stringify(c));CFGC=c;CFGT=Date.now()};
+const wlOn=()=>!CFGC.wlOff;
+// A code is wager-locked when the master switch is on AND the code is flagged (codes made before the flag existed keep the old rule: locked on PS99 only).
+const codeLocked=c=>wlOn()&&(c.wl===undefined?MODE==='ps99':!!c.wl);
+const wlAdd=(u,n)=>{if(!wlOn())return;u.wl={base:u.wagered||0,req:wlLeft(u)+Math.ceil(n*WAGER_LOCK)}}; // adds n to the lock at 90%, stacks with whatever is already locked. No-op while the Owner has the system off.
+const wlLeft=u=>{if(!wlOn())return 0;const l=u&&u.wl;if(!l)return 0;return Math.max(0,Math.ceil(l.req-Math.max(0,(u.wagered||0)-l.base)))};
 // Chat/profile tag: owner > admin > streamer
 const roleOf=(id,STR)=>isOwner(id)?'owner':ADMINS.includes(String(id))?'admin':(STR&&STR[id])?'streamer':'';
 // GET /api/dcback?code=..&state=.. — Discord sends the player back here after they approve.
@@ -470,13 +477,13 @@ const invVal=u=>Object.entries(u.inv).reduce((s,[k,q])=>s+val(k)*q,0);
 const add=(o,k,q)=>{o[k]=(o[k]||0)+q;if(o[k]<=0)delete o[k]};
 const log=m=>{db.logs.push([Date.now(),m]);db.logs=db.logs.slice(-100)};
 // ---- Discord webhooks: one channel per category, each with its own embed. URLs live in Redis ('whcfg', set in Admin > Webhooks) or env WEBHOOK_<CHANNEL>. A channel with no URL is skipped, never rerouted. ----
-const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],upgrader:['⬆️ Upgrader',0xa855f7],crash:['📈 Crash',0xf97316],dice:['🎲 Dice',0x8b5cf6],rps:['✊ Rock Paper Scissors',0x38bdf8],plinko:['🔻 Plinko',0xeab308],colordice:['🎲 Colour Dice',0xf43f5e],roulette:['🎡 Roulette',0x10b981],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
+const CH={logins:['🔐 Logins',0x5b8def],coinflip:['🪙 Coinflip',0xf5c542],jackpot:['🎰 Jackpot',0xb47cff],blackjack:['🃏 Blackjack',0x22c55e],mines:['💣 Mines',0xef4444],towers:['🗼 Towers',0x38bdf8],upgrader:['⬆️ Upgrader',0xa855f7],crash:['📈 Crash',0xf97316],dice:['🎲 Dice',0x8b5cf6],rps:['✊ Rock Paper Scissors',0x38bdf8],plinko:['🔻 Plinko',0xeab308],colordice:['🎲 Colour Dice',0xf43f5e],roulette:['🎡 Roulette',0x10b981],tips:['🎁 Tips',0xff7ab8],exchange:['🔄 Exchange',0x2dd4bf],casebattles:['📦 Case Battles',0xf59e0b],withdrawals:['📤 Withdrawals & Deposits',0xf59e0b],admin:['🛠️ Admin',0x94a3b8]};
 const WHRE=/^https:\/\/(?:ptb\.|canary\.)?discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 let SITE='',HQ=[];
 const md=s=>String(s??'').replace(/([\\*_`~|>\[\]])/g,'\\$1'),cut=(s,n)=>{s=String(s);return s.length>n?s.slice(0,n-1)+'…':s};
 const cur=()=>MODE==='ps99'?'gems':'tokens',nm=k=>(I[k]||{name:k}).name;
 const strCodes=id=>Object.entries(db.codes||{}).filter(([k,c])=>c.cr===id).map(([k,c])=>({code:k,tokens:c.tokens||0,max:c.max||0,used:Object.keys(c.by||{}).length,exp:c.exp||0,off:!!c.off,t:c.t||0,note:c.note||''})).sort((x,y)=>y.t-x.t);
-const RF=new Map();const codeList=()=>Object.entries(db.codes||{}).map(([k,c])=>({code:k,tokens:c.tokens||0,items:c.items||{},max:c.max||0,used:Object.keys(c.by||{}).length,exp:c.exp||0,off:!!c.off,note:c.note||'',t:c.t||0})).sort((x,y)=>y.t-x.t);
+const RF=new Map();const codeList=()=>Object.entries(db.codes||{}).map(([k,c])=>({code:k,tokens:c.tokens||0,items:c.items||{},max:c.max||0,used:Object.keys(c.by||{}).length,exp:c.exp||0,off:!!c.off,note:c.note||'',t:c.t||0,wl:c.wl===undefined?MODE==='ps99':!!c.wl})).sort((x,y)=>y.t-x.t);
 const ulink=u=>`[${md(u.name)}](https://www.roblox.com/users/${u.id}/profile)`;
 const itl=(items,tk)=>[tk?`${fm(tk)} ${cur()}`:'',...Object.entries(items||{}).map(([k,q])=>`${q}× ${nm(k)}`)].filter(Boolean).join('\n')||'—';
 function hk(ch,e){if(!CH[ch])return;HQ.push([ch,{title:cut(e.title,256),description:cut(e.desc||'',3800),color:e.color??CH[ch][1],
@@ -670,13 +677,54 @@ async function check(b,H,req){
   H['Set-Cookie']=`sid=${s}; HttpOnly; Secure; Path=/; Max-Age=2592000; SameSite=Lax`;log(`✅ ${p.name} logged in`);hk('logins',{title:isNew?'New account':'Login',color:same.length?0xef4444:isNew?0x22c55e:undefined,user:{avatar:av},desc:`${ulink(p)} signed in`,fields:[['Roblox ID',p.id,1],['Location',flag(dd(req.headers['x-vercel-ip-country']))+geoOf(req),1],['IP address','`'+(getIp(req)||'unknown')+'`',1],['Device ID',dev?'`'+dev.slice(0,10)+'`':'',1],['⚠️ Shares a device with',same.map(md).join(', ')],['Browser',cut(req.headers['user-agent']||'',180)]]});return{ok:true}})}
 
 const admData=(WC,own)=>{const us=Object.values(db.users),tk=us.reduce((s,x)=>s+(x.tokens||0),0),iv=us.reduce((s,x)=>s+invVal(x),0),sv=Object.entries(db.shop).reduce((s,[k,q])=>s+val(k)*q,0),now=Date.now();
- return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),dp:db.dp.filter(w=>w.status==='pending'),dpDone:db.dp.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:own?whView(WC):undefined,logs:own?db.logs.slice(-100).reverse():undefined,alts:own?altGroups():undefined,codes:codeList(),
+ return{wd:db.wd.filter(w=>w.status==='pending'),wdDone:db.wd.filter(w=>w.status!=='pending').slice(-30).reverse(),dp:db.dp.filter(w=>w.status==='pending'),dpDone:db.dp.filter(w=>w.status!=='pending').slice(-30).reverse(),wh:own?whView(WC):undefined,logs:own?db.logs.slice(-100).reverse():undefined,alts:own?altGroups():undefined,codes:codeList(),cfg:{wl:wlOn(),minGem:CFGC.minGemWd||0},
   stats:{players:us.length,online:us.filter(x=>now-(x.lastSeen||0)<ONL).length,tokens:Math.floor(tk),invValue:Math.floor(iv),shopValue:Math.floor(sv),pending:db.wd.filter(w=>w.status==='pending').length+db.dp.filter(w=>w.status==='pending').length,
-   cfOpen:db.cf.open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,cr:Object.values(cx().bets).filter(x=>!x.done).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
-  cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]})),lb:lbAdm()}};
+   cfOpen:db.cf.open.length,cbOpen:cbDb().open.length,jpPlayers:Object.keys(jp.players).length,mines:us.filter(x=>x.mines).length,tw:us.filter(x=>x.tw).length,cr:Object.values(cx().bets).filter(x=>!x.done).length,bj:us.filter(x=>x.bj&&!x.bj.done).length,todayN:db.day&&db.day.d===dayKey()?db.day.n:0,todayWag:db.day&&db.day.d===dayKey()?Math.floor(Object.values(db.day.w).reduce((a,c)=>a+c,0)):0},
+  cf:db.cf.open.map(g=>({id:g.id,name:g.c.name,value:g.value})),cb:cbDb().open.map(g=>({id:g.id,name:g.c.name,cost:g.cost,n:g.players.length,size:g.size})),values:Object.keys(db.values).map(k=>({id:k,v:db.values[k]})),lb:lbAdm()}};
 const admPlayer=(t,own)=>({id:t.id,name:t.name,avatar:t.avatar,tokens:Math.floor(t.tokens||0),invValue:Math.floor(invVal(t)),wagered:Math.floor(t.wagered||0),profit:Math.floor(t.profit||0),lastSeen:t.lastSeen||0,
  inv:Object.entries(t.inv||{}).filter(([k])=>I[k]).map(([k,q])=>({id:k,q})),games:{mines:!!t.mines,tw:!!t.tw,cr:!!(cx().bets[t.id]&&!cx().bets[t.id].done),bj:!!(t.bj&&!t.bj.done),jp:!!jp.players[t.id],cf:db.cf.open.filter(g=>g.c.id===t.id).length},
  alts:own&&t.dev?Object.values(db.users).filter(x=>x.id!==t.id&&x.dev===t.dev).map(x=>x.name):[]});
+// ---- Case battles. Players pay gems (PS99) / tokens (MM2) to enter; every player opens the same cases and the best total (or lowest, in Crazy mode) takes the whole pool.
+// Payouts are ALWAYS gems/tokens: the pets/items inside a case are only the look and are worth their value in currency, never paid out as items.
+// Each case's odds are solved so the expected pull is exactly CB_RTP of its price, so the house edge is fixed (6%) however the item values move.
+const CB_RTP=.94,CB_MAXR=6,CB_MAXP=4;
+const CB_CASES={ps99:[['rookie','Rookie Case',5e6,'#4ade80'],['bronze','Bronze Case',25e6,'#f59e0b'],['silver','Silver Case',100e6,'#cbd5e1'],['gold','Gold Case',500e6,'#facc15'],['diamond','Diamond Case',2.5e9,'#38bdf8'],['titanic','Titanic Case',15e9,'#c084fc']],
+ mm2:[['rookie','Rookie Case',5,'#4ade80'],['bronze','Bronze Case',25,'#f59e0b'],['silver','Silver Case',100,'#cbd5e1'],['gold','Gold Case',500,'#facc15'],['diamond','Diamond Case',2500,'#38bdf8'],['legend','Legend Case',10000,'#c084fc']]};
+const CBC=()=>CB_CASES[MODE].map(([id,name,price,color])=>({id,name,price,color}));
+const cbDb=()=>db.cbx||(db.cbx={open:[],recent:[],id:0});
+const cbCache=new Map();
+const cbTier=r=>r>=10?'mythic':r>=3?'legendary':r>=1?'epic':r>=.4?'rare':'common';
+function cbPool(c){
+ const key=MODE+IV()+c.id,hit=cbCache.get(key);if(hit)return hit;
+ const P=c.price,tgt=P*CB_RTP;
+ let real=ITEMS.map(i=>({id:i.id,name:i.name,icon:i.icon,rarity:i.rarity,type:i.type,v:Math.floor(val(i.id))})).filter(x=>x.v>=P*.04&&x.v<=P*40).sort((x,y)=>x.v-y.v);
+ if(real.length>14){const o=[];for(let k=0;k<14;k++)o.push(real[Math.round(k*(real.length-1)/13)]);real=o}
+ const cn=cur()==='gems'?'Gems':'Tokens',syn=(m,n)=>({id:'cur',name:n+' '+cn,icon:'',rarity:'cur',type:'cur',v:Math.max(1,Math.floor(P*m)),syn:1});
+ const items=[...real,syn(.05,'Small'),syn(.2,'Medium')];
+ if(!real.some(x=>x.v>=P*1.2)){items.push(syn(2.5,'Big'));items.push(syn(8,'Huge'))}
+ const ev=e=>{let s=0,w=0;for(const x of items){const q=Math.pow(x.v/P,-e);s+=q*x.v;w+=q}return s/w};
+ let lo=-4,hi=20;for(let k=0;k<70;k++){const m=(lo+hi)/2;if(ev(m)>tgt)lo=m;else hi=m}
+ const e=(lo+hi)/2;let tw=0;for(const x of items){x.w=Math.pow(x.v/P,-e);tw+=x.w}
+ for(const x of items){x.p=x.w/tw;x.tier=cbTier(x.v/P);delete x.w}
+ items.sort((x,y)=>y.v-x.v);
+ const pool={items,ev:items.reduce((s,x)=>s+x.p*x.v,0)};cbCache.set(key,pool);if(cbCache.size>60)cbCache.delete(cbCache.keys().next().value);return pool}
+const cbPull=pool=>{const r=crypto.randomInt(1e9)/1e9;let s=0;for(const x of pool.items){s+=x.p;if(r<s)return x}return pool.items[pool.items.length-1]};
+const cbPub=g=>({id:g.id,c:g.c,rounds:g.rounds,mode:g.mode,size:g.size,cost:g.cost,players:g.players.map(p=>({id:p.id,name:p.name,avatar:p.avatar,bot:!!p.bot})),t:g.t,...(g.res?{res:g.res}:{})});
+const cbView=()=>{const D=cbDb();return{open:D.open.map(cbPub),recent:D.recent.slice(-10)}};
+const cbBots=g=>{let n=g.players.filter(p=>p.bot).length;while(g.players.length<g.size)g.players.push({id:'bot'+(++n),name:'SyncBot'+(n>1?' '+n:''),avatar:'',bot:1})};
+function cbRefund(g){for(const p of g.players)if(!p.bot&&db.users[p.id])db.users[p.id].tokens+=g.cost;cbDb().open=cbDb().open.filter(x=>x!==g)}
+function cbResolve(g){
+ const cs=Object.fromEntries(CBC().map(c=>[c.id,c])),pulls=g.players.map(()=>[]);
+ for(const cid of g.rounds){const pool=cbPool(cs[cid]);for(let i=0;i<g.players.length;i++){const x=cbPull(pool);pulls[i].push({id:x.id,name:x.name,icon:x.icon,type:x.type,rarity:x.rarity,tier:x.tier,v:x.v,syn:x.syn||0,c:cid})}}
+ const totals=pulls.map(l=>l.reduce((s,x)=>s+x.v,0)),best=g.mode==='crazy'?Math.min(...totals):Math.max(...totals),tied=totals.map((t,i)=>t===best?i:-1).filter(i=>i>=0),w=tied[crypto.randomInt(tied.length)],pool=totals.reduce((s,t)=>s+t,0);
+ g.res={pulls,totals,winner:w,pool,tie:tied.length>1};
+ g.players.forEach((p,i)=>{if(p.bot)return;const u=db.users[p.id];if(!u)return;const pay=i===w?pool:0;
+  u.tokens=(u.tokens||0)+pay;u.wagered=(u.wagered||0)+g.cost;u.profit=(u.profit||0)+pay-g.cost;
+  rec(u,g.cost,pay,'casebattles',`${g.rounds.length} case${g.rounds.length>1?'s':''} · ${g.mode} · ${g.size} players · ${i===w?'Won':'Lost'}`);
+  HR('casebattles',u,'Case Battle',g.cost,pay,[['Players',g.size,1],['Mode',g.mode==='crazy'?'Crazy (lowest wins)':'Normal',1],['Pool',fm(pool)+' '+cur(),1]])});
+ const D=cbDb();D.open=D.open.filter(x=>x!==g);D.recent.push(cbPub(g));D.recent=D.recent.slice(-15);
+ log(`📦 Case battle #${g.id}: ${g.players[w].name} won ${fm(pool)} ${cur()} (${g.players.map(p=>p.name).join(' vs ')})`)}
+
 async function handle(a,b,sid,H){
  if(a==='lb')return lbView(sid);
  const uid0=db.sessions[sid];let u=db.users[uid0];
@@ -689,7 +737,7 @@ async function handle(a,b,sid,H){
   const online=Object.values(db.users).filter(x=>now-(x.lastSeen||0)<ONL).map(x=>({id:x.id,name:x.name,avatar:x.avatar}));
   const activeMines=Object.values(db.users).filter(x=>x.mines).map(x=>({name:x.name,avatar:x.avatar,bet:x.mines.bet,m:x.mines.m,open:x.mines.open.length}));
   return{me:{id:u.id,name:u.name,avatar:u.avatar,tokens:u.tokens,inv:u.inv,invValue:invVal(u),admin,owner:isOwner(u.id),streamer:!!STR[u.id],wlock:wlLeft(u),rw:{rb:Math.floor(u.rb||0),rbT:Math.floor(u.rbT||0),ref:Math.floor(u.refP||0),refT:Math.floor(u.refT||0),by:u.ref&&u.ref.by&&db.users[u.ref.by]?{id:u.ref.by,name:db.users[u.ref.by].name}:null,pr:rkRf(u.id),pb:rkRb(u.id),pr0:REF_PCT,pb0:RB_PCT,bonus:{amt:refBonus(),minw:refMinW(),q:refQual(u),paid:u.refBC||0,dc:!!DC,dcOn:dcOn()}},role:roleOf(u.id,STR),rk:rankInfo(u.id,1),discord:DC,dcOn:dcOn(),imp:!!b.asid&&ADMINS.includes(db.sessions[b.asid])},
-   day:dayPub(),mode:MODE,minb:MINB,iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},cd:{open:cdDb().open,recent:cdDb().recent.slice(-10)},rp:{open:rpDb().open.map(g=>({...g,m:undefined})),recent:rpDb().recent.slice(-10)},plt:PLT,
+   day:dayPub(),mode:MODE,minb:MINB,cfg:{wl:wlOn(),minGem:CFGC.minGemWd||0},iv:IV(),items:(b.iv===IV())?null:ITEMS.map(i=>({...i,value:val(i.id)})),shop:db.shop,jp:jpPub(),cf:{open:db.cf.open,recent:db.cf.recent.slice(-10),now:Date.now()},cd:{open:cdDb().open,recent:cdDb().recent.slice(-10)},rp:{open:rpDb().open.map(g=>({...g,m:undefined})),recent:rpDb().recent.slice(-10)},plt:PLT,cb:cbView(),
    bj:u.bj?bjView(u.bj):null,
    mines:m&&{bet:m.bet,m:m.m,open:m.open,mult:mult(m.m,m.open.length)},
    cx:cxView(u),
@@ -730,7 +778,7 @@ async function handle(a,b,sid,H){
   if(c.max&&Object.keys(c.by).length>=c.max)E('This code has been fully claimed');
   c.by[u.id]=now;const ls=[];
   if(c.tokens>0){u.tokens=(u.tokens||0)+c.tokens;ls.push(`${fm(c.tokens)} ${cur()}`);
-   if(MODE==='ps99'){const add2=Math.ceil(c.tokens*WAGER_LOCK);u.wl={base:u.wagered||0,req:wlLeft(u)+add2};ls.push(`wager ${fm(wlLeft(u))} to unlock withdrawals`)}}
+   if(codeLocked(c)){wlAdd(u,c.tokens);ls.push(`wager ${fm(wlLeft(u))} to unlock withdrawals`)}}
   for(const[k,q]of Object.entries(c.items||{})){if(!I[k])continue;add(u.inv,k,q);ls.push(`${fm(q)}× ${nm(k)}`)}
   const n=Object.keys(c.by).length;log(`🎟️ ${u.name} redeemed code ${code} (${ls.join(', ')})`);
   hk('admin',{title:'Code redeemed',user:u,desc:`${ulink(u)}\nredeemed **${md(code)}** (${c.max?n+'/'+c.max:n} claimed)\n${ls.join(', ')}`});
@@ -742,7 +790,7 @@ async function handle(a,b,sid,H){
    const max=Math.floor(+b.max);if(!(max>=1)||max>10000)E('Set how many people can claim it (1–10,000)');
    const hrs=b.hours?+b.hours:0;if(!(hrs>=0)||hrs>87600)E('Invalid expiry');
    const note=String(b.note||'').trim().slice(0,40);
-   db.codes[code]={mode:MODE,tokens:tk,items:{},max,exp:hrs?Date.now()+hrs*3600000:0,note:'🎥 '+u.name+(note?' · '+note:''),by:{},t:Date.now(),off:0,cr:u.id};
+   db.codes[code]={mode:MODE,tokens:tk,items:{},max,exp:hrs?Date.now()+hrs*3600000:0,note:'🎥 '+u.name+(note?' · '+note:''),by:{},t:Date.now(),off:0,cr:u.id,wl:MODE==='ps99'};
    log(`🎥 Streamer ${u.name} created code ${code} (${fm(tk)} ${cur()}, first ${max})`);hk('admin',{title:'Streamer code created',user:u,desc:`${ulink(u)}\ncreated **${md(code)}**\n${fm(tk)} ${cur()} · first ${max} people${hrs?` · ${hrs}h`:''}`});return{ok:1,code}}
   const k=String(b.code||'').toUpperCase(),c=db.codes[k];if(!c||c.cr!==u.id)E('Code not found');
   if(a==='stroff'){c.off=!c.off;log(`🎥 Streamer ${u.name} ${c.off?'disabled':'enabled'} code ${k}`);return{ok:1}}
@@ -804,6 +852,11 @@ async function handle(a,b,sid,H){
  if(a==='minescash'){if(!u.mines||!u.mines.open.length)E('Pick a tile first');return minesCash(u)}
  if(a==='withdraw'){if(wlLeft(u)>0)E(`Wager ${fm(wlLeft(u))} more ${cur()} to unlock withdrawals (90% of claimed rewards/code ${cur()})`);const n=needInt(b.qty);take({[b.item]:n},MODE==='ps99'?['pet']:['gun','knife','pet']);db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:b.item,qty:n,status:'pending',t:Date.now()});
   log(`📤 Withdraw request: ${u.name} ${n}x ${b.item}`);hk('withdrawals',{title:'Withdrawal requested',user:u,desc:ulink(u),fields:[['Item',`${n}× ${nm(b.item)}`,1],['Value',fm(val(b.item)*n)+' '+cur(),1],['Roblox ID',u.id,1]]});return{ok:1}}
+ if(a==='withdrawgems'){if(MODE!=='ps99')E('Gem withdrawals are PS99 only');if(wlLeft(u)>0)E(`Wager ${fm(wlLeft(u))} more ${cur()} to unlock withdrawals (90% of claimed rewards/code ${cur()})`);
+  const n=needInt(b.gems),mn=Math.max(1,CFGC.minGemWd||0);if(n<mn)E('Minimum gem withdrawal is '+fm(mn));if((u.tokens||0)<n)E('Not enough gems');
+  if(db.wd.filter(x=>x.uid===u.id&&x.status==='pending').length>=25)E('Too many pending withdrawals — wait for them to be reviewed');
+  u.tokens-=n;db.wd.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:'',qty:1,gems:n,status:'pending',t:Date.now()});
+  log(`📤 Gem withdraw request: ${u.name} ${fm(n)} gems`);hk('withdrawals',{title:'Gem withdrawal requested',user:u,desc:ulink(u),fields:[['Gems','💎 '+fm(n),1],['Roblox ID',u.id,1]]});return{ok:1}}
  if(a==='depositgems'){if(MODE!=='ps99')E('Gem deposits are PS99 only');const n=needInt(b.gems,MINB);
   if(db.dp.filter(x=>x.uid===u.id&&x.status==='pending').length>=25)E('Too many pending deposits — wait for them to be reviewed');
   db.dp.push({id:crypto.randomBytes(4).toString('hex'),uid:u.id,name:u.name,item:'',qty:1,gems:n,status:'pending',t:Date.now()});
@@ -825,6 +878,23 @@ async function handle(a,b,sid,H){
   hk('tips',{title:'Tip sent',user:t,color:u.dev&&u.dev===t.dev?0xef4444:undefined,desc:`${ulink(u)} → ${ulink(t)}`,fields:[['Gems / tokens',tk?fm(tk)+' '+cur():'',1],['Items',Object.keys(items).length?itl(items,0):'',1],['Total value',fm(iv+tk)+' '+cur(),1],['⚠️ Same device','These two accounts share a device — possible alt transfer.']]});
   return{ok:1}}
  
+ if(a==='cbcases')return{cases:CBC().map(c=>({...c,items:cbPool(c).items.map(x=>({id:x.id,name:x.name,icon:x.icon,type:x.type,rarity:x.rarity,tier:x.tier,v:x.v,syn:x.syn||0,p:x.p}))})),rtp:CB_RTP,maxr:CB_MAXR,maxp:CB_MAXP};
+ if(a==='cbcreate'){const D=cbDb(),cs=CBC(),ids=Array.isArray(b.rounds)?b.rounds.map(String):[];
+  if(!ids.length||ids.length>CB_MAXR)E(`Pick 1–${CB_MAXR} cases`);if(!ids.every(x=>cs.some(c=>c.id===x)))E('Bad case');
+  const size=needInt(b.size,2);if(size>CB_MAXP)E(`2–${CB_MAXP} players`);const mode=b.mode==='crazy'?'crazy':'normal';
+  const cost=ids.reduce((s,x)=>s+cs.find(c=>c.id===x).price,0);if(cost<MINB)E('Minimum is '+fm(MINB));if((u.tokens||0)<cost)E('Not enough '+cur());
+  if(D.open.filter(g=>g.c.id===u.id).length>=3)E('You already have 3 open battles');
+  u.tokens-=cost;const g={id:++D.id,c:{id:u.id,name:u.name,avatar:u.avatar},rounds:ids,mode,size,cost,players:[{id:u.id,name:u.name,avatar:u.avatar}],t:Date.now()};D.open.push(g);
+  hk('casebattles',{title:`Case battle #${g.id} posted`,color:0xf59e0b,user:u,desc:ulink(u),fields:[['Entry',fm(cost)+' '+cur(),1],['Cases',ids.length,1],['Players',size,1]]});
+  if(b.bots){cbBots(g);cbResolve(g);return{ok:1,r:cbPub(g)}}
+  return{ok:1,id:g.id}}
+ if(a==='cbjoin'){const D=cbDb(),g=D.open.find(x=>x.id===+b.id)||E('Battle not found (it may have started)');
+  if(g.players.some(p=>p.id===u.id))E('You are already in this battle');if(g.players.length>=g.size)E('Battle is full');if((u.tokens||0)<g.cost)E('Not enough '+cur());
+  u.tokens-=g.cost;g.players.push({id:u.id,name:u.name,avatar:u.avatar});
+  if(g.players.length>=g.size)cbResolve(g);return{ok:1,r:cbPub(g)}}
+ if(a==='cbbot'){const D=cbDb(),g=D.open.find(x=>x.id===+b.id)||E('Battle not found');if(g.c.id!==u.id)E('Not your battle');cbBots(g);cbResolve(g);return{ok:1,r:cbPub(g)}}
+ if(a==='cbcancel'){const D=cbDb(),g=D.open.find(x=>x.id===+b.id)||E('Battle not found');if(g.c.id!==u.id)E('Not your battle');cbRefund(g);return{ok:1}}
+ if(a==='cbleave'){const D=cbDb(),g=D.open.find(x=>x.id===+b.id)||E('Battle not found');if(g.c.id===u.id)E('Cancel your own battle instead');const i=g.players.findIndex(p=>p.id===u.id);if(i<0)E('You are not in this battle');g.players.splice(i,1);u.tokens+=g.cost;return{ok:1}}
  if(a==='twstart'){if(u.tw)E('Game in progress');const bet=needInt(b.bet),d=TWD[b.diff]?b.diff:'medium',[c,k]=TWD[d];if(bet<MINB)E('Minimum bet is '+fm(MINB));if(u.tokens<bet)E('Not enough '+cur());
   u.tokens-=bet;const bombs=[];for(let r=0;r<TWR;r++){const row=[];while(row.length<k){const x=crypto.randomInt(c);if(!row.includes(x))row.push(x)}bombs.push(row)}
   u.tw={bet,d,bombs,picks:[]};return{ok:1}}
@@ -893,10 +963,13 @@ async function handle(a,b,sid,H){
    for(const[k,q]of Object.entries(b.items&&typeof b.items==='object'?b.items:{})){if(!I[k])E('Bad item');items[k]=needInt(q)}
    if(!tk&&!Object.keys(items).length)E('Add a reward: '+cn+' or items');
    const max=b.max?Math.floor(+b.max):0;if(!(max>=0)||max>1e6)E('Invalid claim limit');const hrs=b.hours?+b.hours:0;if(!(hrs>=0)||hrs>87600)E('Invalid expiry');
-   db.codes[code]={mode:MODE,tokens:tk,items,max,exp:hrs?Date.now()+hrs*3600000:0,note:String(b.note||'').slice(0,60),by:{},t:Date.now(),off:0};
-   logA(`🛠️ ${u.name} created code ${code} (${itl(items,tk).replace(/\n/g,', ')}${max?`, first ${max} people`:''}${hrs?`, ${hrs}h`:''})`)}
+   db.codes[code]={mode:MODE,tokens:tk,items,max,exp:hrs?Date.now()+hrs*3600000:0,note:String(b.note||'').slice(0,60),by:{},t:Date.now(),off:0,wl:b.wl===undefined?MODE==='ps99':!!b.wl};
+   logA(`🛠️ ${u.name} created code ${code} (${itl(items,tk).replace(/\n/g,', ')}${max?`, first ${max} people`:''}${hrs?`, ${hrs}h`:''}${db.codes[code].wl?', wager-locked':', no wager lock'})`)}
   else if(a==='admcodedel'){const k=String(b.code||'').toUpperCase();if(!(db.codes&&db.codes[k]))E('Code not found');delete db.codes[k];logA(`🛠️ ${u.name} deleted code ${k}`)}
   else if(a==='admcodeoff'){const k=String(b.code||'').toUpperCase(),c=db.codes&&db.codes[k];if(!c)E('Code not found');c.off=!c.off;logA(`🛠️ ${u.name} ${c.off?'disabled':'enabled'} code ${k}`)}
+  else if(a==='admcodewl'){const k=String(b.code||'').toUpperCase(),c=db.codes&&db.codes[k];if(!c)E('Code not found');c.wl=!(c.wl===undefined?MODE==='ps99':!!c.wl);logA(`🔒 ${u.name} turned wager lock ${c.wl?'ON':'OFF'} for code ${k}`)}
+  else if(a==='admmingem'){if(MODE!=='ps99')E('Gem withdrawals are PS99 only — switch to the PS99 side first');const n=(b.min===''||b.min==null)?0:amt(b.min);if(!(n>=0))E('Invalid amount');await putCfg({...CFGC,minGemWd:n});logA(`💎 ${u.name} set the minimum gem withdrawal to ${n?fm(n)+' gems':'none'}`)}
+  else if(a==='admwlsys'){await putCfg({...CFGC,wlOff:b.on?0:1});logA(`🔒 ${u.name} turned the wager-lock system ${b.on?'ON':'OFF'} (all codes${b.on?'':', existing and new'})`)}
   else if(a==='admlogin'){const t=findUser(b.user);if(MODE!=='mm2')E('Login-as must run from the main site');
    if(ADMINS.includes(t.id)&&t.id!==u.id)E('Cannot log in as another admin');
    const s2=crypto.randomBytes(24).toString('hex');db.sessions[s2]=t.id;
@@ -904,6 +977,7 @@ async function handle(a,b,sid,H){
    logA(`🛠️ ${u.name} logged in as ${t.name} (admin login-as)`)}
   else if(a==='admlist'){return{list:Object.values(db.users).map(x=>({id:x.id,name:x.name,avatar:x.avatar,tokens:Math.floor(x.tokens||0),invValue:Math.floor(invVal(x)),wagered:Math.floor(x.wagered||0),lastSeen:x.lastSeen||0})).sort((x,y)=>y.lastSeen-x.lastSeen).slice(0,500)}}
   else if(a==='admplayer'){const t=findUser(b.user),p=admPlayer(t,isOwner(u.id)),bn=(await getBans())[t.id];p.owner=isOwner(t.id);p.admin=ADMINS.includes(t.id);p.noip=!t.dev;p.ban=bn?{reason:bn.reason||'',adm:!!bn.adm}:null;return{p}}
+  else if(a==='admcancelcb'){const g=cbDb().open.find(x=>x.id===+b.id)||E('Battle not found');cbRefund(g);logA(`🛠️ ${u.name} cancelled case battle #${g.id} (refunded)`)}
   else if(a==='admcancelbj'){const t=findUser(b.user);if(t.bj&&!t.bj.done){t.tokens+=t.bj.bet;t.bj=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s blackjack hand (refunded)`)}
   else if(a==='admcancelcf'){const g=db.cf.open.find(x=>x.id===+b.id)||E('Coinflip not found');const o=db.users[g.c.id];if(o){for(const[k,q]of Object.entries(g.items))add(o.inv,k,q);o.tokens+=g.tokens||0}db.cf.open=db.cf.open.filter(x=>x!==g);logA(`🛠️ ${u.name} cancelled coinflip #${g.id} (refunded)`)}
   else if(a==='admkick'){const t=findUser(b.user);let n=0;if(MODE==='mm2')for(const k of Object.keys(db.sessions))if(db.sessions[k]===t.id){delete db.sessions[k];n++}logA(`🛠️ ${u.name} force-logged-out ${t.name} (${n} sessions)`)}
@@ -911,8 +985,8 @@ async function handle(a,b,sid,H){
   else if(a==='admcanceltw'){const t=findUser(b.user);if(t.tw){t.tokens+=t.tw.bet;t.tw=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s towers game`)}
   else if(a==='admcanceljp'){jpRefund();logA(`🛠️ ${u.name} cancelled the jackpot (refunded)`)}
   else if(a==='admcancelmines'){const t=findUser(b.user);if(t.mines){t.tokens+=t.mines.bet;t.mines=null}logA(`🛠️ ${u.name} cancelled ${t.name}'s mines game`)}
-  else if(a==='admwd'){const w=db.wd.find(x=>x.id===b.id&&x.status==='pending')||E('Not found');
-   if(b.ok){w.status='approved'}else{w.status='rejected';add(db.users[w.uid].inv,w.item,w.qty)}log(`📤 ${u.name} ${w.status} withdrawal ${w.qty}x ${w.item} for ${w.name}`);hk('withdrawals',{title:'Withdrawal '+w.status,color:w.status==='approved'?0x22c55e:0xef4444,desc:`${md(w.name)} · ${w.qty}× ${nm(w.item)}\nHandled by ${ulink(u)}`})}
+  else if(a==='admwd'){const w=db.wd.find(x=>x.id===b.id&&x.status==='pending')||E('Not found'),wwhat=w.gems?fm(w.gems)+' gems':w.qty+'x '+w.item,wwhatN=w.gems?'💎 '+fm(w.gems)+' gems':w.qty+'× '+nm(w.item);
+   if(b.ok){w.status='approved'}else{w.status='rejected';const t=db.users[w.uid];if(t){if(w.gems)t.tokens=(t.tokens||0)+w.gems;else add(t.inv,w.item,w.qty)}}log(`📤 ${u.name} ${w.status} withdrawal ${wwhat} for ${w.name}`);hk('withdrawals',{title:'Withdrawal '+w.status,color:w.status==='approved'?0x22c55e:0xef4444,desc:`${md(w.name)} · ${wwhatN}\nHandled by ${ulink(u)}`})}
   else if(a==='admdp'){const w=db.dp.find(x=>x.id===b.id&&x.status==='pending')||E('Not found');
    const what=w.gems?fm(w.gems)+' gems':w.qty+'x '+w.item,whatN=w.gems?'💎 '+fm(w.gems)+' gems':w.qty+'× '+nm(w.item);
    if(b.ok){if(w.gems){const t=db.users[w.uid]||E('Player not found');t.tokens=(t.tokens||0)+w.gems;w.status='approved'}else{if(!I[w.item])E('Item no longer exists');const t=db.users[w.uid]||E('Player not found');add(t.inv,w.item,w.qty);w.status='approved'}}else w.status='rejected';
@@ -931,7 +1005,7 @@ async function handle(a,b,sid,H){
    db.cf.recent=db.cf.recent.filter(g=>!bad(g.cItems)&&!bad(g.jItems)&&!(lim&&g.cValue+g.jValue>lim));
    if(Object.values(jp.players).some(p=>bad(p.items)||(lim&&p.value>lim))){jp.players={};jp.end=0;purged++}
    if(jp.last&&lim&&jp.last.total>lim)jp.last=null;
-   const wn=db.wd.length;db.wd=db.wd.filter(w=>I[w.item]);db.dp=db.dp.filter(w=>I[w.item]);purged+=wn-db.wd.length+co-db.cf.open.length;db.day=null;
+   const wn=db.wd.length;db.wd=db.wd.filter(w=>w.gems||I[w.item]);db.dp=db.dp.filter(w=>w.gems||I[w.item]);purged+=wn-db.wd.length+co-db.cf.open.length;db.day=null;
    logA(`🛠️ ${u.name} ran data repair (${purged} foreign entries removed, ${sus.length} suspicious players)`);return{ok:1,purged,sus}}
   else if(a==='admlbset'){const k=b.board;if(k!=='wagered'&&k!=='profit')E('Pick a board');const v=amt(b.value);if(!Number.isFinite(v))E('Invalid amount');
    const q=String(b.user??'').trim().slice(0,32);if(!q)E('Enter a player or a name');const x=db.lbx=db.lbx||{over:{},hide:{}};x.over=x.over||{};x.hide=x.hide||{};const ov=x.over[k]=x.over[k]||{};
@@ -987,11 +1061,11 @@ const run=async(req,res)=>{
  if(a==='dcback')return dcBack(req,res,sid);
  try{
   if(!URL_||!TOK)E('Database not configured (Upstash env vars missing)');
-  await syncAdmins();
+  await syncAdmins();await loadCfg();
   if(a==='start')out=await start(b);
   else if(a==='check')out=await check(b,H,req);
   else if(a==='pwlogin')out=await pwLogin(b,H,req);
-  else if(a==='admlist'||a==='admplayer'||a==='admbans'||a==='reflist'){await load();out=await handle(a,b,sid,H)}
+  else if(a==='admlist'||a==='admplayer'||a==='admbans'||a==='reflist'||a==='cbcases'){await load();out=await handle(a,b,sid,H)}
   else if(a==='lb'){await load();out=(jp.end&&Date.now()>=jp.end)?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='cxpoll'){await load();out=cxDue()?await mutate(()=>handle(a,b,sid,H)):await handle(a,b,sid,H)}
   else if(a==='state'){await load();const uid=db.sessions[sid];
